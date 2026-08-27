@@ -686,7 +686,8 @@
     /* Descenders (the tail on "g", "p") sit below the line box; a hair of extra
        line-height keeps the mask from slicing them flat. */
     line-height: 1.18;
-    transform: translateY(110%);
+    /* 115%, not 110% — a full mask, no top-of-glyph sliver before the beat. */
+    transform: translateY(115%);
   }
 
   [data-reveal='words'].reveal-armed.is-visible .rr-word > span {
@@ -719,12 +720,16 @@
     opacity: 1;
     transform: none;
     overflow: clip;
-    overflow-clip-margin: 0.4em;
+    /* Just enough to clear a descender on the SETTLED text; small enough that
+       translateY(120%) still parks the hidden slab fully outside it. 0.4em here
+       was the "half mask" bug — it opened the bottom edge so wide that a 115%
+       slab left a sliver of the next line showing before the reveal fired. */
+    overflow-clip-margin: 0.12em;
   }
 
   [data-reveal='up'].reveal-armed > * {
     display: block;
-    transform: translateY(115%);
+    transform: translateY(120%);
   }
 
   [data-reveal='up'].reveal-armed.is-visible > * {
@@ -1029,6 +1034,7 @@
   .rr-services {
     background-color: var(--color-surface);
   }
+
 
   .rr-services__viewport {
     overflow-x: auto;
