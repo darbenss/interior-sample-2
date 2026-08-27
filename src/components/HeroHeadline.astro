@@ -76,7 +76,7 @@ const { lines, class: className = '' } = Astro.props;
     /* Compositor-only: transform, nothing else. This animation cannot be
        starved by main-thread work the way the preloader's draw can. */
     transform: translateY(110%);
-    animation: rr-hero-line-in 1100ms var(--ease-intent, cubic-bezier(0.16, 1, 0.3, 1))
+    animation: rr-hero-line-in 1150ms var(--ease-soft, cubic-bezier(0.33, 1, 0.68, 1))
       calc(var(--rr-hero-start, 0ms) + var(--rr-i, 0) * 120ms) both;
   }
 

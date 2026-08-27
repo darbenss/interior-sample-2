@@ -151,6 +151,10 @@
 
   /* "Transitions should be slow and intentional" */
   --ease-intent: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Gentler cousin of --ease-intent: no overshoot-fast head, just an even
+     ease-out. Used by the scroll-reveal and hero-cascade animations so text
+     settles rather than snapping and drifting. */
+  --ease-soft: cubic-bezier(0.33, 1, 0.68, 1);
 }
 
 /* THE SMALL-PHONE OVERRIDE — narrower than the main ramp can reach on its own.
@@ -314,15 +318,15 @@
 @layer components {
   .reveal-armed {
     opacity: 0;
-    transform: translateY(24px);
+    transform: translateY(14px);
   }
 
   .reveal-armed.is-visible {
     opacity: 1;
     transform: none;
     transition:
-      opacity 1.1s var(--ease-intent),
-      transform 1.1s var(--ease-intent);
+      opacity 1.25s var(--ease-soft),
+      transform 1.25s var(--ease-soft);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -495,7 +499,7 @@
   .rr-enter {
     /* transform + opacity only: compositor-owned, so this cannot be starved by
        whatever the main thread is doing while the page hydrates behind it. */
-    animation: rr-enter-up 1000ms var(--ease-intent)
+    animation: rr-enter-up 1100ms var(--ease-soft)
       calc(var(--rr-enter-start, 0ms) + var(--rr-i, 0) * var(--rr-enter-step, 90ms)) both;
   }
 
@@ -511,7 +515,7 @@
   @keyframes rr-enter-up {
     from {
       opacity: 0;
-      transform: translateY(20px);
+      transform: translateY(12px);
     }
     to {
       opacity: 1;
@@ -571,14 +575,14 @@
 
 @layer components {
   [data-reveal='rise'].reveal-armed {
-    transform: translateY(40px) scale(1.04);
+    transform: translateY(22px) scale(1.025);
   }
 
   [data-reveal='rise'].reveal-armed.is-visible {
     transform: none;
     transition:
-      opacity 1.2s var(--ease-intent),
-      transform 1.5s var(--ease-intent);
+      opacity 1.3s var(--ease-soft),
+      transform 1.4s var(--ease-soft);
   }
 
   [data-reveal='wipe'].reveal-armed {
@@ -592,7 +596,7 @@
 
   [data-reveal='wipe'].reveal-armed.is-visible {
     clip-path: inset(0 -30% 0 0);
-    transition: clip-path 1.1s var(--ease-intent);
+    transition: clip-path 1.2s var(--ease-soft);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -640,7 +644,7 @@
 
   [data-reveal='mask'].reveal-armed.is-visible > :first-child {
     transform: none;
-    transition: transform 1.3s var(--ease-intent);
+    transition: transform 1.4s var(--ease-soft);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -1178,195 +1182,154 @@
     }
   }
 
-  .rr-work__plates {
-    display: flex;
-    flex-direction: column;
-    gap: 6rem;
-    margin-top: 5rem;
+  /* ------------------------------------------------------- SELECTED WORK GRID
+
+     Five projects on a twelve-column asymmetric grid. Each item declares only a
+     column span and a vertical drop; rows are left to auto-placement, and the
+     grid cursor never travelling backwards is what tiers them — a:1/5 b:7/12 on
+     row one, c:2/6 d:8/12 on row two, e:4/11 on row three. The drops are
+     `margin-top` (which adds to layout height, so the next row still flows)
+     rather than a transform, and they are the asymmetry: without them the tops
+     align in pairs, which is exactly what makes a grid read as a grid.
+
+     Below 48rem the whole thing is one full-width column in source order with
+     no drop — a broken grid needs two axes and a phone has one. The varied
+     aspect ratios are the half of the rhythm that survives the collapse. */
+  .rr-sel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3rem;
+    align-items: start;
+    margin-top: 4rem;
   }
 
   @media (width >= 48rem) {
-    .rr-work__plates {
-      gap: 10rem;
-      margin-top: 8rem;
+    .rr-sel {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 6rem var(--spacing-gutter);
+      margin-top: 7rem;
     }
   }
 
-  .rr-plate {
-    display: grid;
-    gap: 2rem;
-    width: 100%;
-    max-width: var(--container-max);
-    margin-inline: auto;
-    padding-inline: var(--spacing-margin-mobile);
+  .rr-sel__item {
+    display: block;
     text-decoration: none;
   }
 
-  @media (width >= 48rem) {
-    .rr-plate {
-      grid-template-columns: repeat(12, minmax(0, 1fr));
-      align-items: center;
-      gap: var(--spacing-gutter);
-      padding-inline: var(--spacing-gutter);
-    }
-
-    .rr-plate__frame {
-      grid-column: 1 / span 9;
-    }
-
-    .rr-plate__meta {
-      grid-column: 10 / span 3;
-    }
-
-    /* The middle plate mirrors. `grid-row: 1` is what stops the meta column
-       from being pushed to a second row when it is declared after the frame in
-       the DOM — the DOM order is fixed because the meta must follow the image
-       for a screen reader. */
-    .rr-plate--flip .rr-plate__frame {
-      grid-column: 4 / span 9;
-    }
-
-    .rr-plate--flip .rr-plate__meta {
-      grid-column: 1 / span 3;
-      grid-row: 1;
-    }
-  }
-
-  .rr-plate__frame {
+  /* The frame is what [data-reveal='mask'] clips; the <Image> is its only child
+     and is what rises. `clip`, never `hidden` — `hidden` would make this a
+     scroll container. */
+  .rr-sel__frame {
     position: relative;
-    aspect-ratio: 16 / 10;
-    /* clip, NOT hidden. The parallax below is a scroll-driven animation on a
-       descendant, and `hidden` here would make this its nearest scrollport —
-       a box that never scrolls, so the animation would sit at progress 0 and
-       the image would simply never move. */
+    aspect-ratio: var(--rr-sel-ratio, 3 / 2);
     overflow: clip;
   }
 
-  /* What the mask reveal moves. It is the frame's first child, which is the
-     contract [data-reveal='mask'] expects. */
-  .rr-plate__shutter {
+  .rr-sel__frame[data-shape='tall'] {
+    --rr-sel-ratio: 4 / 5;
+  }
+
+  .rr-sel__frame[data-shape='wide'] {
+    --rr-sel-ratio: 3 / 2;
+  }
+
+  .rr-sel__img {
     position: absolute;
     inset: 0;
-  }
-
-  /* Oversized and offset so the parallax drift can never expose an edge: the
-     image spans -10% to 110% of the frame, and ±6% of its own height is ±7.2%
-     of the frame, so the covered range is -17.2%..117.2% at the extremes. */
-  .rr-plate__img {
-    position: absolute;
-    left: 0;
-    top: -10%;
     width: 100%;
-    height: 120%;
+    height: 100%;
     object-fit: cover;
-    /* `scale`, not `transform` — see the hover note below. */
-    transition: scale 1200ms var(--ease-intent);
+    /* `scale`, not `transform` — nothing competes for it here today, but this
+       keeps step with the rest of the site so a parallax added later composes
+       rather than cancelling. */
+    transition: scale 1200ms var(--ease-soft);
   }
 
-  @supports (animation-timeline: view()) {
-    @media (prefers-reduced-motion: no-preference) {
-      .rr-plate__img {
-        animation-name: rr-plate-parallax;
-        animation-duration: auto;
-        animation-timing-function: linear;
-        animation-fill-mode: both;
-        /* Anonymous timeline: the subject is the image itself, measured
-           against the document. `cover` is the whole span during which any
-           part of it is on screen, which is the only sensible range for
-           parallax — anything narrower and the drift starts mid-view. */
-        animation-timeline: view();
-        animation-range: cover;
-      }
-    }
+  /* A thin editorial rule of type under the frame: name left, place right. */
+  .rr-sel__cap {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-top: 1.1rem;
   }
 
-  @keyframes rr-plate-parallax {
-    from {
-      transform: translateY(-6%);
-    }
-    to {
-      transform: translateY(6%);
-    }
-  }
-
-  .rr-plate__label {
-    position: absolute;
-    left: 1.25rem;
-    bottom: 1.25rem;
-    font-family: var(--font-body);
-    font-size: var(--text-label-caps);
-    line-height: var(--text-label-caps--line-height);
-    font-weight: var(--text-label-caps--font-weight);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--color-surface);
-    text-shadow: 0 1px 16px rgb(0 0 0 / 0.6);
-  }
-
-  .rr-plate__index {
-    display: block;
-    font-family: var(--font-body);
-    font-size: var(--text-label-caps);
-    font-weight: var(--text-label-caps--font-weight);
-    letter-spacing: 0.15em;
-    color: var(--color-brass);
-  }
-
-  .rr-plate__title {
-    margin-top: 0.85rem;
+  .rr-sel__title {
     font-family: var(--font-display);
-    /* The token itself is the ramp now — fluid below md, 32px above it — so
-       this stays in step with every text-headline-md on the site for free. */
     font-size: var(--text-headline-md);
-    line-height: 1.25;
+    line-height: 1.2;
     font-weight: 400;
     color: var(--color-surface);
-    transition: color 500ms var(--ease-intent);
+    transition: color 500ms var(--ease-soft);
   }
 
-  .rr-plate__where {
-    margin-top: 0.6rem;
+  .rr-sel__meta {
+    flex-shrink: 0;
     font-family: var(--font-body);
     font-size: var(--text-body-md);
     font-weight: 300;
-    color: rgb(255 255 255 / 0.55);
+    color: rgb(255 255 255 / 0.5);
   }
 
-  .rr-plate__cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-    margin-top: 1.5rem;
-    font-family: var(--font-body);
-    font-size: var(--text-label-caps);
-    font-weight: var(--text-label-caps--font-weight);
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: rgb(255 255 255 / 0.6);
-    transition: color 500ms var(--ease-intent);
-  }
+  @media (width >= 48rem) {
+    .rr-sel__item--a {
+      grid-column: 1 / span 5;
+    }
 
-  .rr-plate__cta svg {
-    transition: transform 700ms var(--ease-intent);
+    .rr-sel__item--b {
+      grid-column: 7 / span 6;
+      margin-top: 7rem;
+    }
+
+    .rr-sel__item--c {
+      grid-column: 2 / span 5;
+      margin-top: 12rem;
+    }
+
+    .rr-sel__item--d {
+      grid-column: 8 / span 5;
+      margin-top: 4rem;
+    }
+
+    .rr-sel__item--e {
+      grid-column: 4 / span 8;
+      margin-top: 9rem;
+    }
   }
 
   @media (hover: hover) {
-    /* `scale` rather than a `transform: scale()`. The image already has a
-       scroll-driven ANIMATION on `transform` for the parallax, and an
-       animation beats a transition on the same property outright — the hover
-       would simply never apply. `scale` is an independent property that
-       composes with `transform` instead of competing with it. */
-    .rr-plate:hover .rr-plate__img {
-      scale: 1.04;
+    .rr-sel__item:hover .rr-sel__img {
+      scale: 1.03;
     }
 
-    .rr-plate:hover .rr-plate__title,
-    .rr-plate:hover .rr-plate__cta {
+    .rr-sel__item:hover .rr-sel__title {
       color: var(--color-brass);
     }
+  }
 
-    .rr-plate:hover .rr-plate__cta svg {
-      transform: translate(2px, -2px);
+  /* -------------------------------------- THE CLOSING BAND, REVEALED FROM BEHIND
+
+     On desktop the CtaBand is pinned to the bottom of the viewport while the
+     opaque charcoal Selected-work section scrolls up over it, so "Where form
+     meets feeling" is uncovered from the top down rather than scrolled into.
+     Pure `position: sticky`, no script, no scroll listener. `.rr-work` takes a
+     stacking context above the band; it is already opaque so it occludes it
+     cleanly, and the Footer after the band provides the scroll room the sticky
+     needs to release.
+
+     Off below 48rem (the band's min-height can exceed a short viewport, which
+     would strand part of it while pinned) and off under reduced motion — both
+     fall back to ordinary flow. */
+  @media (width >= 48rem) and (prefers-reduced-motion: no-preference) {
+    .rr-work {
+      position: relative;
+      z-index: 1;
+    }
+
+    .rr-cta-reveal {
+      position: sticky;
+      bottom: 0;
+      z-index: 0;
     }
   }
 

@@ -6,14 +6,14 @@ import CtaBand from '@/components/CtaBand.astro';
 import HeroHeadline from '@/components/HeroHeadline.astro';
 import MaterialImage from '@/components/MaterialImage.astro';
 import WhatsAppButton from '@/components/WhatsAppButton.astro';
-import { site, categoryLabel } from '@/lib/site';
+import { site } from '@/lib/site';
 import { resolveImage, clampWidths, IMAGE_FORMAT, IMAGE_QUALITY } from '@/lib/images';
 import { TIMELINE } from '@/components/preloader/timeline';
 
 const featured = (await getCollection('projects'))
   .filter((p) => p.data.featured)
   .sort((a, b) => a.data.order - b.data.order)
-  .slice(0, 3);
+  .slice(0, 5);
 
 /* ------------------------------------------------------------- HERO PRELOAD
    The hero photograph is the LCP element on desktop, and without this the
@@ -248,31 +248,30 @@ const details = [
   },
 ];
 
-/* ---------------------------------------------------------- PLATE GEOMETRY
-   The three featured projects are rendered with bespoke markup rather than
-   through MaterialImage, for one specific reason: the parallax below is a
-   scroll-driven animation whose subject is the <img>, and a view() timeline
-   resolves against the img's NEAREST SCROLLPORT. MaterialImage's <figure>
-   carries `overflow: hidden`, which makes it a scroll container — the timeline
-   would then resolve against a box that never scrolls and the parallax would
-   sit frozen at progress 0 forever, looking exactly like a working page.
+/* ---------------------------------------------------------- SELECTED WORK
+   Five featured projects on a twelve-column asymmetric grid. Each slot fixes a
+   column span, an aspect ratio and a vertical drop (in global.css, keyed on
+   `--<key>`); rows fall out of auto-placement, so the count could change
+   without re-placing anything. Below 48rem every slot is one full-width column
+   in source order with no drop — a broken grid needs two axes and a phone has
+   one.
 
-   So the frame here uses `overflow: clip`, which clips without creating a
-   scroll container. Same reason .rr-services__viewport uses it. */
-const PLATE_SIZES = '(min-width: 1440px) 1030px, (min-width: 768px) 72vw, 100vw';
-const PLATE_WIDTHS = [640, 1030, 1440, 2060];
+   `sizes` is the painted width of each slot at >=1440px / >=768px / phone, so
+   the browser fetches a variant matched to what it renders rather than one a
+   generic "50vw" implies. `widths` are honest 1x/2x pairs around that number;
+   clampWidths() drops anything past the source. */
+const SEL_SLOTS = [
+  { key: 'a', shape: 'tall', sizes: '(min-width: 1440px) 600px, (min-width: 768px) 42vw, 100vw', widths: [440, 600, 880, 1200] },
+  { key: 'b', shape: 'wide', sizes: '(min-width: 1440px) 720px, (min-width: 768px) 50vw, 100vw', widths: [520, 720, 1040, 1440] },
+  { key: 'c', shape: 'tall', sizes: '(min-width: 1440px) 600px, (min-width: 768px) 42vw, 100vw', widths: [380, 600, 760, 1200] },
+  { key: 'd', shape: 'wide', sizes: '(min-width: 1440px) 600px, (min-width: 768px) 42vw, 100vw', widths: [440, 600, 880, 1200] },
+  { key: 'e', shape: 'wide', sizes: '(min-width: 1440px) 860px, (min-width: 768px) 66vw, 100vw', widths: [560, 860, 1200, 1720] },
+] as const;
 
-const plates = featured.map((project, i) => {
+const selected = featured.map((project, i) => {
+  const slot = SEL_SLOTS[i % SEL_SLOTS.length];
   const image = resolveImage(project.data.coverImage)!;
-  return {
-    project,
-    image,
-    widths: clampWidths(PLATE_WIDTHS, image.width),
-    /* Alternating alignment, and the meta column follows it. Index 1 is the
-       one that sits right; 0 and 2 sit left, so the section opens and closes
-       on the same edge. */
-    flip: i === 1,
-  };
+  return { project, image, slot, widths: clampWidths([...slot.widths], image.width) };
 });
 
 ---
@@ -947,58 +946,41 @@ const plates = featured.map((project, i) => {
       </div>
     </div>
 
-    {/* ------------------------------------------------------- THE PLATES */}
-    <div class="rr-work__plates">
-      {
-        plates.map(({ project, image, widths, flip }, i) => (
-          <a
-            href={`/portfolio/${project.id}`}
-            class:list={['rr-plate', flip && 'rr-plate--flip']}
-          >
-            {/* `overflow: clip` on the frame, never `hidden` — see the note in
-                the frontmatter. The shutter is what the reveal moves; the <img>
-                is what the parallax moves. Two elements, two properties, no
-                contest over `transform`. */}
-            <div class="rr-plate__frame" data-reveal="mask">
-              <div class="rr-plate__shutter">
+    {/* --------------------------------------------- SELECTED WORK, ASYMMETRIC
+        Five projects on a twelve-column grid. Each frame is `data-reveal="mask"`
+        — its first and only child, the <Image>, rises out of a clipped box —
+        and carries `overflow: clip`, never `hidden`, so it never becomes a
+        scroll container. The caption is a thin editorial rule of type under the
+        frame: name left, place right. Slots, spans and drops are in global.css. */}
+    <div class="shell">
+      <div class="rr-sel">
+        {
+          selected.map(({ project, image, slot, widths }) => (
+            <a
+              href={`/portfolio/${project.id}`}
+              class={`rr-sel__item rr-sel__item--${slot.key}`}
+            >
+              <div class="rr-sel__frame" data-shape={slot.shape} data-reveal="mask">
                 <Image
-                  class="rr-plate__img"
+                  class="rr-sel__img"
                   src={image}
                   alt={project.data.coverAlt}
                   widths={widths}
-                  sizes={PLATE_SIZES}
+                  sizes={slot.sizes}
                   format={IMAGE_FORMAT}
                   quality={IMAGE_QUALITY}
                   loading="lazy"
                   decoding="async"
                 />
-
-                {/* INSIDE the shutter, not beside it. The mask variant moves
-                    the frame's first child, so a label left as a sibling would
-                    sit at full opacity over an empty box for the 1.3s the
-                    photograph takes to rise in behind it. Absolutely positioned
-                    against inset:0 either way, so the resting position is
-                    identical — it just travels with its own image now. */}
-                <span class="rr-plate__label">{project.data.materialLabel}</span>
               </div>
-            </div>
-
-            <div class="rr-plate__meta">
-              <span class="rr-plate__index">{String(i + 1).padStart(2, '0')}</span>
-              <h3 class="rr-plate__title">{project.data.title}</h3>
-              <p class="rr-plate__where">
-                {categoryLabel[project.data.category]} &middot; {project.data.location}
-              </p>
-              <span class="rr-plate__cta" aria-hidden="true">
-                View case study
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25">
-                  <path d="M7 17L17 7M17 7H8M17 7v9" />
-                </svg>
-              </span>
-            </div>
-          </a>
-        ))
-      }
+              <div class="rr-sel__cap">
+                <span class="rr-sel__title">{project.data.title}</span>
+                <span class="rr-sel__meta">{project.data.location}</span>
+              </div>
+            </a>
+          ))
+        }
+      </div>
     </div>
 
     {/* ------------------------------------------------------- THE DETAILS */}
@@ -1033,10 +1015,15 @@ const plates = featured.map((project, i) => {
     </div>
   </section>
 
-  <CtaBand
-    ctaId="home-footer"
-    ctaLocation="home-cta-band"
-    backgroundImage="/src/assets/images/home/home-02.jpg"
-    backgroundAlt=""
-  />
+  {/* The closing band is revealed from BEHIND the Selected-work section on
+      desktop — see .rr-cta-reveal in global.css. The wrapper is the sticky
+      element; CtaBand stays a plain <section>. */}
+  <div class="rr-cta-reveal">
+    <CtaBand
+      ctaId="home-footer"
+      ctaLocation="home-cta-band"
+      backgroundImage="/src/assets/images/home/home-02.jpg"
+      backgroundAlt=""
+    />
+  </div>
 </BaseLayout>
