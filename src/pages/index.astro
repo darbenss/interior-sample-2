@@ -642,37 +642,6 @@ const selected = featured.map((project, i) => {
       }
     </div>
 
-    {/* The hand-off. The Services intro, as an alabaster panel after the
-        scenes: the stage stays pinned on the last photograph while this rises
-        up the viewport and covers it, so the reader lands on "Three ways we
-        take on a space" the instant the photo is gone — no white frame between.
-        On desktop this paints over the still-pinned stage; everywhere else it
-        is just the section's opening block in normal flow. The rail below
-        starts at panel one because its title lives here now. */}
-    <div class="rr-scrolly__handoff">
-      <div class="shell">
-        <p class="font-body text-label-caps uppercase tracking-[0.15em] text-brass-deep">
-          What We Do
-        </p>
-        <h2
-          id="services-heading"
-          class="mt-8 max-w-3xl font-display text-headline-lg text-on-surface"
-        >
-          Three ways we take on a space.
-        </h2>
-        <p class="mt-6 max-w-2xl font-body text-body-lg font-light text-on-surface-variant">
-          Most projects use all three. Some need only one. We will tell you
-          which before you ask.
-        </p>
-        <a
-          href="/expertise"
-          class="mt-10 inline-flex items-center gap-3 font-body text-label-caps uppercase tracking-[0.15em] text-on-surface no-underline transition-colors duration-500 hover:text-brass-deep"
-        >
-          Full expertise
-          <span aria-hidden="true">&rarr;</span>
-        </a>
-      </div>
-    </div>
   </section>
 
   <script>
@@ -760,11 +729,43 @@ const selected = featured.map((project, i) => {
       </div>
 
       <div class="rr-services__rail">
-        {/* The section title used to be panel zero here. It now lives in
-            .rr-scrolly__handoff, the panel that covers the last philosophy
-            photograph — so the reader has already read it by the time the rail
-            pins, and it still leaves the screen as they move through the work.
-            The rail starts at the first service. */}
+        {/* Panel zero is the section's own title, riding the rail with the
+            others. It is what stops the rail from starting mid-thought, and it
+            means the heading leaves the screen as the reader moves through the
+            services rather than sitting there being ignored. */}
+        <div class="rr-services__panel rr-services__panel--intro">
+          <p
+            class="font-body text-label-caps uppercase tracking-[0.15em] text-brass-deep"
+            data-reveal="wipe"
+          >
+            What We Do
+          </p>
+          <h2
+            id="services-heading"
+            class="mt-8 font-display text-headline-lg text-on-surface"
+            data-reveal="up"
+          >
+            <span>Three ways we take on a space.</span>
+          </h2>
+          <p
+            class="mt-6 font-body text-body-lg font-light text-on-surface-variant"
+            data-reveal="up"
+            data-reveal-delay="90"
+          >
+            <span>Most projects use all three. Some need only one. We will tell
+            you which before you ask.</span>
+          </p>
+          <a
+            href="/expertise"
+            class="mt-10 inline-flex items-center gap-3 font-body text-label-caps uppercase tracking-[0.15em] text-on-surface no-underline transition-colors duration-500 hover:text-brass-deep"
+            data-reveal
+            data-reveal-delay="180"
+          >
+            Full expertise
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+        </div>
+
         {
           services.map((service) => (
             <article class="rr-services__panel">

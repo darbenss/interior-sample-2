@@ -919,36 +919,6 @@
     padding-bottom: 24svh;
   }
 
-  /* --------------------------------------------------------- THE HAND-OFF
-
-     The Services intro ("Three ways we take on a space"), as an alabaster panel
-     after the scenes. `position: relative` so it paints over the still-pinned
-     stage, exactly like .rr-scrolly__scenes above.
-
-     On desktop it is a full viewport tall, so it extends the pin and rises up
-     the screen covering the last photograph — and because it CARRIES the
-     heading, the reader lands on "Three ways" the instant the photo is gone.
-     No white frame: the thing doing the covering is the next section's own
-     opening, not a blank panel. The rail that follows starts at panel one.
-
-     Below 48rem / under reduced motion it is just the section's intro block in
-     normal flow. */
-  .rr-scrolly__handoff {
-    position: relative;
-    background-color: var(--color-surface);
-    padding-block: var(--spacing-section-gap);
-  }
-
-  @media (width >= 48rem) and (prefers-reduced-motion: no-preference) {
-    .rr-scrolly__handoff {
-      min-height: 100svh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding-block: 0;
-    }
-  }
-
   .rr-scrolly__scene {
     display: flex;
     align-items: center;
@@ -1106,15 +1076,19 @@
       object-position: center 35%;
     }
 
+    /* The photograph is clearest at the TOP — that is the seam with the dark
+       philosophy stage, and letting it read there is what stops the hand-off
+       from flashing white. It washes out toward the middle, where the rail's
+       heading and panels sit, and lifts again at the foot. */
     .rr-services--rail .rr-services__bg::after {
       content: '';
       position: absolute;
       inset: 0;
       background: linear-gradient(
         to bottom,
-        var(--color-surface) 0%,
-        color-mix(in srgb, var(--color-surface) 94%, transparent) 26%,
-        color-mix(in srgb, var(--color-surface) 82%, transparent) 62%,
+        color-mix(in srgb, var(--color-surface) 58%, transparent) 0%,
+        color-mix(in srgb, var(--color-surface) 84%, transparent) 40%,
+        color-mix(in srgb, var(--color-surface) 78%, transparent) 70%,
         color-mix(in srgb, var(--color-surface) 90%, transparent) 100%
       );
     }
