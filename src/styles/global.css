@@ -1319,8 +1319,19 @@
 
      Off below 48rem (the band's min-height can exceed a short viewport, which
      would strand part of it while pinned) and off under reduced motion — both
-     fall back to ordinary flow. */
+     fall back to ordinary flow.
+
+     .rr-work-scope IS LOAD-BEARING: it is the sticky element's containing
+     block. Without it the containing block is the page-tall main element, so
+     `bottom: 0` pins the band to the viewport bottom from the top of the page
+     and it floats over the hero. Clamped to this wrapper, the stick only
+     engages while Selected Work is scrolling past. */
   @media (width >= 48rem) and (prefers-reduced-motion: no-preference) {
+    .rr-work-scope {
+      position: relative;
+      isolation: isolate;
+    }
+
     .rr-work {
       position: relative;
       z-index: 1;

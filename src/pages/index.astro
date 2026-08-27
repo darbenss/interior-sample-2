@@ -920,6 +920,13 @@ const selected = featured.map((project, i) => {
       three-up. The asymmetric slot grid that used to be here still exists in
       global.css and is still used by /portfolio, where a filterable set of
       twenty projects genuinely needs it. */}
+  {/* Selected Work and the closing band share this wrapper so the band's
+      sticky reveal is SCOPED to it. A bare `position: sticky; bottom: 0` on
+      .rr-cta-reveal takes <main> as its containing block and pins to the
+      viewport bottom from the very top of the page — "Where form meets
+      feeling" then floats over the hero. Clamped to this wrapper, the sticky
+      only engages once the Selected Work section is scrolling past. */}
+  <div class="rr-work-scope">
   <section class="rr-work" aria-labelledby="work-heading">
     <div class="shell">
       <div class="grid gap-8 md:grid-cols-12 md:gap-gutter">
@@ -1015,15 +1022,16 @@ const selected = featured.map((project, i) => {
     </div>
   </section>
 
-  {/* The closing band is revealed from BEHIND the Selected-work section on
-      desktop — see .rr-cta-reveal in global.css. The wrapper is the sticky
-      element; CtaBand stays a plain <section>. */}
-  <div class="rr-cta-reveal">
-    <CtaBand
-      ctaId="home-footer"
-      ctaLocation="home-cta-band"
-      backgroundImage="/src/assets/images/home/home-02.jpg"
-      backgroundAlt=""
-    />
+    {/* Revealed from BEHIND .rr-work on desktop — see .rr-cta-reveal in
+        global.css. This <div> is the sticky element; CtaBand stays a plain
+        <section>. */}
+    <div class="rr-cta-reveal">
+      <CtaBand
+        ctaId="home-footer"
+        ctaLocation="home-cta-band"
+        backgroundImage="/src/assets/images/home/home-02.jpg"
+        backgroundAlt=""
+      />
+    </div>
   </div>
 </BaseLayout>
