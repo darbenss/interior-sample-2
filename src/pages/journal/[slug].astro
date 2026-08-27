@@ -56,7 +56,10 @@ const jsonLd = {
         &larr; All Essays
       </a>
 
-      <p class="mt-14 font-body text-label-caps uppercase tracking-[0.15em] text-brass-deep">
+      <p
+        class="mt-14 font-body text-label-caps uppercase tracking-[0.15em] text-brass-deep"
+        data-reveal="wipe"
+      >
         {categoryLabels[data.category]}
         <span class="text-on-surface-variant">
           {' '}/ <time datetime={data.publishedAt.toISOString()}>
@@ -73,6 +76,8 @@ const jsonLd = {
         </span>
       </p>
 
+      {/* Not revealed: this is the LCP element on an article page and ships
+          settled in the raw HTML, same call as portfolio/[slug]. */}
       <h1 class="mt-8 max-w-4xl font-display text-display-lg text-on-surface">
         {data.title}
       </h1>

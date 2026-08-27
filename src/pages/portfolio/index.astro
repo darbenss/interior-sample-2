@@ -58,13 +58,17 @@ const SLOT_SIZES: Record<(typeof SLOTS)[number], string> = {
   description="A curated exhibition of our most definitive spatial narratives — residential, commercial and hospitality interiors by Ruang Rasa."
 >
   <section class="shell pt-16 md:pt-24">
-    <h1 class="max-w-4xl font-display text-display-lg text-on-surface">
-      Selected Portfolio
+    <h1 class="max-w-4xl font-display text-display-lg text-on-surface" data-reveal="up">
+      <span>Selected Portfolio</span>
     </h1>
-    <p class="mt-10 max-w-2xl font-body text-body-lg font-light text-on-surface-variant">
-      A curated exhibition of our most definitive spatial narratives. Each
+    <p
+      class="mt-10 max-w-2xl font-body text-body-lg font-light text-on-surface-variant"
+      data-reveal="up"
+      data-reveal-delay="90"
+    >
+      <span>A curated exhibition of our most definitive spatial narratives. Each
       project is documented in photographs — the constraints, the approach, and
-      the space they produced.
+      the space they produced.</span>
     </p>
 
     {/*

@@ -16,15 +16,26 @@ const waHref = buildWhatsAppUrl({
   noIndex={true}
 >
   <section class="shell flex min-h-[60vh] flex-col justify-center py-32">
-    <p class="font-body text-label-caps uppercase tracking-[0.15em] text-brass-deep">
+    <p
+      class="font-body text-label-caps uppercase tracking-[0.15em] text-brass-deep"
+      data-reveal="wipe"
+    >
       404
     </p>
-    <h1 class="mt-8 max-w-4xl font-display text-display-lg text-on-surface">
-      This space does not exist.
+    <h1
+      class="mt-8 max-w-4xl font-display text-display-lg text-on-surface"
+      data-reveal="up"
+      data-reveal-delay="90"
+    >
+      <span>This space does not exist.</span>
     </h1>
-    <p class="mt-10 max-w-xl font-body text-body-lg font-light text-on-surface-variant">
-      The page you were looking for has moved or was never here. The portfolio
-      is a good place to start again.
+    <p
+      class="mt-10 max-w-xl font-body text-body-lg font-light text-on-surface-variant"
+      data-reveal="up"
+      data-reveal-delay="180"
+    >
+      <span>The page you were looking for has moved or was never here. The
+      portfolio is a good place to start again.</span>
     </p>
 
     <div class="mt-14 flex flex-wrap gap-6">

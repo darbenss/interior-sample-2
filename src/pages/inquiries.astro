@@ -17,8 +17,8 @@ const waHref = buildWhatsAppUrl({
   description="Start a conversation with Ruang Rasa about your next space. Reach the studio directly on WhatsApp."
 >
   <section class="shell pt-16 md:pt-24">
-    <h1 class="max-w-4xl font-display text-display-lg text-on-surface">
-      Let us discuss your next space.
+    <h1 class="max-w-4xl font-display text-display-lg text-on-surface" data-reveal="up">
+      <span>Let us discuss your next space.</span>
     </h1>
   </section>
 
@@ -38,13 +38,17 @@ const waHref = buildWhatsAppUrl({
       </div>
 
       <aside class="md:col-span-5 md:col-start-8">
-        <h2 class="font-display text-headline-lg text-on-surface">
-          Start a Conversation.
+        <h2 class="font-display text-headline-lg text-on-surface" data-reveal="up">
+          <span>Start a Conversation.</span>
         </h2>
 
-        <p class="mt-8 font-body text-body-lg font-light text-on-surface-variant">
-          The fastest route to the studio is WhatsApp. We read every message
-          ourselves and usually reply the same working day.
+        <p
+          class="mt-8 font-body text-body-lg font-light text-on-surface-variant"
+          data-reveal="up"
+          data-reveal-delay="90"
+        >
+          <span>The fastest route to the studio is WhatsApp. We read every
+          message ourselves and usually reply the same working day.</span>
         </p>
 
         <a

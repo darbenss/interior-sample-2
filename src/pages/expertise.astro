@@ -57,12 +57,17 @@ const testimonials = [
   description="Mastering the intersection of form and function. Design and build, custom furnishings and interior styling by Ruang Rasa."
 >
   <section class="shell pt-16 md:pt-24">
-    <h1 class="max-w-4xl font-display text-display-lg text-on-surface">
-      Our Expertise
+    <h1 class="max-w-4xl font-display text-display-lg text-on-surface" data-reveal="up">
+      <span>Our Expertise</span>
     </h1>
-    <p class="mt-10 max-w-2xl font-body text-body-lg font-light text-on-surface-variant">
-      Mastering the intersection of form and function. We craft environments
-      that are structurally intelligent and profoundly beautiful.
+    <p
+      class="mt-10 max-w-2xl font-body text-body-lg font-light text-on-surface-variant"
+      data-reveal="up"
+      data-reveal-delay="90"
+    >
+      <span>Mastering the intersection of form and function. We craft
+      environments that are structurally intelligent and profoundly
+      beautiful.</span>
     </p>
   </section>
 
@@ -74,9 +79,11 @@ const testimonials = [
             class={`grid items-center gap-12 md:grid-cols-12 md:gap-gutter ${
               i % 2 === 1 ? 'md:[&>figure]:order-2' : ''
             }`}
-            data-reveal
           >
-            <div class={i % 2 === 1 ? 'md:col-span-6 md:col-start-7' : 'md:col-span-6'}>
+            <div
+              class={i % 2 === 1 ? 'md:col-span-6 md:col-start-7' : 'md:col-span-6'}
+              data-reveal="rise"
+            >
               <MaterialImage
                 src={service.image}
                 alt={service.alt}
@@ -98,11 +105,15 @@ const testimonials = [
                 {service.index}
               </span>
               <span class="mt-6 block h-px w-16 bg-brass" aria-hidden="true" />
-              <h2 class="mt-8 font-display text-headline-lg text-on-surface">
-                {service.title}
+              <h2 class="mt-8 font-display text-headline-lg text-on-surface" data-reveal="up">
+                <span>{service.title}</span>
               </h2>
-              <p class="mt-6 font-body text-body-lg font-light text-on-surface-variant">
-                {service.body}
+              <p
+                class="mt-6 font-body text-body-lg font-light text-on-surface-variant"
+                data-reveal="up"
+                data-reveal-delay="90"
+              >
+                <span>{service.body}</span>
               </p>
             </div>
           </article>
@@ -114,14 +125,16 @@ const testimonials = [
   {/* -------------------------------------------------------- TESTIMONIALS */}
   <section class="section-gap bg-surface-container-low">
     <div class="shell">
-      <h2 class="font-display text-headline-lg text-on-surface" data-reveal>
-        Client Perspectives
+      <h2 class="font-display text-headline-lg text-on-surface" data-reveal="up">
+        <span>Client Perspectives</span>
       </h2>
       <p
         class="mt-6 font-body text-body-lg font-light text-on-surface-variant"
-        data-reveal
+        data-reveal="up"
+        data-reveal-delay="90"
       >
-        Reflections on our collaborative process and the resulting spaces.
+        <span>Reflections on our collaborative process and the resulting
+        spaces.</span>
       </p>
 
       <div class="mt-20 grid gap-gutter md:grid-cols-2">

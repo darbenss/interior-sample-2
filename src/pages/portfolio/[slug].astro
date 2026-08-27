@@ -118,18 +118,26 @@ const jsonLd = {
         &larr; All Projects
       </a>
 
-      <p class="mt-14 font-body text-label-caps uppercase tracking-[0.15em] text-on-surface-variant">
+      <p
+        class="mt-14 font-body text-label-caps uppercase tracking-[0.15em] text-on-surface-variant"
+        data-reveal="wipe"
+      >
         {categoryLabel[data.category]} / {data.location} / {data.year}
       </p>
 
       {/* Rendered settled — no opacity:0 waiting on JS. The single most
-          important element on the page is present in the raw HTML. */}
+          important element on the page is the LCP element and is present in the
+          raw HTML, so it is deliberately NOT on the reveal system. */}
       <h1 class="mt-8 max-w-4xl font-display text-display-lg text-on-surface">
         {data.title}
       </h1>
 
-      <p class="mt-10 max-w-2xl font-body text-body-lg font-light text-on-surface-variant">
-        {data.summary}
+      <p
+        class="mt-10 max-w-2xl font-body text-body-lg font-light text-on-surface-variant"
+        data-reveal="up"
+        data-reveal-delay="90"
+      >
+        <span>{data.summary}</span>
       </p>
     </header>
 

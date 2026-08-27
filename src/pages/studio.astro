@@ -9,12 +9,16 @@ import CtaBand from '@/components/CtaBand.astro';
   description="Cultivating spatial silence and architectural precision. A sanctuary for design rooted in deep cultural context and modern restraint."
 >
   <section class="shell pt-16 md:pt-24">
-    <h1 class="max-w-4xl font-display text-display-lg text-on-surface">
-      The Studio
+    <h1 class="max-w-4xl font-display text-display-lg text-on-surface" data-reveal="up">
+      <span>The Studio</span>
     </h1>
-    <p class="mt-10 max-w-2xl font-body text-body-lg font-light text-on-surface-variant">
-      Cultivating spatial silence and architectural precision. A sanctuary for
-      design rooted in deep cultural context and modern restraint.
+    <p
+      class="mt-10 max-w-2xl font-body text-body-lg font-light text-on-surface-variant"
+      data-reveal="up"
+      data-reveal-delay="90"
+    >
+      <span>Cultivating spatial silence and architectural precision. A sanctuary
+      for design rooted in deep cultural context and modern restraint.</span>
     </p>
   </section>
 
@@ -36,9 +40,9 @@ import CtaBand from '@/components/CtaBand.astro';
     <div class="shell grid gap-12 md:grid-cols-12 md:gap-gutter">
       <h2
         class="font-display text-headline-lg text-on-surface md:col-span-4"
-        data-reveal
+        data-reveal="up"
       >
-        Origins
+        <span>Origins</span>
       </h2>
 
       <div class="md:col-span-7 md:col-start-6" data-reveal data-reveal-delay="80">

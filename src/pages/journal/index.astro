@@ -33,11 +33,16 @@ const categoryLabels: Record<string, string> = {
   description="Explorations in material, light, and the quiet spaces in between — essays from the Ruang Rasa studio."
 >
   <section class="shell pt-16 md:pt-24">
-    <h1 class="max-w-4xl font-display text-display-lg text-on-surface">
-      Design Journal
+    <h1 class="max-w-4xl font-display text-display-lg text-on-surface" data-reveal="up">
+      <span>Design Journal</span>
     </h1>
-    <p class="mt-10 max-w-2xl font-body text-body-lg font-light text-on-surface-variant">
-      Explorations in material, light, and the quiet spaces in between.
+    <p
+      class="mt-10 max-w-2xl font-body text-body-lg font-light text-on-surface-variant"
+      data-reveal="up"
+      data-reveal-delay="90"
+    >
+      <span>Explorations in material, light, and the quiet spaces in
+      between.</span>
     </p>
   </section>
 
@@ -82,8 +87,8 @@ const categoryLabels: Record<string, string> = {
   <section class="section-gap">
     <div class="shell">
       <div class="flex items-end justify-between border-b border-outline-variant/60 pb-6">
-        <h2 class="font-display text-headline-md text-on-surface">
-          Recent Essays
+        <h2 class="font-display text-headline-md text-on-surface" data-reveal="up">
+          <span>Recent Essays</span>
         </h2>
         <p class="font-body text-label-caps uppercase tracking-[0.15em] text-on-surface-variant">
           {String(rest.length).padStart(2, '0')} Entries
