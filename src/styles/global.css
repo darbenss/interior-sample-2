@@ -657,6 +657,54 @@
 }
 
 /* ===========================================================================
+   WORDS REVEAL — the fifth `data-reveal` variant
+
+   For a heading only: each word is its own mask (`.rr-word` inline-block with
+   `overflow: hidden`) and the inner span rises from below its own baseline, one
+   after another. Everything else on the page reveals as a whole block; this is
+   the treatment reserved for the two lines that carry the site's voice
+   ("Crafting Spaces That Inspire", "Where form meets feeling").
+
+   The container is un-hidden the moment it is armed (opacity/transform reset) —
+   what animates is per-word, driven by `--rr-w` (the word's index) as a
+   `transition-delay`. Transform only, so it is compositor-owned.
+   =========================================================================== */
+@layer components {
+  [data-reveal='words'].reveal-armed {
+    opacity: 1;
+    transform: none;
+  }
+
+  [data-reveal='words'].reveal-armed .rr-word {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+  }
+
+  [data-reveal='words'].reveal-armed .rr-word > span {
+    display: inline-block;
+    /* Descenders (the tail on "g", "p") sit below the line box; a hair of extra
+       line-height keeps the mask from slicing them flat. */
+    line-height: 1.18;
+    transform: translateY(110%);
+  }
+
+  [data-reveal='words'].reveal-armed.is-visible .rr-word > span {
+    transform: none;
+    transition: transform 0.85s var(--ease-soft);
+    transition-delay: calc(var(--rr-w, 0) * 70ms);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-reveal='words'].reveal-armed .rr-word > span,
+    [data-reveal='words'].reveal-armed.is-visible .rr-word > span {
+      transform: none;
+      transition: none;
+    }
+  }
+}
+
+/* ===========================================================================
    OUR PHILOSOPHY — the scrollytelling stage
 
    One sticky photographic stage, three blocks of type scrolling over it, the
@@ -1241,8 +1289,11 @@
     object-fit: cover;
     /* `scale`, not `transform` — nothing competes for it here today, but this
        keeps step with the rest of the site so a parallax added later composes
-       rather than cancelling. */
-    transition: scale 1200ms var(--ease-soft);
+       rather than cancelling. A short, even easing (no fast head like
+       --ease-soft) plus a promoted layer is what keeps the zoom from feeling
+       stepped on a large cover image. */
+    backface-visibility: hidden;
+    transition: scale 650ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   /* A thin editorial rule of type under the frame: name left, place right. */
@@ -1260,7 +1311,7 @@
     line-height: 1.2;
     font-weight: 400;
     color: var(--color-surface);
-    transition: color 500ms var(--ease-soft);
+    transition: color 650ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .rr-sel__meta {
@@ -1299,7 +1350,10 @@
 
   @media (hover: hover) {
     .rr-sel__item:hover .rr-sel__img {
-      scale: 1.03;
+      scale: 1.04;
+      /* Promote only while the pointer is on it — five standing layers would
+         be real memory on the devices least able to spare it. */
+      will-change: transform;
     }
 
     .rr-sel__item:hover .rr-sel__title {
@@ -1342,6 +1396,157 @@
       bottom: 0;
       z-index: 0;
     }
+  }
+
+  /* ------------------------------------------------ SCROLL WIPES (clip-path)
+
+     Two scroll-driven wipes, both animating `clip-path` only — no layout, no
+     script. Keyed to each element's own view() timeline: the hero clips away
+     from the bottom as it exits the top, the closing band clips in from the
+     top as it enters from below (riding the sticky above). `@supports` +
+     desktop + no-preference: mobile, reduced motion and engines without
+     scroll-driven animation get plain native scroll with nothing clipped, and
+     the existing Lenis instance is untouched either way. */
+  @supports (animation-timeline: view()) {
+    @media (width >= 48rem) and (prefers-reduced-motion: no-preference) {
+      .rr-hero {
+        animation: rr-wipe-hero-out linear both;
+        animation-timeline: view();
+        animation-range: exit 0% exit 100%;
+      }
+
+      .rr-cta-reveal > section {
+        animation: rr-wipe-cta-in linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 90%;
+      }
+    }
+  }
+
+  @keyframes rr-wipe-hero-out {
+    from {
+      clip-path: inset(0 0 0 0);
+    }
+    to {
+      clip-path: inset(0 0 100% 0);
+    }
+  }
+
+  @keyframes rr-wipe-cta-in {
+    from {
+      clip-path: inset(0 0 100% 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+
+  /* ===================================================== FOOTER — OVERSIZED TYPE
+
+     A quiet top section (nav / contact / social, small and widely spaced) over
+     a full-width setting of the studio name. `vw` sizing on the name so it
+     tracks the viewport; the clamp caps it on ultrawide and keeps it readable
+     on a phone. `overflow: clip` on the footer catches any sub-pixel tracking
+     spill so it can never open a horizontal scrollbar. No rules, no borders —
+     the size jump does the separating. */
+  .rr-footer {
+    background-color: var(--color-charcoal);
+    color: var(--color-surface);
+    overflow: clip;
+  }
+
+  .rr-footer__top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3.5rem;
+    padding-block: 6rem 4rem;
+  }
+
+  @media (width >= 48rem) {
+    .rr-footer__top {
+      grid-template-columns: 1.6fr 1fr 1fr;
+      column-gap: var(--spacing-gutter);
+      row-gap: 5rem;
+      padding-block: 9rem 6rem;
+    }
+  }
+
+  .rr-footer__label {
+    font-family: var(--font-body);
+    font-size: var(--text-label-caps);
+    font-weight: var(--text-label-caps--font-weight);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color-brass);
+  }
+
+  .rr-footer__list {
+    margin-top: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  .rr-footer__link {
+    font-family: var(--font-body);
+    font-size: var(--text-body-md);
+    font-weight: 300;
+    color: rgb(255 255 255 / 0.65);
+    text-decoration: none;
+    transition: color 500ms var(--ease-soft);
+  }
+
+  @media (hover: hover) {
+    .rr-footer__link:hover {
+      color: var(--color-brass);
+    }
+  }
+
+  .rr-footer__muted {
+    font-family: var(--font-body);
+    font-size: var(--text-body-md);
+    font-weight: 300;
+    color: rgb(255 255 255 / 0.4);
+  }
+
+  .rr-footer__legal {
+    grid-column: 1 / -1;
+    font-family: var(--font-body);
+    font-size: var(--text-label-caps);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.32);
+  }
+
+  @media (width >= 48rem) {
+    .rr-footer__legal {
+      margin-top: 2.5rem;
+    }
+  }
+
+  .rr-footer__wordmark {
+    padding-bottom: 2.5rem;
+  }
+
+  @media (width >= 48rem) {
+    .rr-footer__wordmark {
+      padding-bottom: 3.5rem;
+    }
+  }
+
+  /* Montserrat / uppercase / lightly tracked — the navbar wordmark at display
+     scale. One line, no wrap; the clip on .rr-footer is the safety net. */
+  .rr-footer__wordmark span {
+    display: block;
+    font-family: var(--font-body);
+    font-weight: 500;
+    text-transform: uppercase;
+    white-space: nowrap;
+    line-height: 0.9;
+    letter-spacing: -0.005em;
+    color: rgb(255 255 255 / 0.88);
+    font-size: clamp(2.75rem, 15vw, 16rem);
+    transition: color 600ms var(--ease-soft);
   }
 
   /* ---------------------------------------------------------- THE DETAILS */

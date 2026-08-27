@@ -2,9 +2,10 @@
 import { site, nav } from '@/lib/site';
 import { buildWhatsAppUrl, formatWhatsAppNumber } from '@/lib/whatsapp';
 
-/* DESIGN.md, Footer: "High-contrast Deep Charcoal background (#1C1C1C) with
-   Alabaster text. This creates a grounding effect for the page. Use a 3-column
-   layout for links, contact info, and social icons." */
+/* Oversized-typography footer. Two stacks: a quiet top section (navigation,
+   contact, social) set small and widely spaced, then the studio name as large
+   as it will go across the full width. No rules or boxes — the size jump and
+   the charcoal ground are the only separators. */
 
 const waHref = buildWhatsAppUrl({
   number: site.whatsappNumber,
@@ -15,50 +16,28 @@ const waHref = buildWhatsAppUrl({
 const year = new Date().getFullYear();
 ---
 
-<footer class="bg-charcoal text-inverse-on-surface">
-  <div class="shell grid gap-16 py-24 md:grid-cols-3 md:gap-gutter">
-    <div>
-      <p class="font-display text-headline-md text-surface">{site.studioName}</p>
-      <p class="mt-6 max-w-xs font-body text-body-md font-light text-surface/70">
-        {site.tagline}
-      </p>
-      <p class="mt-10 font-body text-label-caps uppercase tracking-[0.15em] text-surface/40">
-        &copy; {year} {site.studioName} Studio. All rights reserved.
-      </p>
-    </div>
-
-    <div>
-      <p class="font-body text-label-caps uppercase tracking-[0.15em] text-brass">
-        Studio
-      </p>
-      <ul class="mt-8 space-y-4">
+<footer class="rr-footer">
+  <div class="rr-footer__top shell">
+    <nav class="rr-footer__col" aria-label="Footer">
+      <p class="rr-footer__label">Studio</p>
+      <ul class="rr-footer__list">
         {
           nav.map((item) => (
             <li>
-              <a
-                href={item.href}
-                class="font-body text-body-md text-surface/70 no-underline transition-colors duration-500 hover:text-brass"
-              >
+              <a href={item.href} class="rr-footer__link">
                 {item.label}
               </a>
             </li>
           ))
         }
       </ul>
-    </div>
+    </nav>
 
-    <div>
-      <p class="font-body text-label-caps uppercase tracking-[0.15em] text-brass">
-        Connect
-      </p>
-      <ul class="mt-8 space-y-4">
+    <div class="rr-footer__col">
+      <p class="rr-footer__label">Contact</p>
+      <ul class="rr-footer__list">
         <li>
-          <a
-            href={`mailto:${site.email}`}
-            class="font-body text-body-md text-surface/70 no-underline transition-colors duration-500 hover:text-brass"
-          >
-            {site.email}
-          </a>
+          <a href={`mailto:${site.email}`} class="rr-footer__link">{site.email}</a>
         </li>
         <li>
           <a
@@ -68,36 +47,51 @@ const year = new Date().getFullYear();
             data-cta="footer-whatsapp"
             data-cta-location="footer"
             data-cta-label="Footer WhatsApp number"
-            class="font-body text-body-md text-surface/70 no-underline transition-colors duration-500 hover:text-brass"
+            class="rr-footer__link"
           >
             {formatWhatsAppNumber(site.whatsappNumber)}
           </a>
         </li>
         {
           site.addressLines.map((line) => (
-            <li class="font-body text-body-md text-surface/50">{line}</li>
+            <li class="rr-footer__muted">{line}</li>
           ))
         }
       </ul>
-
-      <div class="mt-10 flex gap-6">
-        <a
-          href={site.instagram}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="font-body text-label-caps uppercase tracking-[0.15em] text-surface/70 no-underline transition-colors hover:text-brass"
-        >
-          Instagram
-        </a>
-        <a
-          href={site.linkedin}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="font-body text-label-caps uppercase tracking-[0.15em] text-surface/70 no-underline transition-colors hover:text-brass"
-        >
-          LinkedIn
-        </a>
-      </div>
     </div>
+
+    <div class="rr-footer__col">
+      <p class="rr-footer__label">Social</p>
+      <ul class="rr-footer__list">
+        <li>
+          <a
+            href={site.instagram}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="rr-footer__link"
+          >
+            Instagram
+          </a>
+        </li>
+        <li>
+          <a
+            href={site.linkedin}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="rr-footer__link"
+          >
+            LinkedIn
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <p class="rr-footer__legal">
+      &copy; {year} {site.studioName} &nbsp;&middot;&nbsp; {site.tagline}
+    </p>
+  </div>
+
+  <div class="rr-footer__wordmark" aria-hidden="true">
+    <span data-reveal>{site.studioName}</span>
   </div>
 </footer>

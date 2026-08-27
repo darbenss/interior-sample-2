@@ -117,10 +117,17 @@ const hasBg = Boolean(bg);
         'mx-auto mt-8 max-w-3xl font-display text-display-lg',
         hasBg ? 'text-surface' : 'text-on-surface',
       ]}
-      data-reveal
+      data-reveal="words"
       data-reveal-delay="80"
     >
-      {headline}
+      {
+        headline.split(' ').map((word, i) => (
+          <>
+            {i > 0 && ' '}
+            <span class="rr-word" style={`--rr-w:${i}`}><span>{word}</span></span>
+          </>
+        ))
+      }
     </h2>
 
     <div
