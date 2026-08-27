@@ -1035,6 +1035,28 @@
     background-color: var(--color-surface);
   }
 
+  /* ------------------------------------------- CURTAIN REVEAL OVER PHILOSOPHY
+
+     The philosophy stage is held pinned on its last photograph (.rr-scrolly
+     gets a viewport of bottom padding), and this whole section is pulled up
+     the same distance and given a layer above it, so it scrolls UP over that
+     pinned photo and covers it. The section already reads its parallax
+     background photo at the top, so the reveal is photo-over-photo — no white,
+     no blank panel. The pull cancels the padding; page length is unchanged.
+
+     Desktop + motion only; elsewhere the sections just meet in normal flow. */
+  @media (width >= 48rem) and (prefers-reduced-motion: no-preference) {
+    .rr-scrolly {
+      padding-bottom: 100svh;
+    }
+
+    .rr-services {
+      position: relative;
+      z-index: 1;
+      margin-top: -100svh;
+    }
+  }
+
   /* ------------------------------------ THE PHILOSOPHY PHOTO, HELD BEHIND
 
      Bridges the seam from the dark philosophy stage to this alabaster section:
