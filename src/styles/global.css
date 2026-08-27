@@ -1044,8 +1044,11 @@
      background photo at the top, so the reveal is photo-over-photo — no white,
      no blank panel. The pull cancels the padding; page length is unchanged.
 
-     Desktop + motion only; elsewhere the sections just meet in normal flow. */
-  @media (width >= 48rem) and (prefers-reduced-motion: no-preference) {
+     Desktop only; below 48rem the sections just meet in normal flow. (This is
+     the one scroll effect the site owner asked to keep even under the OS
+     "reduce motion" setting — it is a sticky reveal, not a keyframe, and the
+     project is a design showcase.) */
+  @media (width >= 48rem) {
     .rr-scrolly {
       padding-bottom: 100svh;
     }
@@ -1066,14 +1069,13 @@
      the top, where the intro heading sits — keeps the dark type and the light
      panels legible over it.
 
-     Rail mode only (JS + motion). The swipe-carousel fallback and reduced
-     motion never render it, so those paths are unchanged. */
+     Rail mode only (JS). The swipe-carousel fallback never renders it. */
   .rr-services__bg {
     display: none;
   }
 
-  @media (prefers-reduced-motion: no-preference) {
-    .rr-services--rail .rr-services__bg {
+  @media (width >= 48rem) {
+    .rr-services__bg {
       display: block;
       position: absolute;
       inset: 0;
@@ -1082,13 +1084,14 @@
       pointer-events: none;
     }
 
-    .rr-services--rail .rr-services__rail {
+    .rr-services__rail {
       position: relative;
       z-index: 1;
     }
 
-    /* Oversized top and bottom so the drift never pulls an edge into view. */
-    .rr-services--rail .rr-services__bg img {
+    /* Oversized top and bottom so the drift never pulls an edge into view.
+       `opacity` knocks the whole photo back before the wash even lands. */
+    .rr-services__bg img {
       position: absolute;
       left: 0;
       top: -14%;
@@ -1096,30 +1099,30 @@
       height: 128%;
       object-fit: cover;
       object-position: center 35%;
+      opacity: 0.55;
     }
 
-    /* Two jobs, and they pull opposite ways. The photo has to READ at the very
-       top — that is the seam with the dark philosophy stage, and letting it
-       show there is what keeps the curtain reveal photo-over-photo instead of
-       flashing white. Everywhere below that it should be barely a whisper, so
-       it never fights the heading or the panels. So: a short window of light
-       wash at the very top, then heavy wash for the whole rest of the run. */
-    .rr-services--rail .rr-services__bg::after {
+    /* The photo only needs to READ in a thin band at the very top — that is the
+       seam with the dark philosophy stage, and it is what keeps the curtain
+       reveal photo-over-photo instead of flashing white. Six percent down it is
+       already almost gone, and past a fifth it is a ghost — no contest with the
+       heading or the panels. */
+    .rr-services__bg::after {
       content: '';
       position: absolute;
       inset: 0;
       background: linear-gradient(
         to bottom,
-        color-mix(in srgb, var(--color-surface) 60%, transparent) 0%,
-        color-mix(in srgb, var(--color-surface) 82%, transparent) 14%,
-        color-mix(in srgb, var(--color-surface) 94%, transparent) 34%,
-        color-mix(in srgb, var(--color-surface) 96%, transparent) 100%
+        color-mix(in srgb, var(--color-surface) 50%, transparent) 0%,
+        color-mix(in srgb, var(--color-surface) 84%, transparent) 6%,
+        color-mix(in srgb, var(--color-surface) 97%, transparent) 20%,
+        color-mix(in srgb, var(--color-surface) 98%, transparent) 100%
       );
     }
   }
 
   @supports (animation-timeline: --rr-services) {
-    @media (width >= 48rem) and (prefers-reduced-motion: no-preference) {
+    @media (width >= 48rem) {
       .rr-services--rail .rr-services__bg img {
         animation: rr-services-bg-drift linear both;
         animation-timeline: --rr-services;
