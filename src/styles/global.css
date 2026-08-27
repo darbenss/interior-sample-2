@@ -1540,9 +1540,13 @@
     text-transform: uppercase;
     white-space: nowrap;
     line-height: 0.9;
-    letter-spacing: -0.005em;
+    letter-spacing: 0;
     color: rgb(255 255 255 / 0.88);
-    font-size: clamp(2.75rem, 15vw, 16rem);
+    /* Measured: "Ruang Rasa" in Montserrat 500 caps runs ~6.85em wide, so an
+       exact edge-to-edge fill is ~14.6vw. 14.2vw sits just under that — a few
+       px of air each side rather than a clipped glyph. `overflow: clip` on
+       .rr-footer is still the hard backstop. */
+    font-size: clamp(2.5rem, 14.2vw, 14rem);
     transition: color 600ms var(--ease-soft);
   }
 
