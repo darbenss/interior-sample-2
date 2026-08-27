@@ -691,13 +691,51 @@
 
   [data-reveal='words'].reveal-armed.is-visible .rr-word > span {
     transform: none;
-    transition: transform 0.85s var(--ease-soft);
-    transition-delay: calc(var(--rr-w, 0) * 70ms);
+    /* Crisp ease-out settle + a firm per-word beat — the kononenkogroup.com
+       line-reveal cadence, not a soft fade-up. */
+    transition: transform 0.8s var(--ease-intent);
+    transition-delay: calc(var(--rr-w, 0) * 95ms);
   }
 
   @media (prefers-reduced-motion: reduce) {
     [data-reveal='words'].reveal-armed .rr-word > span,
     [data-reveal='words'].reveal-armed.is-visible .rr-word > span {
+      transform: none;
+      transition: none;
+    }
+  }
+
+  /* -------------------------------------------- UP REVEAL — the sixth variant
+
+     A whole-block line rise, no fade: the element clips to its own box and its
+     single child slab slides up from below. This is the "staggered the whole"
+     treatment for section headings and body copy — same mask mechanic as
+     `words`, one beat instead of per-word. Markup contract: exactly one child
+     element wrapping the text, e.g. `<h2 data-reveal="up"><span>…</span></h2>`.
+
+     `overflow-clip-margin` gives descenders on the settled text room to sit
+     outside the border box without letting the 115%-translated slab show. */
+  [data-reveal='up'].reveal-armed {
+    opacity: 1;
+    transform: none;
+    overflow: clip;
+    overflow-clip-margin: 0.4em;
+  }
+
+  [data-reveal='up'].reveal-armed > * {
+    display: block;
+    transform: translateY(115%);
+  }
+
+  [data-reveal='up'].reveal-armed.is-visible > * {
+    transform: none;
+    transition: transform 0.9s var(--ease-intent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-reveal='up'].reveal-armed,
+    [data-reveal='up'].reveal-armed > * {
+      overflow: visible;
       transform: none;
       transition: none;
     }
@@ -1452,11 +1490,14 @@
     overflow: clip;
   }
 
+  /* The wordmark sits ABOVE the columns; this hairline is the separation
+     between the two. One pixel at low opacity — a rule, not a brutalist slab. */
   .rr-footer__top {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 3.5rem;
-    padding-block: 6rem 4rem;
+    padding-block: 4rem 4rem;
+    border-top: 1px solid rgb(255 255 255 / 0.14);
   }
 
   @media (width >= 48rem) {
@@ -1464,7 +1505,7 @@
       grid-template-columns: 1.6fr 1fr 1fr;
       column-gap: var(--spacing-gutter);
       row-gap: 5rem;
-      padding-block: 9rem 6rem;
+      padding-block: 5rem 6rem;
     }
   }
 
@@ -1521,19 +1562,22 @@
     }
   }
 
+  /* Now the FIRST thing in the footer — a full-width statement, with the
+     column block and its hairline sitting under it. */
   .rr-footer__wordmark {
-    padding-bottom: 2.5rem;
+    padding-block: 5rem 2.5rem;
   }
 
   @media (width >= 48rem) {
     .rr-footer__wordmark {
-      padding-bottom: 3.5rem;
+      padding-block: 7rem 3.5rem;
     }
   }
 
-  /* Montserrat / uppercase / lightly tracked — the navbar wordmark at display
-     scale. One line, no wrap; the clip on .rr-footer is the safety net. */
-  .rr-footer__wordmark span {
+  /* Montserrat / uppercase — the navbar wordmark at display scale. One line,
+     no wrap; the clip on .rr-footer is the safety net. `> span` is the
+     data-reveal="words" container; the per-word masks inherit the type. */
+  .rr-footer__wordmark > span {
     display: block;
     font-family: var(--font-body);
     font-weight: 500;
@@ -1547,7 +1591,12 @@
        px of air each side rather than a clipped glyph. `overflow: clip` on
        .rr-footer is still the hard backstop. */
     font-size: clamp(2.5rem, 14.2vw, 14rem);
-    transition: color 600ms var(--ease-soft);
+  }
+
+  /* All-caps, no descenders — pull the per-word mask tight to the cap height
+     so it does not add slack above the letters. */
+  .rr-footer__wordmark .rr-word > span {
+    line-height: 0.9;
   }
 
   /* ---------------------------------------------------------- THE DETAILS */

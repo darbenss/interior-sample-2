@@ -17,6 +17,19 @@ const year = new Date().getFullYear();
 ---
 
 <footer class="rr-footer">
+  <div class="rr-footer__wordmark" aria-hidden="true">
+    <span data-reveal="words">
+      {
+        site.studioName.split(' ').map((word, i) => (
+          <>
+            {i > 0 && ' '}
+            <span class="rr-word" style={`--rr-w:${i}`}><span>{word}</span></span>
+          </>
+        ))
+      }
+    </span>
+  </div>
+
   <div class="rr-footer__top shell">
     <nav class="rr-footer__col" aria-label="Footer">
       <p class="rr-footer__label">Studio</p>
@@ -89,9 +102,5 @@ const year = new Date().getFullYear();
     <p class="rr-footer__legal">
       &copy; {year} {site.studioName} &nbsp;&middot;&nbsp; {site.tagline}
     </p>
-  </div>
-
-  <div class="rr-footer__wordmark" aria-hidden="true">
-    <span data-reveal>{site.studioName}</span>
   </div>
 </footer>

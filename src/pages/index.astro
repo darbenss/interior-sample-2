@@ -628,13 +628,13 @@ const selected = featured.map((project, i) => {
               <h2
                 class="rr-scrolly__heading"
                 id={i === 0 ? 'philosophy-heading' : undefined}
-                data-reveal
+                data-reveal="up"
                 data-reveal-delay="90"
               >
-                {scene.heading}
+                <span>{scene.heading}</span>
               </h2>
-              <p class="rr-scrolly__body" data-reveal data-reveal-delay="180">
-                {scene.body}
+              <p class="rr-scrolly__body" data-reveal="up" data-reveal-delay="180">
+                <span>{scene.body}</span>
               </p>
             </div>
           </div>
@@ -725,17 +725,17 @@ const selected = featured.map((project, i) => {
           <h2
             id="services-heading"
             class="mt-8 font-display text-headline-lg text-on-surface"
-            data-reveal
+            data-reveal="up"
           >
-            Three ways we take on a space.
+            <span>Three ways we take on a space.</span>
           </h2>
           <p
             class="mt-6 font-body text-body-lg font-light text-on-surface-variant"
-            data-reveal
+            data-reveal="up"
             data-reveal-delay="90"
           >
-            Most projects use all three. Some need only one. We will tell you
-            which before you ask.
+            <span>Most projects use all three. Some need only one. We will tell
+            you which before you ask.</span>
           </p>
           <a
             href="/expertise"
@@ -938,16 +938,16 @@ const selected = featured.map((project, i) => {
         </p>
 
         <div class="md:col-span-8 md:col-start-5">
-          <h2 id="work-heading" class="font-display text-headline-lg text-surface" data-reveal>
-            Selected work.
+          <h2 id="work-heading" class="font-display text-headline-lg text-surface" data-reveal="up">
+            <span>Selected work.</span>
           </h2>
           <p
             class="mt-6 max-w-xl font-body text-body-lg font-light text-surface/70"
-            data-reveal
+            data-reveal="up"
             data-reveal-delay="90"
           >
-            Three projects in full, and a few details from the rest. Every one of
-            them started as a room somebody had stopped enjoying.
+            <span>Three projects in full, and a few details from the rest. Every
+            one of them started as a room somebody had stopped enjoying.</span>
           </p>
         </div>
       </div>
