@@ -1,0 +1,116 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import MaterialImage from '@/components/MaterialImage.astro';
+import InquiryForm from '@/components/react/InquiryForm';
+import { site } from '@/lib/site';
+import { buildWhatsAppUrl, formatWhatsAppNumber } from '@/lib/whatsapp';
+
+const waHref = buildWhatsAppUrl({
+  number: site.whatsappNumber,
+  message: site.whatsappDefaultMessage,
+  context: 'Source: inquiries page, direct link',
+});
+---
+
+<BaseLayout
+  title="Inquiries"
+  description="Start a conversation with Ruang Rasa about your next space. Reach the studio directly on WhatsApp."
+>
+  <section class="shell pt-16 md:pt-24">
+    <h1 class="max-w-4xl font-display text-display-lg text-on-surface">
+      Let us discuss your next space.
+    </h1>
+  </section>
+
+  <section class="section-gap">
+    <div class="shell grid gap-20 md:grid-cols-12 md:gap-gutter">
+      <div class="md:col-span-6">
+        {/*
+          A React island because floating labels, live validation and the
+          composed message genuinely need state. client:visible keeps the
+          payload off the critical path — the form sits below the fold.
+        */}
+        <InquiryForm
+          client:visible
+          number={site.whatsappNumber}
+          email={site.email}
+        />
+      </div>
+
+      <aside class="md:col-span-5 md:col-start-8">
+        <h2 class="font-display text-headline-lg text-on-surface">
+          Start a Conversation.
+        </h2>
+
+        <p class="mt-8 font-body text-body-lg font-light text-on-surface-variant">
+          The fastest route to the studio is WhatsApp. We read every message
+          ourselves and usually reply the same working day.
+        </p>
+
+        <a
+          href={waHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-cta="inquiries-direct-whatsapp"
+          data-cta-location="inquiries-aside"
+          data-cta-label="Inquiries direct WhatsApp"
+          class="mt-10 inline-flex items-center gap-3 bg-charcoal px-8 py-4 font-body text-label-caps uppercase tracking-[0.15em] text-surface no-underline transition-colors duration-500 hover:bg-brass hover:text-charcoal"
+        >
+          Message the studio
+        </a>
+
+        <dl class="mt-16 space-y-10 border-t border-outline-variant/60 pt-10">
+          <div>
+            <dt class="font-body text-label-caps uppercase tracking-[0.15em] text-brass-deep">
+              Studio
+            </dt>
+            {
+              site.addressLines.map((line) => (
+                <dd class="mt-2 font-body text-body-md text-on-surface-variant">
+                  {line}
+                </dd>
+              ))
+            }
+          </div>
+
+          <div>
+            <dt class="font-body text-label-caps uppercase tracking-[0.15em] text-brass-deep">
+              Direct
+            </dt>
+            <dd class="mt-2">
+              <a
+                href={waHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-cta="inquiries-number-whatsapp"
+                data-cta-location="inquiries-details"
+                data-cta-label="Inquiries phone number"
+                class="font-body text-body-md text-on-surface-variant no-underline transition-colors hover:text-brass-deep"
+              >
+                {formatWhatsAppNumber(site.whatsappNumber)}
+              </a>
+            </dd>
+            <dd class="mt-2">
+              <a
+                href={`mailto:${site.email}`}
+                class="font-body text-body-md text-on-surface-variant no-underline transition-colors hover:text-brass-deep"
+              >
+                {site.email}
+              </a>
+            </dd>
+          </div>
+        </dl>
+
+        <div class="mt-16">
+          <MaterialImage
+            src="/src/assets/images/contact/contact-01.jpg"
+            alt="The consultation room, with seating gathered beneath the stair"
+            materialLabel=""
+            ratio="horizontal"
+            sizes="(min-width: 768px) 40vw, 100vw"
+          />
+        </div>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>

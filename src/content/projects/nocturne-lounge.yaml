@@ -1,0 +1,68 @@
+title: Nocturne Lounge
+category: hospitality
+location: Seminyak, Bali
+year: 2024
+featured: true
+order: 20
+summary: A cocktail bar that emptied by ten every night. The problem was never the drinks list — it was that the room gave nobody a reason to stay.
+coverImage: /src/assets/images/portfolio/project-02.jpg
+coverAlt: A table laid for two in near darkness, lit by a single candle against a deep olive wall
+materialLabel: 2200K / SEMINYAK
+facts:
+  - label: Scope
+    value: Full fit-out, lighting design, bespoke furniture
+  - label: Area
+    value: 210 sqm
+  - label: Duration
+    value: 7 months
+  - label: Capacity
+    value: 84 covers
+
+problem:
+  - 52-minute average dwell time
+  - 78dB in a half-full room
+  - Nowhere comfortable past the first drink
+
+designApproach: >-
+  A third of the floor became deep banquettes in undyed linen, wrapped in
+  blackened steel and slatted timber rafts that absorb sound without reading as
+  acoustic panels. Lighting dropped from a flat 320 lux to four circuits that
+  fall to 2200K across the evening.
+
+result:
+  beforeAfter:
+    before:
+      image: /src/assets/images/portfolio/project-03.jpg
+      alt: The original venue under uniform downlighting, every surface lit to the same level
+    after:
+      image: /src/assets/images/portfolio/project-05.jpg
+      alt: The same floor under a fluted timber wall, with the light dropped to table height
+  gallery:
+    - image: /src/assets/images/portfolio/project-04.jpg
+      alt: Plaster niches at the low evening lighting setting
+      materialLabel: 2200K / EVENING
+      ratio: horizontal
+    - image: /src/assets/images/portfolio/project-01.jpg
+      alt: Lounge seating with layered warm lighting at the low evening setting
+      materialLabel: LOUNGE / 2200K
+      ratio: vertical
+    - image: /src/assets/images/home/home-03.jpg
+      alt: The bar itself, with pendant lanterns carrying the warm setting up the stair
+      materialLabel: BAR / LANTERNS
+      ratio: vertical
+  outcomes:
+    - value: 114 min
+      label: average dwell, from 52
+    - value: +62%
+      label: second-drink conversion
+    - value: 66dB
+      label: at full capacity, from 78
+    - value: 84
+      label: covers, down from 96
+  clientQuote:
+    quote: They talked me out of twelve seats and into a much better business. I did not enjoy that conversation and I am glad we had it.
+    attribution: Operator, Nocturne Group
+
+closingStatement: Twelve fewer seats, considerably more revenue.
+
+ctaMessage: Hello Ruang Rasa, I saw the Nocturne Lounge project. I operate a hospitality venue and would like to discuss a fit-out.

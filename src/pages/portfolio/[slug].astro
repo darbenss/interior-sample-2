@@ -1,0 +1,390 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import MaterialImage from '@/components/MaterialImage.astro';
+import BeforeAfterSlider from '@/components/BeforeAfterSlider.astro';
+import ResultGallery from '@/components/ResultGallery.astro';
+import CtaBand from '@/components/CtaBand.astro';
+import WhatsAppButton from '@/components/WhatsAppButton.astro';
+import { site, categoryLabel } from '@/lib/site';
+
+/* ---------------------------------------------------------------------------
+ * Dynamic case-study route.
+ *
+ * getStaticPaths runs at build time and enumerates every YAML file Keystatic
+ * has written into src/content/projects. Adding a project in the admin panel
+ * therefore adds a page with no code change: the commit lands on GitHub,
+ * Cloudflare rebuilds, and this function sees one more entry.
+ *
+ * Every page produced here is flat prerendered HTML on Cloudflare's edge. There
+ * is no runtime data fetch, no database, and no request-time code path — which
+ * is the entire security argument versus a WordPress install.
+ *
+ * LAYOUT — VISUAL FIRST
+ * The page is built for a luxury interior audience, which reads photography and
+ * skims prose. So the writing is rationed by the schema (three constraint
+ * fragments, one short Design Approach paragraph, one closing line) and the
+ * photography is given the room that buys:
+ *
+ *   - the cover and every horizontal Result plate run FULL-BLEED, breaking the
+ *     1376px shell that governs the rest of the site;
+ *   - the two text chapters sit in a 12-column editorial grid with a column of
+ *     silence between label and content, so they read as captions to the
+ *     imagery rather than as an article;
+ *   - the closing statement gets a charcoal band and the full 80px Playfair
+ *     display size, alone on the screen.
+ * ------------------------------------------------------------------------- */
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects');
+
+  const ordered = projects.sort(
+    (a, b) => a.data.order - b.data.order || b.data.year - a.data.year
+  );
+
+  return ordered.map((project, i) => ({
+    params: { slug: project.id },
+    props: {
+      project,
+      /* Precomputed here rather than re-querying inside the template — the
+         "next project" link is what keeps visitors moving through the
+         portfolio, and it costs nothing to resolve at build time. */
+      next: ordered[(i + 1) % ordered.length],
+    },
+  }));
+}
+
+type Props = {
+  project: CollectionEntry<'projects'>;
+  next: CollectionEntry<'projects'>;
+};
+
+const { project, next } = Astro.props;
+const { data } = project;
+
+const ctaMessage = data.ctaMessage ?? site.whatsappDefaultMessage;
+const ctaContext = `Project: ${data.title} (${data.location})`;
+
+/* The comparison renders only with both plates present — half a Before & After
+   is a photograph with a misleading label on it. Resolving to a single nullable
+   object here keeps that rule in one place and hands the component two values
+   it can rely on. */
+const pair = data.result.beforeAfter;
+const comparison =
+  pair?.before?.image && pair?.after?.image
+    ? { before: pair.before, after: pair.after }
+    : null;
+
+const quote = data.result.clientQuote;
+
+/* Structured data. A case study with a named creator, location and date is
+   exactly what Google's CreativeWork type describes, and it is the difference
+   between a rich result and a plain blue link for a studio nobody has heard of
+   yet. */
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CreativeWork',
+  name: data.title,
+  description: data.summary,
+  dateCreated: String(data.year),
+  locationCreated: { '@type': 'Place', name: data.location },
+  creator: {
+    '@type': 'Organization',
+    name: `${site.studioName} Studio`,
+    url: Astro.site?.toString(),
+  },
+};
+---
+
+<BaseLayout
+  title={data.seoTitle ?? data.title}
+  description={data.summary}
+  ogImage={data.coverImage}
+>
+  <script
+    slot="head"
+    type="application/ld+json"
+    is:inline
+    set:html={JSON.stringify(jsonLd)}
+  />
+
+  {/* ---------------------------------------------------------------- HERO */}
+  <article>
+    <header class="shell pt-16 md:pt-24">
+      <a
+        href="/portfolio"
+        class="font-body text-label-caps uppercase tracking-[0.15em] text-on-surface-variant no-underline transition-colors hover:text-brass-deep"
+      >
+        &larr; All Projects
+      </a>
+
+      <p class="mt-14 font-body text-label-caps uppercase tracking-[0.15em] text-on-surface-variant">
+        {categoryLabel[data.category]} / {data.location} / {data.year}
+      </p>
+
+      {/* Rendered settled — no opacity:0 waiting on JS. The single most
+          important element on the page is present in the raw HTML. */}
+      <h1 class="mt-8 max-w-4xl font-display text-display-lg text-on-surface">
+        {data.title}
+      </h1>
+
+      <p class="mt-10 max-w-2xl font-body text-body-lg font-light text-on-surface-variant">
+        {data.summary}
+      </p>
+    </header>
+
+    {/* Full-bleed cover. No shell: the photograph runs to both edges of the
+        viewport, and `maxH` stops a 3:2 crop at 1920px wide from being 1280px
+        tall — the aspect box sets the height and object-cover takes the rest. */}
+    <div class="mt-16 md:mt-20">
+      <MaterialImage
+        src={data.coverImage}
+        alt={data.coverAlt}
+        materialLabel={data.materialLabel}
+        ratio="horizontal"
+        priority={true}
+        maxH="max-h-[78svh]"
+        sizes="100vw"
+        widths={[768, 1024, 1440, 1920, 2560]}
+      />
+    </div>
+
+    {/* ------------------------------------------------------- FACT STRIP */}
+    {
+      data.facts.length > 0 && (
+        <div class="shell mt-16">
+          <dl class="grid gap-10 border-t border-outline-variant/60 pt-10 sm:grid-cols-2 lg:grid-cols-4">
+            {data.facts.map((fact) => (
+              <div data-reveal>
+                <dt class="font-body text-label-caps uppercase tracking-[0.15em] text-on-surface-variant">
+                  {fact.label}
+                </dt>
+                <dd class="mt-3 font-body text-body-md text-on-surface">
+                  {fact.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )
+    }
+
+    {/* ======================================================= 01 PROBLEM */}
+    <section class="section-gap bg-surface" aria-labelledby="chapter-01">
+      <div class="shell grid gap-12 md:grid-cols-12 md:gap-gutter">
+        {/* Marker in the left three columns, content in the right eight, with
+            a column of silence between them. */}
+        <div class="flex items-baseline gap-6 md:col-span-3" data-reveal>
+          <span class="font-display text-headline-md text-brass-deep">01</span>
+          <span class="h-px w-10 bg-brass" aria-hidden="true"></span>
+          <h2
+            id="chapter-01"
+            class="font-body text-label-caps uppercase tracking-[0.15em] text-on-surface-variant"
+          >
+            Problem
+          </h2>
+        </div>
+
+        {/* Two or three constraints, set in Playfair at headline size and
+            separated by hairlines. At this scale a fourth would break the
+            column — which is why the schema caps the array at three. */}
+        <ol class="border-t border-outline-variant/60 md:col-span-8 md:col-start-5">
+          {
+            data.problem.map((constraint, i) => (
+              <li
+                class="flex items-baseline gap-8 border-b border-outline-variant/60 py-10 md:py-12"
+                data-reveal
+                data-reveal-delay={i * 100}
+              >
+                <span class="font-body text-label-caps uppercase tracking-[0.15em] text-brass-deep">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span class="font-display text-headline-md text-on-surface">
+                  {constraint}
+                </span>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </section>
+
+    {/* =============================================== 02 DESIGN APPROACH */}
+    <section
+      class="section-gap bg-surface-container-low"
+      aria-labelledby="chapter-02"
+    >
+      <div class="shell grid gap-12 md:grid-cols-12 md:gap-gutter">
+        <div class="flex items-baseline gap-6 md:col-span-3" data-reveal>
+          <span class="font-display text-headline-md text-brass-deep">02</span>
+          <span class="h-px w-10 bg-brass" aria-hidden="true"></span>
+          <h2
+            id="chapter-02"
+            class="font-body text-label-caps uppercase tracking-[0.15em] text-on-surface-variant"
+          >
+            Design Approach
+          </h2>
+        </div>
+
+        {/* One paragraph, set larger than body-lg because it is the only prose
+            on the page and can afford the room. */}
+        <p
+          class="font-body text-body-lg font-light text-on-surface md:col-span-8 md:col-start-5 md:text-[22px] md:leading-[42px]"
+          data-reveal
+          data-reveal-delay="120"
+        >
+          {data.designApproach}
+        </p>
+      </div>
+    </section>
+
+    {/* ======================================================== 03 RESULT */}
+    <section class="section-gap bg-surface" aria-labelledby="chapter-03">
+      <div class="shell">
+        <div class="flex items-baseline gap-6" data-reveal>
+          <span class="font-display text-headline-md text-brass-deep">03</span>
+          <span class="h-px w-10 bg-brass" aria-hidden="true"></span>
+          <h2
+            id="chapter-03"
+            class="font-body text-label-caps uppercase tracking-[0.15em] text-on-surface-variant"
+          >
+            Result
+          </h2>
+        </div>
+      </div>
+
+      {/* The transformation, first: one drag says more about what changed than
+          the three paragraphs this section used to carry. */}
+      {
+        comparison && (
+          <div class="shell mt-16" data-reveal>
+            <BeforeAfterSlider
+              before={comparison.before}
+              after={comparison.after}
+              label={data.title}
+            />
+          </div>
+        )
+      }
+
+      {/* Then the finished space, full-bleed. */}
+      <div class="mt-24 md:mt-32">
+        <ResultGallery items={data.result.gallery} />
+      </div>
+
+      {
+        data.result.outcomes.length > 0 && (
+          <div class="shell mt-24 md:mt-32">
+            <dl class="grid gap-12 border-y border-outline-variant/60 py-14 sm:grid-cols-2 lg:grid-cols-4">
+              {data.result.outcomes.map((outcome, i) => (
+                <div data-reveal data-reveal-delay={i * 80}>
+                  <dt class="sr-only">{outcome.label}</dt>
+                  <dd>
+                    <span class="block font-display text-headline-lg text-on-surface">
+                      {outcome.value}
+                    </span>
+                    <span class="mt-3 block font-body text-label-caps uppercase tracking-[0.15em] text-on-surface-variant">
+                      {outcome.label}
+                    </span>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        )
+      }
+
+      {
+        quote?.quote && (
+          <figure class="shell mt-24 md:mt-32" data-reveal>
+            <blockquote class="mx-auto max-w-4xl text-center font-display text-headline-lg text-on-surface">
+              &ldquo;{quote.quote}&rdquo;
+            </blockquote>
+            {quote.attribution && (
+              <figcaption class="mt-10 text-center font-body text-label-caps uppercase tracking-[0.15em] text-on-surface-variant">
+                &mdash; {quote.attribution}
+              </figcaption>
+            )}
+          </figure>
+        )
+      }
+
+      {/* Project-specific CTA. The pre-filled message names this case study, so
+          an inbound WhatsApp thread tells you which page closed the lead
+          without any attribution guesswork. */}
+      <div class="shell mt-24 flex justify-center" data-reveal>
+        <WhatsAppButton
+          number={site.whatsappNumber}
+          message={ctaMessage}
+          context={ctaContext}
+          ctaId="case-study-result"
+          ctaLocation="case-study-result"
+          ctaProject={project.id}
+          ctaLabel={`Case study: ${data.title}`}
+          variant="ghost"
+        >
+          Discuss a project like this
+        </WhatsAppButton>
+      </div>
+    </section>
+
+    {/* -------------------------------------------------- CLOSING STATEMENT */}
+    {/* Charcoal, centred, and nothing else on the screen. One line at 80px
+        Playfair is the last thing a visitor reads before the enquiry band, and
+        the schema caps it at 120 characters so it stays one line of thought. */}
+    <section class="bg-charcoal">
+      <div class="shell section-gap text-center">
+        <span class="mx-auto block h-px w-16 bg-brass" aria-hidden="true"></span>
+        <p
+          class="mx-auto mt-14 max-w-5xl font-display text-display-lg text-surface"
+          data-reveal
+        >
+          {data.closingStatement}
+        </p>
+      </div>
+    </section>
+  </article>
+
+  {/* ------------------------------------------------------- NEXT PROJECT */}
+  {
+    next.id !== project.id && (
+      <section class="border-t border-outline-variant/40 bg-surface">
+        <a href={`/portfolio/${next.id}`} class="group block no-underline">
+          <div class="shell grid items-center gap-12 py-24 md:grid-cols-12 md:gap-gutter">
+            <div class="md:col-span-5">
+              <p class="font-body text-label-caps uppercase tracking-[0.15em] text-on-surface-variant">
+                Next Project
+              </p>
+              <h2 class="mt-6 font-display text-headline-lg text-on-surface transition-colors duration-500 group-hover:text-brass-deep">
+                {next.data.title}
+              </h2>
+              <p class="mt-4 font-body text-body-md text-on-surface-variant">
+                {categoryLabel[next.data.category]} / {next.data.location}
+              </p>
+            </div>
+
+            <div class="md:col-span-6 md:col-start-7">
+              <MaterialImage
+                src={next.data.coverImage}
+                alt={next.data.coverAlt}
+                materialLabel={next.data.materialLabel}
+                ratio="horizontal"
+                sizes="(min-width: 768px) 50vw, 100vw"
+              />
+            </div>
+          </div>
+        </a>
+      </section>
+    )
+  }
+
+  <CtaBand
+    ctaId="case-study-footer"
+    ctaLocation="case-study-footer"
+    ctaProject={project.id}
+    message={ctaMessage}
+    context={ctaContext}
+    eyebrow="Facing something similar?"
+    headline="Let us look at your space."
+  />
+</BaseLayout>

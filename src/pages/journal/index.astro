@@ -1,0 +1,134 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import MaterialImage from '@/components/MaterialImage.astro';
+import CtaBand from '@/components/CtaBand.astro';
+
+const entries = (await getCollection('journal')).sort(
+  (a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf()
+);
+
+const featured = entries.find((e) => e.data.featured) ?? entries[0];
+const rest = entries.filter((e) => e.id !== featured?.id);
+
+const formatDate = (date: Date) =>
+  date
+    .toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    })
+    .toUpperCase();
+
+const categoryLabels: Record<string, string> = {
+  lighting: 'Lighting',
+  materials: 'Materials',
+  architecture: 'Architecture',
+  'interior-rhythm': 'Interior Rhythm',
+};
+---
+
+<BaseLayout
+  title="Design Journal"
+  description="Explorations in material, light, and the quiet spaces in between — essays from the Ruang Rasa studio."
+>
+  <section class="shell pt-16 md:pt-24">
+    <h1 class="max-w-4xl font-display text-display-lg text-on-surface">
+      Design Journal
+    </h1>
+    <p class="mt-10 max-w-2xl font-body text-body-lg font-light text-on-surface-variant">
+      Explorations in material, light, and the quiet spaces in between.
+    </p>
+  </section>
+
+  {
+    featured && (
+      <section class="shell mt-20">
+        <a href={`/journal/${featured.id}`} class="group block no-underline">
+          <div class="grid items-center gap-12 md:grid-cols-12 md:gap-gutter">
+            <div class="overflow-hidden md:col-span-7">
+              <MaterialImage
+                src={featured.data.coverImage}
+                alt={featured.data.coverAlt}
+                materialLabel="FEATURED"
+                ratio="horizontal"
+                priority={true}
+                maxH="max-h-[54svh]"
+                sizes="(min-width: 768px) 58vw, 100vw"
+                class="[&_img]:group-hover:scale-[1.03]"
+              />
+            </div>
+
+            <div class="md:col-span-5">
+              <p class="font-body text-label-caps uppercase tracking-[0.15em] text-brass-deep">
+                {categoryLabels[featured.data.category]}
+              </p>
+              <h2 class="mt-6 font-display text-headline-lg text-on-surface transition-colors duration-500 group-hover:text-brass-deep">
+                {featured.data.title}
+              </h2>
+              <p class="mt-6 font-body text-body-lg font-light text-on-surface-variant">
+                {featured.data.excerpt}
+              </p>
+              <p class="mt-10 font-body text-label-caps uppercase tracking-[0.15em] text-on-surface">
+                Read full essay &rarr;
+              </p>
+            </div>
+          </div>
+        </a>
+      </section>
+    )
+  }
+
+  <section class="section-gap">
+    <div class="shell">
+      <div class="flex items-end justify-between border-b border-outline-variant/60 pb-6">
+        <h2 class="font-display text-headline-md text-on-surface">
+          Recent Essays
+        </h2>
+        <p class="font-body text-label-caps uppercase tracking-[0.15em] text-on-surface-variant">
+          {String(rest.length).padStart(2, '0')} Entries
+        </p>
+      </div>
+
+      <div class="mt-16 grid gap-x-gutter gap-y-20 md:grid-cols-3">
+        {
+          rest.map((entry, i) => (
+            <article data-reveal data-reveal-delay={i * 90} class="group">
+              <a href={`/journal/${entry.id}`} class="block no-underline">
+                <div class="overflow-hidden">
+                  <MaterialImage
+                    src={entry.data.coverImage}
+                    alt={entry.data.coverAlt}
+                    ratio="vertical"
+                    sizes="(min-width: 768px) 33vw, 100vw"
+                    class="[&_img]:group-hover:scale-[1.04]"
+                  />
+                </div>
+
+                <p class="mt-6 font-body text-label-caps uppercase tracking-[0.15em] text-brass-deep">
+                  {categoryLabels[entry.data.category]}
+                  <span class="text-on-surface-variant">
+                    {' '}/ {formatDate(entry.data.publishedAt)}
+                  </span>
+                </p>
+                <h3 class="mt-4 font-display text-headline-md text-on-surface">
+                  {entry.data.title}
+                </h3>
+                <p class="mt-4 font-body text-body-md font-light text-on-surface-variant">
+                  {entry.data.excerpt}
+                </p>
+              </a>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <CtaBand
+    ctaId="journal-index-footer"
+    ctaLocation="journal-index"
+    eyebrow="Thinking about your own space?"
+    headline="Where form meets feeling."
+  />
+</BaseLayout>

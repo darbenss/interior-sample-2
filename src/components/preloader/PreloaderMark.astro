@@ -1,0 +1,56 @@
+---
+/* ---------------------------------------------------------------------------
+ * The logo mark. Markup only — every animation lives in Preloader.astro.
+ *
+ * ┌───────────────────────────────────────────────────────────────────────┐
+ * │  HOW TO SWAP IN YOUR OWN SVG                                          │
+ * │                                                                       │
+ * │  1. Copy the `viewBox` from your export onto the <svg> below.         │
+ * │  2. Paste the single perimeter path between the OUTER OUTLINE         │
+ * │     markers, inside <g class="outer-outline">.                        │
+ * │  3. Paste every interior path between the INNER LINES markers,        │
+ * │     inside <g class="inner-lines">.                                   │
+ * │  4. Drop any `fill`, `stroke` and `stroke-width` attributes from the   │
+ * │     pasted paths — the stylesheet owns all three.                     │
+ * │                                                                       │
+ * │  `pathLength="1"` is what makes the draw work: it normalises every    │
+ * │  path to a length of 1 so `stroke-dasharray: 1` traces it exactly.    │
+ * │  Keep it on each path — and if you forget, the inline script in       │
+ * │  Preloader.astro adds it before first paint anyway.                   │
+ * │                                                                       │
+ * │  Inner lines draw in DOCUMENT ORDER (each one starts a beat after     │
+ * │  the previous), so order them the way the house should build.         │
+ * └───────────────────────────────────────────────────────────────────────┘
+ * ------------------------------------------------------------------------- */
+---
+
+<svg
+  class="rr-mark"
+  viewBox="0 0 697 670"
+  xmlns="http://www.w3.org/2000/svg"
+  aria-hidden="true"
+  focusable="false"
+>
+  {/* ══════════════ PASTE YOUR OUTER SVG PATH HERE ══════════════ */}
+  <g class="outer-outline">
+    <path
+      pathLength="1"
+      d="M349.006 13.0908L10.0059 299.591L10.5059 659.091H686.506V298.091L349.006 13.0908Z"
+    />
+  </g>
+  {/* ════════════ END OUTER SVG PATH ════════════ */}
+
+  {/* ══════════════ PASTE YOUR INNER SVG PATHS HERE ══════════════ */}
+  <g class="inner-lines">
+    <path pathLength="1" d="M10.5059 473.591L204.506 318.591L419.006 72.0908" />
+    <path pathLength="1" d="M347.006 156.091L686.506 441.591" />
+    <path pathLength="1" d="M205.006 577.591H477.006" />
+    <path pathLength="1" d="M205.006 580.091V319.091" />
+    <path pathLength="1" d="M477.006 268.091V656.091" />
+    <path pathLength="1" d="M588.506 361.091V658.091" />
+    <path pathLength="1" d="M108.506 618.591V395.591" />
+    <path pathLength="1" d="M20.5059 656.091L210.506 575.091L213.006 574.091" />
+    <path pathLength="1" d="M478.006 269.591V267.091" />
+  </g>
+  {/* ════════════ END INNER SVG PATHS ════════════ */}
+</svg>

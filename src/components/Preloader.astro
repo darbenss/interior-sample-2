@@ -1,0 +1,381 @@
+---
+import PreloaderMark from '@/components/preloader/PreloaderMark.astro';
+import {
+  ONCE_PER_SESSION,
+  TIMELINE,
+  WORDMARK,
+  timelineStyleAttr,
+} from '@/components/preloader/timeline';
+
+/* ---------------------------------------------------------------------------
+ * Preloader — a 3.0s title card, then gone.
+ *
+ * ARCHITECTURE
+ * Three files, one job each:
+ *   timeline.ts          every duration and delay, in one object
+ *   PreloaderMark.astro  the SVG, with the paste-your-own placeholders
+ *   this file            the overlay, the stylesheet, and the unmount
+ *
+ * WHY THERE IS NO ISLAND HERE
+ * The preloader covers the viewport for three seconds, which puts it directly
+ * in front of Largest Contentful Paint — so it must not also cost a framework
+ * boot. Every visual is a CSS animation on markup that ships in the initial
+ * HTML: the overlay paints on the first frame and the sequence runs to
+ * completion with the main thread free for the real page to hydrate behind it.
+ *
+ * JavaScript is left with exactly three jobs, all of them bookkeeping:
+ *   1. decide whether to run at all (already seen / reduced motion)
+ *   2. hold the scroll lock, and release it
+ *   3. take the node out of the DOM on the last frame
+ *
+ * WHAT HAPPENS IF THE SCRIPT NEVER RUNS
+ * The fade-out keyframe is `forwards` and ends on `visibility: hidden`, so a
+ * visitor with JavaScript off still gets the animation and still reaches the
+ * site at 3.0s. The scroll lock is applied BY the script and released by it,
+ * never by the stylesheet — a lock that no code can unlock is the one failure
+ * mode worth designing out.
+ * ------------------------------------------------------------------------- */
+
+/* Split for the staggered reveal. Spaces are laid out but never animated, so
+   they are excluded from the index the delay is computed from. */
+let letterIndex = 0;
+const letters = [...WORDMARK].map((char) => ({
+  char,
+  index: /\s/.test(char) ? -1 : letterIndex++,
+}));
+---
+
+<div id="rr-preloader" role="presentation" aria-hidden="true" style={timelineStyleAttr}>
+  <div class="rr-preloader__stage">
+    <PreloaderMark />
+
+    <p class="rr-preloader__wordmark">
+      {
+        letters.map(({ char, index }) =>
+          index === -1 ? (
+            /* An explicit box: a literal space between inline-blocks collapses
+               unpredictably once letter-spacing is in play. */
+            <span class="rr-preloader__space"></span>
+          ) : (
+            <span class="rr-preloader__letter" style={`--rr-i:${index}`}>{char}</span>
+          )
+        )
+      }
+    </p>
+  </div>
+</div>
+
+<style is:global>
+  /* ------------------------------------------------------------ THE OVERLAY
+     Global, not scoped: the rules below reach both the mark (authored in a
+     different component, so a different scope hash) and <html> itself. */
+
+  #rr-preloader {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: grid;
+    place-items: center;
+    background-color: #ffffff;
+    /* Only the compositor is involved, so the fade cannot be starved by the
+       hydration work happening behind it. */
+    animation: rr-preloader-out var(--rr-fade-dur) cubic-bezier(0.4, 0, 0.2, 1)
+      var(--rr-fade-start) forwards;
+    will-change: opacity;
+  }
+
+  @keyframes rr-preloader-out {
+    to {
+      opacity: 0;
+      /* The no-JS failsafe: `forwards` parks the overlay here permanently, so
+         the site is reachable even if the unmount never runs. */
+      visibility: hidden;
+      pointer-events: none;
+    }
+  }
+
+  .rr-preloader__stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(20px, 3.2vw, 34px);
+    padding-inline: var(--spacing-margin-mobile, 24px);
+  }
+
+  /* --------------------------------------------------------------- THE MARK */
+
+  .rr-mark {
+    width: clamp(88px, 13vw, 132px);
+    height: auto;
+    color: var(--color-charcoal, #1c1c1c);
+    /* Half the stroke sits outside the viewBox on edge paths. */
+    overflow: visible;
+  }
+
+  .rr-mark path {
+    fill: none;
+    stroke: currentColor;
+    /* User units — scales with the viewBox, so the mark keeps its proportions
+       at every size instead of going spidery on mobile. */
+    stroke-width: 20;
+    /* Butt caps and mitred joins on purpose: the design language is "sharp (0)
+       roundedness", and a round cap on a zero-length dash can render as a dot
+       on frame 0 in some engines. */
+    stroke-linecap: butt;
+    stroke-linejoin: miter;
+    /* pathLength="1" normalises every path, so one dash covers all of it
+       regardless of the real geometry. The script backfills the attribute if a
+       pasted path is missing it. */
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+
+  @keyframes rr-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  /* Outer outline: one continuous trace of the perimeter, 0 → 2000ms. The
+     curve is close to linear so it reads as a progress bar rather than a
+     gesture, with just enough ease-out to settle instead of stopping dead. */
+  .outer-outline path,
+  path.outer-outline {
+    animation: rr-draw var(--rr-outer-dur) cubic-bezier(0.32, 0, 0.24, 1) 0ms forwards;
+  }
+
+  /* Inner lines: same finish, later starts.
+
+     Each line's delay grows by --rr-inner-step and its duration shrinks by the
+     same amount, so however many there are they all land on --rr-draw-end
+     together. The base rule is a descendant selector with --rr-i: 0, which is
+     what a nested <g> from a design tool falls back to — still correct, just
+     without the stagger. */
+  .inner-lines path,
+  path.inner-lines {
+    --rr-i: 0;
+    animation-name: rr-draw;
+    animation-delay: calc(var(--rr-inner-delay) + var(--rr-i) * var(--rr-inner-step));
+    animation-duration: calc(
+      var(--rr-draw-end) - var(--rr-inner-delay) - var(--rr-i) * var(--rr-inner-step)
+    );
+    animation-timing-function: cubic-bezier(0.4, 0, 0.3, 1);
+    animation-fill-mode: forwards;
+  }
+
+  /* Twelve is plenty for a logo mark; anything past it draws with the group. */
+  .inner-lines path:nth-child(2) {
+    --rr-i: 1;
+  }
+  .inner-lines path:nth-child(3) {
+    --rr-i: 2;
+  }
+  .inner-lines path:nth-child(4) {
+    --rr-i: 3;
+  }
+  .inner-lines path:nth-child(5) {
+    --rr-i: 4;
+  }
+  .inner-lines path:nth-child(6) {
+    --rr-i: 5;
+  }
+  .inner-lines path:nth-child(7) {
+    --rr-i: 6;
+  }
+  .inner-lines path:nth-child(8) {
+    --rr-i: 7;
+  }
+  .inner-lines path:nth-child(9) {
+    --rr-i: 8;
+  }
+  .inner-lines path:nth-child(10) {
+    --rr-i: 9;
+  }
+  .inner-lines path:nth-child(11) {
+    --rr-i: 10;
+  }
+  .inner-lines path:nth-child(12) {
+    --rr-i: 11;
+  }
+
+  /* --------------------------------------------------------------- THE TEXT */
+
+  .rr-preloader__wordmark {
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    /* CHANGED DELIBERATELY — this was pinned to a system stack. Read on before
+       reverting it.
+
+       THE ORIGINAL REASONING (still true)
+       The webfont CSS loads non-blocking (BaseLayout), so Montserrat can arrive
+       at any moment — including inside the 1500-2300ms window these letters are
+       animating in. At letter-spacing 0.34em a face swap re-measures every glyph
+       and reflows nine animating flex items. A resident stack cannot swap, so
+       pinning it fixed the metrics from the first frame.
+
+       WHY IT NOW USES THE THEME FONT ANYWAY
+       The navbar wordmark has to be the same mark as this one, and the navbar
+       correctly uses --font-body. Two different faces for one wordmark is a
+       branding bug the visitor sees on every page; the swap is a tail risk on
+       one page load per session.
+
+       WHY THE RISK IS SMALLER THAN IT READS
+       --font-body is 'Montserrat', ui-sans-serif, system-ui, sans-serif — the
+       same system stack this used to pin, now as the fallback. If Montserrat has
+       not arrived, these letters render exactly as they did before and swap when
+       it lands. The worst case is a width shift, not an invisible wordmark, and
+       the CSS is requested at high priority (rel=preload) on the first scan of
+       the head, so it is almost always resident well before 1500ms.
+
+       Keep this in sync with .rr-nav__wordmark in Nav.astro — they are one mark. */
+    font-family: var(--font-body);
+    font-size: clamp(0.75rem, 2.4vw, 0.9rem);
+    font-weight: 400;
+    letter-spacing: 0.34em;
+    /* Tracking is applied to the right of every glyph, the last one included,
+       so the run carries a trailing gap and centres ~0.17em left of the mark.
+       Padding the content box by the full amount cancels it. (text-indent
+       would not: these letters are flex items, not inline content.) */
+    padding-left: 0.34em;
+    color: var(--color-charcoal, #1c1c1c);
+  }
+
+  .rr-preloader__letter {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(8px);
+    animation: rr-letter-in var(--rr-text-dur) var(--ease-intent, cubic-bezier(0.16, 1, 0.3, 1))
+      calc(var(--rr-text-start) + var(--rr-i) * var(--rr-text-stagger)) forwards;
+    /* transform+opacity animations are promoted by the compositor on their own.
+       A standing `will-change` here would hold ten extra layers in memory for
+       the whole sequence, on the device class least able to spare them. */
+  }
+
+  .rr-preloader__space {
+    display: inline-block;
+    width: 0.5em;
+  }
+
+  @keyframes rr-letter-in {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* --------------------------------------------------------- THE SCROLL LOCK
+     Applied and removed by the script only. `scrollbar-gutter` keeps the
+     scrollbar's width reserved while it is suppressed, so releasing the lock
+     does not snap the layout sideways on the last frame. */
+
+  html.rr-loading,
+  html.rr-loading body {
+    overflow: hidden;
+  }
+
+  html.rr-loading {
+    scrollbar-gutter: stable;
+  }
+
+  /* ------------------------------------------------------------- SKIP PATHS */
+
+  /* Stamped by the head script in BaseLayout before first paint, so a repeat
+     view within the session never flashes the overlay. */
+  html.rr-skip-preloader #rr-preloader {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #rr-preloader {
+      display: none;
+      animation: none;
+    }
+  }
+
+  /* --------------------------------------------------------------- THE PAGE
+     #rr-page (BaseLayout) is the content wrapper the overlay sits on top of.
+     Declared constantly rather than toggled: a min-height that appeared
+     mid-sequence would be a layout shift on a short page. */
+
+  #rr-page {
+    min-height: 100svh;
+  }
+</style>
+
+<script is:inline define:vars={{ total: TIMELINE.total, once: ONCE_PER_SESSION }}>
+  /* Runs the moment the parser reaches it — immediately after the overlay
+     markup, and before anything below it in <body> renders. */
+  (function () {
+    var overlay = document.getElementById('rr-preloader');
+    if (!overlay) return;
+
+    var root = document.documentElement;
+    var timer = null;
+    var removed = false;
+
+    function onAnimationEnd(event) {
+      /* Letters and paths bubble their own animationend through here. */
+      if (event.target === overlay && event.animationName === 'rr-preloader-out') teardown();
+    }
+
+    /* Everything this component touched, put back. Idempotent, because the
+       failsafe timer and the animation can finish on the same frame. */
+    function teardown() {
+      if (removed) return;
+      removed = true;
+      if (timer !== null) {
+        clearTimeout(timer);
+        timer = null;
+      }
+      overlay.removeEventListener('animationend', onAnimationEnd);
+      root.classList.remove('rr-loading');
+      overlay.remove();
+
+      /* The page is now scrollable and the main thread is free. This is the
+         cue smooth-scroll.ts waits for before it fetches and constructs Lenis
+         — see the note there on why it must not happen during the draw. */
+      window.dispatchEvent(new CustomEvent('rr:preloader-done'));
+    }
+
+    /* A pasted path with no pathLength would render `stroke-dasharray: 1` as a
+       one-unit dot on a 700-unit path and never appear to draw. Normalising
+       here means the placeholders accept raw design-tool output as-is. */
+    var paths = overlay.querySelectorAll(
+      '.outer-outline path, path.outer-outline, .inner-lines path, path.inner-lines'
+    );
+    for (var i = 0; i < paths.length; i++) {
+      if (!paths[i].hasAttribute('pathLength')) paths[i].setAttribute('pathLength', '1');
+    }
+
+    var seen = false;
+    try {
+      seen = once && sessionStorage.getItem('rr-seen') === '1';
+    } catch (e) {
+      /* private mode — the card simply plays again next navigation */
+    }
+    var reduced =
+      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* Bail BEFORE the lock is ever applied. */
+    if (seen || reduced || root.classList.contains('rr-skip-preloader')) {
+      teardown();
+      return;
+    }
+
+    try {
+      if (once) sessionStorage.setItem('rr-seen', '1');
+    } catch (e) {}
+
+    root.classList.add('rr-loading');
+    overlay.addEventListener('animationend', onAnimationEnd);
+
+    /* animationend is the primary unmount: it fires on the exact frame the
+       fade completes, i.e. the 3.0s mark measured from the first painted frame
+       rather than from parse time. The timer is only insurance for the cases
+       where that event never arrives (a tab backgrounded for the whole
+       sequence, an overriding stylesheet, animations disabled at OS level);
+       the margin keeps it from racing a healthy animation. */
+    timer = setTimeout(teardown, total + 250);
+  })();
+</script>

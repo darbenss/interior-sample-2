@@ -1,0 +1,66 @@
+---
+/* ---------------------------------------------------------------------------
+ * The Ruang Rasa house mark, as static UI.
+ *
+ * RELATIONSHIP TO PreloaderMark.astro
+ * Same geometry, different job. The preloader's copy is split into
+ * `outer-outline` / `inner-lines` groups and carries `pathLength="1"` on every
+ * path, because the whole point there is to trace the mark stroke by stroke.
+ * None of that structure means anything to a 32px logo in a navbar, and the
+ * animation stylesheet in Preloader.astro selects on those exact class names —
+ * reusing that component here would hand the navbar logo an animation that
+ * draws it in on page load.
+ *
+ * So: one flat <g>, no groups, no pathLength.
+ *
+ * COLOUR
+ * `stroke: currentColor`, so the mark inherits from whatever it sits in. The
+ * navbar relies on this — the logo is Alabaster over the hero image and
+ * Charcoal inside the pill, and that is a `color` change on the ancestor, not
+ * a second SVG.
+ *
+ * SIZE
+ * `viewBox` is padded 20 units beyond the artwork on every side. The paths were
+ * drawn to the edges of a 697x670 box and are stroked at 20 units, so half the
+ * perimeter stroke sits OUTSIDE the original box and gets clipped at small
+ * sizes. The padding is what stops the outline from looking thinner than the
+ * interior lines.
+ * ------------------------------------------------------------------------- */
+
+export type Props = {
+  /** Rendered as <title>; omit for a decorative mark that sits beside a label. */
+  title?: string | null;
+  class?: string;
+};
+
+const { title = null, class: className = '' } = Astro.props;
+---
+
+<svg
+  class={className}
+  viewBox="-20 -20 737 710"
+  xmlns="http://www.w3.org/2000/svg"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="20"
+  stroke-linecap="butt"
+  stroke-linejoin="miter"
+  role={title ? 'img' : undefined}
+  aria-hidden={title ? undefined : 'true'}
+  focusable="false"
+>
+  {title && <title>{title}</title>}
+
+  {/* Perimeter first, then the interior lines — same order as the source
+      export, so a diff against ruang-rasa-logo.svg stays readable. */}
+  <path d="M349.006 13.0908L10.0059 299.591L10.5059 659.091H686.506V298.091L349.006 13.0908Z" />
+  <path d="M10.5059 473.591L204.506 318.591L419.006 72.0908" />
+  <path d="M347.006 156.091L686.506 441.591" />
+  <path d="M205.006 577.591H477.006" />
+  <path d="M205.006 580.091V319.091" />
+  <path d="M477.006 268.091V656.091" />
+  <path d="M588.506 361.091V658.091" />
+  <path d="M108.506 618.591V395.591" />
+  <path d="M20.5059 656.091L210.506 575.091L213.006 574.091" />
+  <path d="M478.006 269.591V267.091" />
+</svg>

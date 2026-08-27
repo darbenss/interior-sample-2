@@ -1,0 +1,207 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import ProjectCard from '@/components/ProjectCard.astro';
+import CtaBand from '@/components/CtaBand.astro';
+
+const projects = (await getCollection('projects')).sort(
+  (a, b) => a.data.order - b.data.order || b.data.year - a.data.year
+);
+
+/* Only offer filters that actually have projects behind them — an empty
+   "Hospitality" tab is worse than no tab. */
+const categories = [...new Set(projects.map((p) => p.data.category))];
+
+const filters = [
+  { value: 'all', label: 'All' },
+  ...categories.map((c) => ({
+    value: c,
+    label: c.charAt(0).toUpperCase() + c.slice(1),
+  })),
+];
+
+/* ---------------------------------------------------------------- THE RHYTHM
+   DESIGN.md: "Images should not be uniform. Mix vertical (4:5) and horizontal
+   (3:2) aspect ratios to create a rhythmic, magazine-style flow."
+
+   The previous rule — two equal columns, every third card wide — satisfied the
+   letter of that and none of the spirit: two columns whose card tops always
+   aligned. This is a five-slot phrase over a 12-column field that repeats down
+   the page, and it resolves to exactly 12 columns three times, so the grid
+   never leaves a ragged track:
+
+     lead   7 cols · 1:1  ─┐
+     tall   4 cols · 3:4  ─┘ (offset down 6rem)
+     band  12 cols · 16:9
+     inset  6 cols · 3:2  ─┐ (indented one column from the margin)
+     drop   4 cols · 1:1  ─┘ (offset down 4rem)
+
+   Shapes and offsets live with the slot names in global.css. */
+const SLOTS = ['lead', 'tall', 'band', 'inset', 'drop'] as const;
+
+const slotFor = (i: number) => SLOTS[i % SLOTS.length];
+
+/* Roughly what fraction of the 1440px container each slot occupies. Feeding
+   the browser a `sizes` that matches the painted width is the difference
+   between a sharp card and a 2400px source rendered at half resolution. */
+const SLOT_SIZES: Record<(typeof SLOTS)[number], string> = {
+  lead: '(min-width: 1440px) 800px, (min-width: 768px) 58vw, 100vw',
+  tall: '(min-width: 1440px) 450px, (min-width: 768px) 33vw, 100vw',
+  band: '(min-width: 1440px) 1376px, 100vw',
+  inset: '(min-width: 1440px) 680px, (min-width: 768px) 50vw, 100vw',
+  drop: '(min-width: 1440px) 450px, (min-width: 768px) 33vw, 100vw',
+};
+---
+
+<BaseLayout
+  title="Selected Portfolio"
+  description="A curated exhibition of our most definitive spatial narratives — residential, commercial and hospitality interiors by Ruang Rasa."
+>
+  <section class="shell pt-16 md:pt-24">
+    <h1 class="max-w-4xl font-display text-display-lg text-on-surface">
+      Selected Portfolio
+    </h1>
+    <p class="mt-10 max-w-2xl font-body text-body-lg font-light text-on-surface-variant">
+      A curated exhibition of our most definitive spatial narratives. Each
+      project is documented in photographs — the constraints, the approach, and
+      the space they produced.
+    </p>
+
+    {/*
+      FILTERING IS DELIBERATELY NOT A REACT ISLAND.
+
+      The brief asks for islands only where interactivity genuinely requires
+      them. This is show/hide on six prerendered cards: roughly fifteen lines of
+      DOM code against ~45 KB of React plus Framer Motion, and the cards are
+      Astro components whose images are build-time optimised — handing them to
+      React would mean giving that up. The CTA button earns its island because
+      it needs gesture-driven animation. A filter does not.
+    */}
+    <div
+      role="group"
+      aria-label="Filter projects by category"
+      class="mt-16 flex flex-wrap gap-8 border-b border-outline-variant/60 pb-4"
+    >
+      {
+        filters.map((filter, i) => (
+          <button
+            type="button"
+            class="filter-btn font-body text-label-caps uppercase tracking-[0.15em] text-on-surface-variant transition-colors duration-500 hover:text-on-surface aria-pressed:text-on-surface"
+            data-filter={filter.value}
+            aria-pressed={i === 0 ? 'true' : 'false'}
+          >
+            {filter.label}
+          </button>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="shell pb-24 pt-16">
+    <div id="project-grid" class="rr-editorial">
+      {
+        projects.map((project, i) => (
+          <div class={`rr-slot rr-slot--${slotFor(i)}`} data-slot-cell>
+            <ProjectCard
+              project={project}
+              ratio="slot"
+              index={i}
+              priority={i < 2}
+              badge={true}
+              sizes={SLOT_SIZES[slotFor(i)]}
+            />
+          </div>
+        ))
+      }
+    </div>
+
+    <p
+      id="empty-state"
+      hidden
+      class="py-24 text-center font-body text-body-lg font-light text-on-surface-variant"
+    >
+      No projects in this category yet.
+    </p>
+  </section>
+
+  <CtaBand ctaId="portfolio-index-footer" ctaLocation="portfolio-index" />
+</BaseLayout>
+
+<style>
+  /* DESIGN.md: "a 1px Brass underline that appears on hover/active states" */
+  .filter-btn {
+    border-bottom: 1px solid transparent;
+    padding-bottom: 0.5rem;
+    margin-bottom: -1rem;
+  }
+
+  .filter-btn[aria-pressed='true'] {
+    border-bottom-color: var(--color-brass);
+  }
+</style>
+
+<script>
+  /* ------------------------------------------------------------------------
+   * Category filter.
+   *
+   * WHY THIS RE-SLOTS INSTEAD OF JUST HIDING
+   * The grid is a five-slot phrase (lead/tall/band/inset/drop) assigned by
+   * position at build time. Hide the cards that do not match a category and the
+   * survivors keep whatever slot their ORIGINAL index gave them — filter to a
+   * category whose three projects all happened to land on `band` and the page
+   * becomes three identical full-width plates, which is the uniform block
+   * layout this grid exists to avoid. Worse, the offsets (`--tall` starts 6rem
+   * down) are relative to a row-mate that may no longer be there, so the
+   * remaining card hangs in space for no visible reason.
+   *
+   * So the phrase is re-applied over the VISIBLE cards after every filter. The
+   * composition is a property of what is on screen, not of the unfiltered
+   * source order.
+   *
+   * This works only because slots are pure CSS classes carrying span, shape and
+   * offset together — swapping one class re-shapes the card (via the inherited
+   * --rr-card-ratio) and re-places it in the same paint. See global.css.
+   * ---------------------------------------------------------------------- */
+  const SLOTS = ['lead', 'tall', 'band', 'inset', 'drop'];
+
+  const buttons = document.querySelectorAll<HTMLButtonElement>('.filter-btn');
+  const grid = document.getElementById('project-grid');
+  const empty = document.getElementById('empty-state');
+
+  const cells = Array.from(
+    grid?.querySelectorAll<HTMLElement>('[data-slot-cell]') ?? []
+  );
+
+  /** Re-apply the slot phrase across whichever cells are currently shown. */
+  const reslot = () => {
+    let position = 0;
+    for (const cell of cells) {
+      if (cell.hidden) continue;
+      cell.classList.remove(...SLOTS.map((s) => `rr-slot--${s}`));
+      cell.classList.add(`rr-slot--${SLOTS[position % SLOTS.length]}`);
+      position += 1;
+    }
+  };
+
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const value = button.dataset.filter ?? 'all';
+
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b === button)));
+
+      let visible = 0;
+
+      for (const cell of cells) {
+        const card = cell.querySelector<HTMLElement>('[data-category]');
+        const match = value === 'all' || card?.dataset.category === value;
+        // Hiding the grid CELL, not the article, so the track closes up.
+        cell.hidden = !match;
+        if (match) visible += 1;
+      }
+
+      reslot();
+
+      if (empty) empty.hidden = visible > 0;
+    });
+  });
+</script>

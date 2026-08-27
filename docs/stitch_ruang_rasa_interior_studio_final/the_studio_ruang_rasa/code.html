@@ -1,0 +1,256 @@
+<!DOCTYPE html><html class="scroll-smooth" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>The Studio - Ruang Rasa</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&amp;family=Playfair+Display:wght@400;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface": "#1a1c1a",
+                        "tertiary-container": "#1b1d1b",
+                        "on-surface-variant": "#444748",
+                        "primary-fixed-dim": "#c8c6c5",
+                        "tertiary-fixed": "#e2e3e0",
+                        "primary-container": "#1c1c1c",
+                        "error-container": "#ffdad6",
+                        "inverse-primary": "#c8c6c5",
+                        "surface-variant": "#e3e3e0",
+                        "primary": "#010101",
+                        "outline": "#747878",
+                        "inverse-on-surface": "#f1f1ee",
+                        "inverse-surface": "#2f312f",
+                        "on-primary-container": "#858484",
+                        "on-secondary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "secondary-fixed": "#ffdea5",
+                        "surface-dim": "#dadad7",
+                        "on-tertiary-fixed": "#1a1c1b",
+                        "on-tertiary-container": "#848583",
+                        "on-background": "#1a1c1a",
+                        "surface-container": "#eeeeeb",
+                        "on-secondary-container": "#785a1a",
+                        "secondary": "#775a19",
+                        "on-tertiary-fixed-variant": "#454745",
+                        "on-primary": "#ffffff",
+                        "surface-container-low": "#f4f4f1",
+                        "outline-variant": "#c4c7c7",
+                        "surface-bright": "#faf9f6",
+                        "on-primary-fixed": "#1b1b1b",
+                        "secondary-container": "#fed488",
+                        "surface-tint": "#5f5e5e",
+                        "on-primary-fixed-variant": "#474746",
+                        "surface-container-highest": "#e3e3e0",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed": "#261900",
+                        "tertiary": "#010202",
+                        "surface": "#faf9f6",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#c6c7c4",
+                        "primary-fixed": "#e5e2e1",
+                        "surface-container-high": "#e8e8e5",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#e9c176",
+                        "on-secondary-fixed-variant": "#5d4201",
+                        "background": "#faf9f6",
+                        "surface-container-lowest": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "32px",
+                        "container-max": "1440px",
+                        "unit": "8px",
+                        "margin-mobile": "24px",
+                        "section-gap": "160px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Playfair Display"],
+                        "display-lg": ["Playfair Display"],
+                        "body-md": ["Montserrat"],
+                        "display-lg-mobile": ["Playfair Display"],
+                        "body-lg": ["Montserrat"],
+                        "headline-md": ["Playfair Display"],
+                        "headline-lg-mobile": ["Playfair Display"],
+                        "label-caps": ["Montserrat"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["48px", {"lineHeight": "56px", "fontWeight": "400"}],
+                        "display-lg": ["80px", {"lineHeight": "90px", "letterSpacing": "-0.02em", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "display-lg-mobile": ["48px", {"lineHeight": "54px", "letterSpacing": "-0.01em", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "32px", "letterSpacing": "0.01em", "fontWeight": "300"}],
+                        "headline-md": ["32px", {"lineHeight": "40px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.15em", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .reveal-up {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 1s cubic-bezier(0.2, 0.8, 0.2, 1), transform 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .reveal-up.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md antialiased overflow-x-hidden selection:bg-secondary-fixed selection:text-on-secondary-fixed">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-surface/90 dark:bg-on-surface/90 backdrop-blur-xl border-b border-outline-variant/30 transition-all duration-700 ease-in-out">
+<div class="flex justify-between items-center w-full px-gutter py-6 max-w-container-max mx-auto">
+<a class="font-headline-md text-headline-md text-on-surface dark:text-surface-bright tracking-tight" href="#">Ruang Rasa</a>
+<div class="hidden md:flex gap-8 items-center font-body-md text-label-caps">
+<a class="text-primary dark:text-surface border-b border-secondary pb-1 transition-all duration-700 ease-in-out" href="#">The Studio</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-secondary transition-colors duration-500" href="#">Expertise</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-secondary transition-colors duration-500" href="#">Portfolio</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-secondary transition-colors duration-500" href="#">Journal</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-secondary transition-colors duration-500" href="#">Inquiries</a>
+</div>
+<button aria-label="Menu" class="md:hidden text-on-surface hover:text-secondary transition-colors duration-500">
+<span class="material-symbols-outlined text-2xl" data-icon="menu">menu</span>
+</button>
+</div>
+</nav>
+<main class="pt-32 pb-section-gap px-gutter max-w-container-max mx-auto px-8">
+<!-- Hero Section -->
+<header class="max-w-container-max mx-auto mt-20 reveal-up is-visible mb-section-gap">
+<h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-primary text-center mb-8">The Studio</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto text-center">
+                Cultivating spatial silence and architectural precision. A sanctuary for design rooted in deep cultural context and modern restraint.
+            </p>
+</header>
+<!-- Main Picture -->
+<section class="max-w-container-max mx-auto mb-section-gap reveal-up relative is-visible">
+<div class="aspect-[3/2] md:aspect-[21/9] w-full overflow-hidden relative group">
+<img alt="Sunlit design workspace" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-[2s] ease-out" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBXrLfS7Q_4nVzPkU4VDggc58BkOhbf5cUhE0egSgj6OUfCb5fC-Owust7NkzH78whm0eKBFWeChjWRTTxCFNJhMDCEgafHJWoZtqG6ixxyvf8f2NWuf5y7Ot1TP5zIPJ07A1mXp0hKTfOfhxyz0U2IMbcKisJCcGTMzmBMaXnpkp0gBObCm0Wgu1DXPlzYHXrC_3e8Q9KBMXOmNjtgoCwC5-Kr7IRLUpy7p6qbpXLmrR3ogTJmRA6V">
+<div class="absolute bottom-4 left-4 bg-surface px-3 py-1 font-body-md text-label-caps text-on-surface tracking-widest border border-outline/20">
+                    THE ATELIER / JAKARTA
+                </div>
+</div>
+</section>
+<!-- Our Story -->
+<section class="max-w-container-max mx-auto mb-section-gap reveal-up is-visible">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<div class="md:col-span-4 md:col-start-2">
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary mb-6">Origins</h2>
+<div class="h-[1px] w-12 bg-secondary mb-8"></div>
+</div>
+<div class="md:col-span-6 font-body-lg text-body-lg text-on-surface-variant space-y-6">
+<p class="">
+                        Founded in the heart of Indonesia, Ruang Rasa emerged from a desire to reconcile the rich, tactile heritage of Southeast Asian craftsmanship with the rigorous geometries of contemporary minimalism. We believe that true luxury is found in restraint, in the spaces left intentionally blank.
+                    </p>
+<p class="">
+                        Our practice is an ongoing dialogue between raw materials and refined form. Every space we conceive is a study in light, shadow, and silence—a deliberate retreat from the noise of the modern world, prioritizing timeless functionality over fleeting trends.
+                    </p>
+</div>
+</div>
+</section>
+<!-- Principal Designer -->
+<section class="max-w-container-max mx-auto reveal-up is-visible mb-section-gap">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter items-center">
+<div class="md:col-span-5 relative group">
+<div class="aspect-[4/5] w-full overflow-hidden relative">
+<img alt="Principal Designer Portrait" class="w-full h-full object-cover filter grayscale hover:grayscale-0 transition-all duration-1000" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhqxsMLI3got_3r9SluUDN3t_ehRmcSXeDzri8FgyCxsZ7-mCGB_iK2x_vcg6rYz9L-_ng950104qvramFOd9_u4FUM2FF0YNQliRusygTq3g8HDroYM-ssV9M_JIawsS6WBdYKldFr6GGgQWdK2HBbqw6aDCyQifDYwRH1HJ0D1sjlvAqnGwBok7NuQrbBTU1kvrC4mklzYituQEoF-Q5vszDrrGNzIusto_0dvfVUb4v1B3rDnsS">
+<div class="absolute top-4 right-4 bg-surface px-3 py-1 font-body-md text-label-caps text-on-surface tracking-widest border border-outline/20 mix-blend-screen">
+                            PRINCIPAL
+                        </div>
+</div>
+</div>
+<div class="md:col-span-6 md:col-start-7 space-y-8 mt-12 md:mt-0">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary">Elara Lin</h3>
+<p class="font-body-md text-label-caps text-secondary tracking-widest mt-2">LEAD ARCHITECT &amp; FOUNDER</p>
+</div>
+<p class="font-body-lg text-body-lg text-on-surface-variant">
+                        With a background spanning classical architecture and industrial design, Elara approaches interiors not as decoration, but as volumetric composition. Her work is characterized by a profound respect for materiality and an unwavering commitment to spatial harmony.
+                    </p>
+<blockquote class="pl-6 border-l border-secondary py-2 relative">
+<span class="material-symbols-outlined absolute -left-3 -top-3 text-surface-variant text-4xl" data-icon="format_quote">format_quote</span>
+<p class="font-headline-md text-headline-md text-primary italic">
+                            "We design not just for the eye, but for the hand. The texture of a wall should invite touch, just as the layout of a room invites stillness."
+                        </p>
+</blockquote>
+<a class="inline-flex items-center gap-4 bg-primary text-on-primary px-8 py-4 font-body-md text-label-caps hover:bg-secondary hover:text-on-secondary transition-colors duration-500 group" href="#">
+                        VIEW PORTFOLIO
+                        <span class="material-symbols-outlined transform group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</a>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full mt-section-gap bg-primary dark:bg-tertiary-container text-surface dark:text-surface-bright">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter px-gutter py-20 max-w-container-max mx-auto font-body-lg text-body-lg">
+<div class="flex flex-col gap-4">
+<span class="font-headline-lg text-headline-lg text-surface-bright">Ruang Rasa</span>
+<p class="text-surface-variant/70 text-sm max-w-xs mt-2">Curating spaces of profound silence and architectural intention.</p>
+</div>
+<div class="flex flex-col gap-4 md:items-center">
+<ul class="space-y-4">
+<li class=""><a class="text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="#">Philosophy</a></li>
+<li class=""><a class="text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="#">Press</a></li>
+<li class=""><a class="text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="#">Terms</a></li>
+<li class=""><a class="text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="#">Privacy</a></li>
+</ul>
+</div>
+<div class="flex flex-col gap-4 md:items-end">
+<div class="flex gap-4 mb-4">
+<a aria-label="Instagram" class="text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="photo_camera">photo_camera</span>
+</a>
+<a aria-label="LinkedIn" class="text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="work">work</span>
+</a>
+</div>
+<p class="text-surface-variant/70 text-sm">© 2024 Ruang Rasa Studio. All rights reserved.</p>
+</div>
+</div>
+</footer>
+<script>
+        // Simple scroll reveal
+        document.addEventListener('DOMContentLoaded', () => {
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1
+            };
+
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.reveal-up').forEach(el => {
+                observer.observe(el);
+            });
+        });
+    </script>
+
+
+
+
+</body></html>

@@ -1,0 +1,50 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { site } from '@/lib/site';
+import { buildWhatsAppUrl } from '@/lib/whatsapp';
+
+const waHref = buildWhatsAppUrl({
+  number: site.whatsappNumber,
+  message: site.whatsappDefaultMessage,
+  context: 'Source: 404 page',
+});
+---
+
+<BaseLayout
+  title="Page not found"
+  description="The page you are looking for is not here."
+  noIndex={true}
+>
+  <section class="shell flex min-h-[60vh] flex-col justify-center py-32">
+    <p class="font-body text-label-caps uppercase tracking-[0.15em] text-brass-deep">
+      404
+    </p>
+    <h1 class="mt-8 max-w-4xl font-display text-display-lg text-on-surface">
+      This space does not exist.
+    </h1>
+    <p class="mt-10 max-w-xl font-body text-body-lg font-light text-on-surface-variant">
+      The page you were looking for has moved or was never here. The portfolio
+      is a good place to start again.
+    </p>
+
+    <div class="mt-14 flex flex-wrap gap-6">
+      <a
+        href="/portfolio"
+        class="bg-charcoal px-8 py-4 font-body text-label-caps uppercase tracking-[0.15em] text-surface no-underline transition-colors duration-500 hover:bg-brass hover:text-charcoal"
+      >
+        View Portfolio
+      </a>
+      <a
+        href={waHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        data-cta="404-whatsapp"
+        data-cta-location="404"
+        data-cta-label="404 page WhatsApp"
+        class="border border-charcoal px-8 py-4 font-body text-label-caps uppercase tracking-[0.15em] text-charcoal no-underline transition-colors duration-500 hover:bg-charcoal hover:text-surface"
+      >
+        Ask the studio
+      </a>
+    </div>
+  </section>
+</BaseLayout>

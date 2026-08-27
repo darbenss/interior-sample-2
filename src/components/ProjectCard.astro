@@ -1,0 +1,102 @@
+---
+import MaterialImage from '@/components/MaterialImage.astro';
+import { categoryLabel } from '@/lib/site';
+import type { Ratio } from '@/lib/images';
+import type { CollectionEntry } from 'astro:content';
+
+export type Props = {
+  project: CollectionEntry<'projects'>;
+  ratio?: Ratio;
+  priority?: boolean;
+  index?: number;
+  /**
+   * Curated Spaces variant: the category renders as a small badge over the
+   * top-left of the photograph, and the caption below is just the title plus a
+   * diagonal arrow. The default variant keeps "CATEGORY / LOCATION" as a text
+   * line above the title.
+   */
+  badge?: boolean;
+  /** Passed through to MaterialImage so each grid cell can cap its own height. */
+  maxH?: string;
+  sizes?: string;
+};
+
+const {
+  project,
+  ratio = 'vertical',
+  priority = false,
+  index = 0,
+  badge = false,
+  maxH,
+  sizes,
+} = Astro.props;
+
+const { data } = project;
+---
+
+<article
+  data-reveal
+  data-reveal-delay={index * 90}
+  data-category={data.category}
+  class="group h-full"
+>
+  <a href={`/portfolio/${project.id}`} class="flex h-full flex-col no-underline">
+    <div class="relative overflow-hidden">
+      <MaterialImage
+        src={data.coverImage}
+        alt={data.coverAlt}
+        materialLabel={badge ? null : data.materialLabel}
+        ratio={ratio}
+        priority={priority}
+        maxH={maxH}
+        sizes={sizes}
+        class="[&_img]:group-hover:scale-[1.04]"
+      />
+
+      {
+        badge && (
+          <span class="pointer-events-none absolute left-4 top-4 z-10 bg-surface/90 px-3 py-1.5 font-body text-label-caps uppercase tracking-[0.15em] text-charcoal backdrop-blur-sm">
+            {categoryLabel[data.category]}
+          </span>
+        )
+      }
+    </div>
+
+    <div class="mt-5 flex items-start justify-between gap-6">
+      <div>
+        {
+          !badge && (
+            <p class="font-body text-label-caps uppercase tracking-[0.15em] text-on-surface-variant">
+              {categoryLabel[data.category]} / {data.location}
+            </p>
+          )
+        }
+        <h3
+          class:list={[
+            'font-display text-headline-md text-on-surface transition-colors duration-500 group-hover:text-brass-deep',
+            !badge && 'mt-3',
+          ]}
+        >
+          {data.title}
+        </h3>
+        {
+          badge && (
+            <p class="mt-1.5 font-body text-body-md font-light text-on-surface-variant">
+              {data.location}
+            </p>
+          )
+        }
+      </div>
+
+      {/* Diagonal arrow, nudged out on hover. */}
+      <span
+        aria-hidden="true"
+        class="mt-1 shrink-0 text-on-surface-variant transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:text-brass-deep"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25">
+          <path d="M7 17L17 7M17 7H8M17 7v9" />
+        </svg>
+      </span>
+    </div>
+  </a>
+</article>

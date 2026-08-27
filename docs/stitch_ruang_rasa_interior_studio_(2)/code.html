@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ruang Rasa - Crafting Spaces That Inspire</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&amp;family=Playfair+Display:ital,wght@0,400..900;1,400..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface": "#1a1c1a",
+                        "tertiary-container": "#1b1d1b",
+                        "on-surface-variant": "#444748",
+                        "primary-fixed-dim": "#c8c6c5",
+                        "tertiary-fixed": "#e2e3e0",
+                        "primary-container": "#1c1c1c",
+                        "error-container": "#ffdad6",
+                        "inverse-primary": "#c8c6c5",
+                        "surface-variant": "#e3e3e0",
+                        "primary": "#010101",
+                        "outline": "#747878",
+                        "inverse-on-surface": "#f1f1ee",
+                        "inverse-surface": "#2f312f",
+                        "on-primary-container": "#858484",
+                        "on-secondary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "secondary-fixed": "#ffdea5",
+                        "surface-dim": "#dadad7",
+                        "on-tertiary-fixed": "#1a1c1b",
+                        "on-tertiary-container": "#848583",
+                        "on-background": "#1a1c1a",
+                        "surface-container": "#eeeeeb",
+                        "on-secondary-container": "#785a1a",
+                        "secondary": "#775a19",
+                        "on-tertiary-fixed-variant": "#454745",
+                        "on-primary": "#ffffff",
+                        "surface-container-low": "#f4f4f1",
+                        "outline-variant": "#c4c7c7",
+                        "surface-bright": "#faf9f6",
+                        "on-primary-fixed": "#1b1b1b",
+                        "secondary-container": "#fed488",
+                        "surface-tint": "#5f5e5e",
+                        "on-primary-fixed-variant": "#474746",
+                        "surface-container-highest": "#e3e3e0",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed": "#261900",
+                        "tertiary": "#010202",
+                        "surface": "#faf9f6",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#c6c7c4",
+                        "primary-fixed": "#e5e2e1",
+                        "surface-container-high": "#e8e8e5",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#e9c176",
+                        "on-secondary-fixed-variant": "#5d4201",
+                        "background": "#faf9f6",
+                        "surface-container-lowest": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "32px",
+                        "container-max": "1440px",
+                        "unit": "8px",
+                        "margin-mobile": "24px",
+                        "section-gap": "160px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Playfair Display"],
+                        "display-lg": ["Playfair Display"],
+                        "body-md": ["Montserrat"],
+                        "display-lg-mobile": ["Playfair Display"],
+                        "body-lg": ["Montserrat"],
+                        "headline-md": ["Playfair Display"],
+                        "headline-lg-mobile": ["Playfair Display"],
+                        "label-caps": ["Montserrat"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["48px", { "lineHeight": "56px", "fontWeight": "400" }],
+                        "display-lg": ["80px", { "lineHeight": "90px", "letterSpacing": "-0.02em", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "display-lg-mobile": ["48px", { "lineHeight": "54px", "letterSpacing": "-0.01em", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "32px", "letterSpacing": "0.01em", "fontWeight": "300" }],
+                        "headline-md": ["32px", { "lineHeight": "40px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["32px", { "lineHeight": "40px", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.15em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md antialiased overflow-x-hidden selection:bg-secondary selection:text-surface">
+<!-- Navigation -->
+<div class="fixed top-0 w-full z-50 flex justify-center px-4 md:px-gutter py-4 md:py-6 transition-all duration-700 ease-in-out" id="nav-container">
+<nav class="w-full max-w-container-max flex justify-between items-center px-6 md:px-8 py-4 transition-all duration-700 ease-in-out bg-transparent text-surface-bright" id="navbar">
+<a class="font-headline-md text-headline-md tracking-tight" href="#">Ruang Rasa</a>
+<div class="hidden md:flex space-x-8">
+<a class="font-body-md text-label-caps hover:text-secondary transition-colors duration-500 relative group" href="#">
+                    The Studio
+                    <span class="absolute -bottom-1 left-0 w-0 h-px bg-secondary transition-all duration-300 group-hover:w-full"></span>
+</a>
+<a class="font-body-md text-label-caps hover:text-secondary transition-colors duration-500 relative group" href="#">
+                    Expertise
+                    <span class="absolute -bottom-1 left-0 w-0 h-px bg-secondary transition-all duration-300 group-hover:w-full"></span>
+</a>
+<a class="font-body-md text-label-caps border-b border-secondary pb-1 relative group" href="#">
+                    Portfolio
+                </a>
+<a class="font-body-md text-label-caps hover:text-secondary transition-colors duration-500 relative group" href="#">
+                    Journal
+                    <span class="absolute -bottom-1 left-0 w-0 h-px bg-secondary transition-all duration-300 group-hover:w-full"></span>
+</a>
+<a class="font-body-md text-label-caps hover:text-secondary transition-colors duration-500 relative group" href="#">
+                    Inquiries
+                    <span class="absolute -bottom-1 left-0 w-0 h-px bg-secondary transition-all duration-300 group-hover:w-full"></span>
+</a>
+</div>
+<button class="md:hidden hover:text-secondary transition-colors duration-300 focus:outline-none">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+</nav>
+</div>
+<script>
+    window.addEventListener('scroll', () => {
+        const navContainer = document.getElementById('nav-container');
+        const navbar = document.getElementById('navbar');
+        
+        if (window.scrollY > 50) {
+            navContainer.classList.add('pt-4');
+            navContainer.classList.remove('md:py-6');
+            
+            navbar.classList.add('bg-surface/90', 'backdrop-blur-xl', 'rounded-full', 'shadow-md', 'text-on-surface');
+            navbar.classList.remove('bg-transparent', 'text-surface-bright', 'max-w-container-max', 'w-full');
+            navbar.classList.add('max-w-5xl');
+        } else {
+            navContainer.classList.remove('pt-4');
+            navContainer.classList.add('md:py-6');
+            
+            navbar.classList.remove('bg-surface/90', 'backdrop-blur-xl', 'rounded-full', 'shadow-md', 'text-on-surface', 'max-w-5xl');
+            navbar.classList.add('bg-transparent', 'text-surface-bright', 'max-w-container-max', 'w-full');
+        }
+    });
+</script>
+<main>
+<!-- Hero Section -->
+<section class="relative w-full h-screen flex flex-col justify-center items-center text-center mb-section-gap">
+<!-- Background Image -->
+<div class="absolute inset-0 z-0">
+<img alt="Modern living space with tropical views" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AEtjO1XZFh1C18JeauWj3inuSwvQ1u3zkkvd6iHPQuV15NebAOBEGSmMbi-OEQMSqpF33Et5gBQL8RrY6UWBc7p9aw7l3m8AJATcAvl8UT9CVHXsaCAer2iqnMGqvJRMm4n_fEz1MhPsL36YlCvb2E1Wzh6z9NlLfQzQk8lKzol4-Jn1kusxmyLEM4w5nWDCEVa4JdqrD-Ezh4wkBSadEJbE8zmbupQqS22K27LolQDNtcuVKI_VRHYHgHMJh8M"/>
+<div class="absolute inset-0 bg-black/40"></div>
+</div>
+<!-- Text Content -->
+<div class="relative z-10 w-full max-w-container-max mx-auto px-margin-mobile md:px-gutter mt-20">
+<h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-surface-bright mb-6 md:mb-8 leading-tight drop-shadow-lg">
+                    Crafting Spaces<br/><span class="italic font-light">That Inspire.</span>
+</h1>
+<p class="font-body-lg text-body-lg text-surface-bright/90 max-w-2xl mx-auto mb-10 md:mb-12 drop-shadow-md">
+                    Bespoke interior design for luxury residential and premium commercial environments. We shape spaces that elevate the everyday.
+                </p>
+<a class="inline-flex items-center justify-center px-8 py-4 bg-surface-bright text-primary font-body-md text-label-caps uppercase tracking-widest hover:bg-secondary hover:text-surface-bright transition-all duration-300 group" href="#portfolio">
+                    View Portfolio
+                    <span class="material-symbols-outlined ml-3 text-sm transform group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</a>
+</div>
+</section>
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-gutter">
+<!-- Philosophy Section -->
+<section class="max-w-4xl mx-auto text-center mb-section-gap py-10 md:py-16">
+<h2 class="font-headline-md text-headline-md text-primary mb-8 uppercase tracking-widest text-sm">Our Philosophy</h2>
+<p class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface-variant leading-relaxed">
+                We believe in the eloquent power of <span class="text-primary italic">simplicity</span>. By harmonizing natural light, rich textures, and architectural discipline, we curate environments that offer both sanctuary and profound inspiration.
+            </p>
+</section>
+<!-- Selected Works (Asymmetrical Grid) -->
+<section class="mb-section-gap py-10 md:py-16" id="portfolio">
+<div class="flex justify-between items-end mb-16">
+<h2 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-primary">Curated<br/>Spaces</h2>
+<a class="hidden md:inline-flex items-center font-body-md text-label-caps text-on-surface-variant hover:text-secondary transition-colors border-b border-transparent hover:border-secondary pb-1" href="#">
+                    ALL PROJECTS
+                </a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-y-16 md:gap-gutter">
+<!-- Project 1 (Large) -->
+<div class="md:col-span-8 group cursor-pointer">
+<div class="relative overflow-hidden h-[50vh] md:h-[70vh] w-full bg-surface-variant">
+<img alt="The Artisan's Haven project" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3dRBqREzEq1gc6C-YFswxYIDe7PykuGpyYMIFH26kNlsv9iAbPh1rmLY7Q7aU8ALtXpikxZPRsP56Twtgn0uO89oO2YNp6NDosRnigLV-PpbdvXz_rqX4YoVHr0szG6HuNfJVol8cMUdW4ZbEeQWHOeqOfe3eiAQPaqhpZxSrQ3gvCwkgkHJDJcOQENBsBABA7lPFe0SVkGGCQt-3wY9hC65gs6gt9UE-xYhfI7VerxuSDQIkplza"/>
+<div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors duration-500"></div>
+<div class="absolute top-6 left-6 bg-surface/90 backdrop-blur px-3 py-1.5">
+<span class="font-body-md text-label-caps text-primary">RESIDENTIAL</span>
+</div>
+</div>
+<div class="mt-6 flex justify-between items-center">
+<h3 class="font-headline-md text-headline-md text-primary">The Artisan's Haven</h3>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-secondary transition-colors">arrow_outward</span>
+</div>
+</div>
+<!-- Project 2 (Tall) -->
+<div class="md:col-span-4 md:mt-32 group cursor-pointer">
+<div class="relative overflow-hidden h-[60vh] w-full bg-surface-variant">
+<img alt="Nocturne Lounge project" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6YAqqPVQdqwS55suDOYWkbUDDMDuTiMzRcEriNay26yg81RI5RhKCgFUEzBm7UtDj4jhSaW7_R6QVR1ZP4fk72H-zDqhbYirLvXPJhmijhqcBQcw_ShOogVSuoziQ_ktqwV9462LRfnfE3XBjilhVrJobgt_PAfBAZKuK42GlUAmDGoRxj1cj_3LczwZ_hpaCHKG5e9WDr289IA2PhAxAhpulfvC_FjR5_TtaeebgfWOS9Xu08tX_"/>
+<div class="absolute top-6 left-6 bg-surface/90 backdrop-blur px-3 py-1.5">
+<span class="font-body-md text-label-caps text-primary">HOSPITALITY</span>
+</div>
+</div>
+<div class="mt-6 flex justify-between items-center">
+<h3 class="font-headline-md text-headline-md text-primary">Nocturne Lounge</h3>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-secondary transition-colors">arrow_outward</span>
+</div>
+</div>
+<!-- Project 3 (Wide) -->
+<div class="md:col-span-10 md:col-start-2 mt-0 md:mt-16 group cursor-pointer">
+<div class="relative overflow-hidden h-[40vh] md:h-[60vh] w-full bg-surface-variant">
+<img alt="Apex Executive project" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvUIfG0_OLlzWSldG8QyZ608L4eV-OM9wSaK3INAlirhGmOoU__INHUdLyAJAKH-d3rTvlDxYLyCo4WBhR2u-C9-PKGpC-dRoerm_FTFS20etGGc5ZI5o0SEYMlQVP1PtIPu47dGNBR-MrUqw7hmLho8Wd6jJ3pb6_zVkS1zymuKctzVLEPzFLZ0ksLcpzlqoM069KNlfchrYFDzQgLDrBuzSWptupodGY984mtKx1uZ4GITCWZzT7"/>
+<div class="absolute top-6 left-6 bg-surface/90 backdrop-blur px-3 py-1.5">
+<span class="font-body-md text-label-caps text-primary">CORPORATE</span>
+</div>
+</div>
+<div class="mt-6 flex justify-between items-center">
+<h3 class="font-headline-md text-headline-md text-primary">Apex Executive</h3>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-secondary transition-colors">arrow_outward</span>
+</div>
+</div>
+</div>
+<div class="mt-12 text-center md:hidden">
+<a class="inline-flex items-center font-body-md text-label-caps text-on-surface-variant hover:text-secondary transition-colors border-b border-on-surface-variant pb-1" href="#">
+                    VIEW ALL PROJECTS
+                </a>
+</div>
+</section>
+</div>
+<!-- Design Process -->
+<section class="bg-surface-container-low py-20 md:py-section-gap mb-section-gap">
+<div class="max-w-container-max mx-auto px-margin-mobile md:px-gutter">
+<div class="text-center mb-20">
+<h2 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-primary">The Process</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-gutter">
+<!-- Step 1 -->
+<div class="relative border-t border-outline-variant/50 pt-8">
+<span class="absolute top-0 right-0 font-body-md text-label-caps text-outline mt-8">01</span>
+<h3 class="font-headline-md text-headline-md text-primary mb-6">Discovery</h3>
+<p class="font-body-lg text-body-lg text-on-surface-variant">
+                            An intimate exploration of your lifestyle, aspirations, and the architectural context. We listen intently to understand the narrative you wish to live within.
+                        </p>
+</div>
+<!-- Step 2 -->
+<div class="relative border-t border-outline-variant/50 pt-8">
+<span class="absolute top-0 right-0 font-body-md text-label-caps text-outline mt-8">02</span>
+<h3 class="font-headline-md text-headline-md text-primary mb-6">Concept</h3>
+<p class="font-body-lg text-body-lg text-on-surface-variant">
+                            Translating insights into spatial poetry. We meticulously select materials, define lighting strategies, and establish the volumetric flow of the environment.
+                        </p>
+</div>
+<!-- Step 3 -->
+<div class="relative border-t border-outline-variant/50 pt-8">
+<span class="absolute top-0 right-0 font-body-md text-label-caps text-outline mt-8">03</span>
+<h3 class="font-headline-md text-headline-md text-primary mb-6">Realization</h3>
+<p class="font-body-lg text-body-lg text-on-surface-variant">
+                            Executing the vision with uncompromising precision. From structural coordination to the final placement of bespoke styling objects, we manage every detail.
+                        </p>
+</div>
+</div>
+</div>
+</section>
+<!-- Tagline / Material Image Section -->
+<section class="relative h-[70vh] mb-section-gap">
+<div class="absolute inset-0 bg-primary z-10 mix-blend-multiply opacity-60"></div>
+<img alt="Material mood board" class="w-full h-full object-cover object-center absolute inset-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFum0MnBOmguBabInIfqYuKwZXdCxggmAEhFqQZUnsZgaLZULQXQtXf2tRl0LuYn3IcRfMV1lhiBW3rIjdDQ9SIuWPLqVSssf6ehfaqGy_is9Fa4Jp92FNKeRXh-t20FmcsJFlT3XyWISOTGdutV9Th9SJzrYrTyGPKtwpYM0PC8kINDvYtep_wdsSjNazk0VkYZOw_Wov82AGdAz0QBYATfqUKRbp9BDd_ufwKOoijpeimw9-Ts07"/>
+<div class="absolute inset-0 z-20 flex items-center justify-center text-center px-margin-mobile">
+<h2 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-surface-bright leading-tight drop-shadow-lg">
+                    Where form<br/><span class="italic font-light">meets feeling.</span>
+</h2>
+</div>
+</section>
+<!-- Final CTA -->
+<section class="max-w-3xl mx-auto text-center mb-section-gap py-10 md:py-16 px-margin-mobile md:px-gutter">
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary mb-10">
+                Ready to transform your space?
+            </h2>
+<a class="inline-flex items-center justify-center px-10 py-5 bg-primary text-surface font-body-md text-label-caps uppercase tracking-widest hover:bg-secondary transition-all duration-300 group" href="#contact">
+                Book a Consultation
+                <span class="material-symbols-outlined ml-3 text-sm transform group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</a>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full bg-primary dark:bg-tertiary-container">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter md:px-gutter py-20 max-w-container-max mx-auto px-margin-mobile">
+<!-- Brand -->
+<div class="flex flex-col justify-between h-full md:col-span-1">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-surface-bright mb-6">Ruang Rasa</h2>
+<p class="font-body-md text-body-md text-surface-variant/70 max-w-xs">
+                        Elevating environments through mindful design and uncompromising craftsmanship.
+                    </p>
+</div>
+<div class="mt-12 md:mt-0">
+<p class="font-body-md text-label-caps text-surface-variant/70">
+                        © 2024 Ruang Rasa Studio. All rights reserved.
+                    </p>
+</div>
+</div>
+<!-- Links -->
+<div class="md:col-span-1 flex flex-col space-y-4 md:pl-12 mt-12 md:mt-0">
+<span class="font-body-md text-label-caps text-surface-variant/40 mb-2">STUDIO</span>
+<a class="font-body-lg text-body-lg text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300 w-fit" href="#">Philosophy</a>
+<a class="font-body-lg text-body-lg text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300 w-fit" href="#">Press</a>
+<a class="font-body-lg text-body-lg text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300 w-fit" href="#">Terms</a>
+<a class="font-body-lg text-body-lg text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300 w-fit" href="#">Privacy</a>
+</div>
+<!-- Contact/Social -->
+<div class="md:col-span-1 flex flex-col md:items-end mt-12 md:mt-0">
+<div class="flex flex-col space-y-4 md:text-right">
+<span class="font-body-md text-label-caps text-surface-variant/40 mb-2">CONNECT</span>
+<a class="font-body-lg text-body-lg text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="mailto:hello@ruangrasa.com">hello@ruangrasa.com</a>
+<a class="font-body-lg text-body-lg text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="tel:+628112345678">+62 811 234 5678</a>
+<div class="flex space-x-6 mt-8 md:justify-end">
+<a class="text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="photo_camera">photo_camera</span>
+</a>
+<a class="text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="alternate_email">alternate_email</span>
+</a>
+<a class="text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="business">business</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+</footer>
+</body></html>

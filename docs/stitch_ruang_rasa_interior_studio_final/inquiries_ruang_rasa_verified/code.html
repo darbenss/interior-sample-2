@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Inquiries - Ruang Rasa Studio</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&amp;family=Playfair+Display:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface": "#1a1c1a",
+                        "tertiary-container": "#1b1d1b",
+                        "on-surface-variant": "#444748",
+                        "primary-fixed-dim": "#c8c6c5",
+                        "tertiary-fixed": "#e2e3e0",
+                        "primary-container": "#1c1c1c",
+                        "error-container": "#ffdad6",
+                        "inverse-primary": "#c8c6c5",
+                        "surface-variant": "#e3e3e0",
+                        "primary": "#010101",
+                        "outline": "#747878",
+                        "inverse-on-surface": "#f1f1ee",
+                        "inverse-surface": "#2f312f",
+                        "on-primary-container": "#858484",
+                        "on-secondary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "secondary-fixed": "#ffdea5",
+                        "surface-dim": "#dadad7",
+                        "on-tertiary-fixed": "#1a1c1b",
+                        "on-tertiary-container": "#848583",
+                        "on-background": "#1a1c1a",
+                        "surface-container": "#eeeeeb",
+                        "on-secondary-container": "#785a1a",
+                        "secondary": "#775a19",
+                        "on-tertiary-fixed-variant": "#454745",
+                        "on-primary": "#ffffff",
+                        "surface-container-low": "#f4f4f1",
+                        "outline-variant": "#c4c7c7",
+                        "surface-bright": "#faf9f6",
+                        "on-primary-fixed": "#1b1b1b",
+                        "secondary-container": "#fed488",
+                        "surface-tint": "#5f5e5e",
+                        "on-primary-fixed-variant": "#474746",
+                        "surface-container-highest": "#e3e3e0",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed": "#261900",
+                        "tertiary": "#010202",
+                        "surface": "#faf9f6",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#c6c7c4",
+                        "primary-fixed": "#e5e2e1",
+                        "surface-container-high": "#e8e8e5",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#e9c176",
+                        "on-secondary-fixed-variant": "#5d4201",
+                        "background": "#faf9f6",
+                        "surface-container-lowest": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "32px",
+                        "container-max": "1440px",
+                        "unit": "8px",
+                        "margin-mobile": "24px",
+                        "section-gap": "160px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Playfair Display"],
+                        "display-lg": ["Playfair Display"],
+                        "body-md": ["Montserrat"],
+                        "display-lg-mobile": ["Playfair Display"],
+                        "body-lg": ["Montserrat"],
+                        "headline-md": ["Playfair Display"],
+                        "headline-lg-mobile": ["Playfair Display"],
+                        "label-caps": ["Montserrat"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["48px", {"lineHeight": "56px", "fontWeight": "400"}],
+                        "display-lg": ["80px", {"lineHeight": "90px", "letterSpacing": "-0.02em", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "display-lg-mobile": ["48px", {"lineHeight": "54px", "letterSpacing": "-0.01em", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "32px", "letterSpacing": "0.01em", "fontWeight": "300"}],
+                        "headline-md": ["32px", {"lineHeight": "40px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.15em", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .floating-input:focus ~ .floating-label,
+        .floating-input:not(:placeholder-shown) ~ .floating-label {
+            transform: translateY(-1.5rem) scale(0.85);
+            color: #775a19;
+        }
+        select.floating-input {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0 center;
+            background-size: 1em;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface antialiased selection:bg-secondary selection:text-surface overflow-x-hidden min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-surface/90 dark:bg-on-surface/90 backdrop-blur-xl border-b border-outline-variant/30 transition-all duration-700 ease-in-out">
+<div class="flex justify-between items-center w-full px-gutter py-6 max-w-container-max mx-auto">
+<!-- Brand Logo -->
+<a class="font-headline-md text-headline-md text-on-surface dark:text-surface-bright tracking-tight" href="#">
+                Ruang Rasa
+            </a>
+<!-- Navigation Links (Desktop) -->
+<div class="hidden md:flex items-center space-x-12">
+<a class="font-body-md text-label-caps uppercase text-on-surface-variant dark:text-surface-variant hover:text-secondary transition-colors duration-500" href="#">
+                    The Studio
+                </a>
+<a class="font-body-md text-label-caps uppercase text-on-surface-variant dark:text-surface-variant hover:text-secondary transition-colors duration-500" href="#">
+                    Expertise
+                </a>
+<a class="font-body-md text-label-caps uppercase text-on-surface-variant dark:text-surface-variant hover:text-secondary transition-colors duration-500" href="#">
+                    Portfolio
+                </a>
+<a class="font-body-md text-label-caps uppercase text-on-surface-variant dark:text-surface-variant hover:text-secondary transition-colors duration-500" href="#">
+                    Journal
+                </a>
+<a class="font-body-md text-label-caps uppercase text-primary dark:text-surface border-b border-secondary pb-1 transition-colors duration-500" href="#">
+                    Inquiries
+                </a>
+</div>
+<!-- Trailing Action -->
+<button class="text-on-surface dark:text-surface-bright hover:text-secondary transition-colors duration-500 md:hidden flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">menu</span>
+</button>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-grow pt-[140px] pb-section-gap w-full px-gutter max-w-container-max mx-auto">
+<!-- Page Header -->
+<header class="mb-24 md:mb-section-gap">
+<h1 class="font-display-lg-mobile text-display-lg-mobile md:font-display-lg md:text-display-lg text-primary max-w-4xl">
+                Let's discuss your<br/>next space.
+            </h1>
+</header>
+<!-- 2-Column Split Layout -->
+<section>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter md:gap-x-16 lg:gap-x-24 relative">
+<!-- Left Column (Form) - 2/3 width (8/12) -->
+<div class="md:col-span-2 relative z-10 w-full">
+<form class="space-y-12">
+<!-- Name Field -->
+<div class="relative pt-6">
+<input class="floating-input w-full bg-transparent border-0 border-b border-primary text-primary font-body-md text-body-md py-2 px-0 focus:ring-0 focus:border-secondary transition-colors duration-300 rounded-none shadow-none" id="name" placeholder=" " required="" type="text"/>
+<label class="floating-label absolute left-0 top-8 font-body-md text-body-md text-outline cursor-text transition-all duration-300 origin-left" for="name">Name</label>
+</div>
+<!-- Email Field -->
+<div class="relative pt-6">
+<input class="floating-input w-full bg-transparent border-0 border-b border-primary text-primary font-body-md text-body-md py-2 px-0 focus:ring-0 focus:border-secondary transition-colors duration-300 rounded-none shadow-none" id="email" placeholder=" " required="" type="email"/>
+<label class="floating-label absolute left-0 top-8 font-body-md text-body-md text-outline cursor-text transition-all duration-300 origin-left" for="email">Email</label>
+</div>
+<!-- Project Type Dropdown -->
+<div class="relative pt-6">
+<select class="floating-input w-full bg-transparent border-0 border-b border-primary text-primary font-body-md text-body-md py-2 px-0 focus:ring-0 focus:border-secondary transition-colors duration-300 rounded-none shadow-none" id="project_type" required="">
+<option disabled="" hidden="" selected="" value=""></option>
+<option class="text-on-surface" value="residential">Residential Architecture</option>
+<option class="text-on-surface" value="commercial">Commercial Space</option>
+<option class="text-on-surface" value="interior">Interior Design Only</option>
+<option class="text-on-surface" value="consultation">Consultation</option>
+</select>
+<label class="floating-label absolute left-0 top-8 font-body-md text-body-md text-outline cursor-text transition-all duration-300 origin-left" for="project_type">Project Type</label>
+</div>
+<!-- Message Field -->
+<div class="relative pt-6">
+<textarea class="floating-input w-full bg-transparent border-0 border-b border-primary text-primary font-body-md text-body-md py-2 px-0 focus:ring-0 focus:border-secondary transition-colors duration-300 resize-none rounded-none shadow-none" id="message" placeholder=" " required="" rows="4"></textarea>
+<label class="floating-label absolute left-0 top-8 font-body-md text-body-md text-outline cursor-text transition-all duration-300 origin-left" for="message">Message</label>
+</div>
+<!-- Submit Button -->
+<div class="pt-8">
+<button class="bg-secondary text-surface px-10 py-5 font-label-caps text-label-caps uppercase tracking-widest hover:bg-primary transition-colors duration-500 w-full md:w-auto" type="submit">
+                                Submit Inquiry
+                            </button>
+</div>
+</form>
+</div>
+<!-- Right Column (Direct Info) - 1/3 width (4/12) -->
+<div class="md:col-span-1 mt-24 md:mt-0 w-full">
+<div class="sticky top-40">
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-primary mb-12 relative inline-block">
+                            Start a<br/>Conversation.
+                            <!-- Decorative accent -->
+<span class="absolute -bottom-4 left-0 w-12 h-px bg-secondary"></span>
+</h2>
+<div class="space-y-8 font-body-lg text-body-lg text-on-surface-variant font-light">
+<div>
+<h3 class="font-label-caps text-label-caps text-outline uppercase tracking-widest mb-2">Studio</h3>
+<p class="leading-relaxed">Level 4, The Design District,<br/>Jakarta, Indonesia</p>
+</div>
+<div>
+<h3 class="font-label-caps text-label-caps text-outline uppercase tracking-widest mb-2">Direct</h3>
+<p><a class="hover:text-secondary transition-colors duration-300" href="tel:+628110000000">+62 811-XXXX-XXXX</a></p>
+<p><a class="hover:text-secondary transition-colors duration-300" href="mailto:hello@ruangrasa.com">hello@ruangrasa.com</a></p>
+</div>
+<!-- Small aesthetic image -->
+<div class="pt-12 relative opacity-90 hidden md:block">
+<div class="relative w-48 h-64 overflow-hidden shadow-sm">
+<img alt="Material samples" class="w-full h-full object-cover filter grayscale hover:grayscale-0 transition-all duration-1000" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGkKS7S1EIHWVZfxOzEzbgT_bv6y_lZOAaG9lJAIyUlFT6dZmf3DCVZwujKiDkosvc637z65YMz9epJLnO7zy50fWPTbgri9TZQyKZglIfvnS62Rywq0krmgFTzK23z-MpRKAES7RcY8RYQGoTqVrKvJEfc1CTG79BNbcZROl5d43svYRUmNxBUW-dERWYTlFOyE0v84_A5JtOh_v7U5LFL8ic_gG1nrkded2olj9hHDBfbLnjtnbU"/>
+</div>
+<span class="absolute -bottom-2 -left-2 font-label-caps text-[10px] text-surface bg-primary px-2 py-1 tracking-widest">MATERIALS</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full bg-primary dark:bg-tertiary-container mt-auto">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter px-gutter py-20 max-w-container-max mx-auto">
+<!-- Brand / Copyright -->
+<div class="flex flex-col justify-between h-full space-y-12">
+<span class="font-headline-lg text-headline-lg text-surface-bright block">
+                    Ruang Rasa
+                </span>
+<p class="font-body-md text-label-caps text-surface-variant/70 uppercase tracking-widest">
+                    © 2024 Ruang Rasa Studio. All rights reserved.
+                </p>
+</div>
+<!-- Links -->
+<div class="flex flex-col space-y-4 md:col-start-2">
+<a class="font-body-lg text-body-lg text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300 w-fit" href="#">
+                    Philosophy
+                </a>
+<a class="font-body-lg text-body-lg text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300 w-fit" href="#">
+                    Press
+                </a>
+<a class="font-body-lg text-body-lg text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300 w-fit" href="#">
+                    Terms
+                </a>
+<a class="font-body-lg text-body-lg text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300 w-fit" href="#">
+                    Privacy
+                </a>
+</div>
+<!-- Placeholder for symmetry/socials -->
+<div class="flex flex-col space-y-4 md:col-start-3 md:items-end">
+<a class="font-body-lg text-body-lg text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300 w-fit" href="#">
+                    Instagram
+                </a>
+<a class="font-body-lg text-body-lg text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300 w-fit" href="#">
+                    LinkedIn
+                </a>
+</div>
+</div>
+</footer>
+<script>
+        document.querySelectorAll('.floating-input').forEach(input => {
+            if(input.value !== '') {
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        });
+    </script>
+</body></html>

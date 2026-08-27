@@ -1,0 +1,302 @@
+---
+import '@/styles/global.css';
+import Nav from '@/components/Nav.astro';
+import Preloader from '@/components/Preloader.astro';
+import { ONCE_PER_SESSION as preloaderOncePerSession } from '@/components/preloader/timeline';
+import Footer from '@/components/Footer.astro';
+import { site } from '@/lib/site';
+
+export type Props = {
+  title: string;
+  description: string;
+  /** Absolute or site-relative URL for og:image. */
+  ogImage?: string;
+  /** Adds noindex — used for the CMS admin shell. */
+  noIndex?: boolean;
+  /**
+   * True when the page opens with a full-bleed hero image. Hands the navbar its
+   * transparent `top` state and drops the layout spacer beneath it, so the
+   * photograph starts at y=0. See the note in Nav.astro.
+   */
+  overHero?: boolean;
+};
+
+const { title, description, ogImage, noIndex = false, overHero = false } = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://ruangrasa.com');
+const fullTitle = title === site.studioName ? title : `${title} — ${site.studioName}`;
+const ogImageUrl = ogImage
+  ? new URL(ogImage, canonical).toString()
+  : new URL('/og-default.jpg', canonical).toString();
+
+/* WHY <html> CARRIES NO SMOOTH-SCROLL CLASS
+   It used to have Tailwind's smooth-scroll utility. That was removed when Lenis
+   was introduced, along with the matching `scroll-behavior` declaration in
+   global.css. The two are not additive: Lenis eases the page by calling
+   window.scrollTo on every frame, and native smooth scrolling makes the browser
+   animate each of those calls in turn — so every frame targets a position the
+   browser has not finished easing towards. The scroll lags and overshoots.
+   Lenis owns the easing; the platform has to move instantly.
+
+   (This note lives here rather than above the <html> tag because an expression
+   between <!doctype> and <html> makes the compiler drop the element.) */
+
+/* Analytics wiring. `analyticsId` empty => no vendor script is emitted at all. */
+const provider = site.analyticsProvider;
+const analyticsId = site.analyticsId?.trim() ?? '';
+const analyticsEndpoint = import.meta.env.PUBLIC_ANALYTICS_ENDPOINT ?? '';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical.toString()} />
+    {noIndex && <meta name="robots" content="noindex, nofollow" />}
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical.toString()} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    {/*
+      Preloader guard. Runs before first paint and stamps a class on <html> so
+      the overlay is never painted for a visitor who has already seen it this
+      session. Deciding this before paint rather than in the component's own
+      script is what prevents a flash of the loader on every internal
+      navigation. `ONCE_PER_SESSION` is the same constant the preloader reads,
+      so turning the session skip off turns it off in both places.
+    */}
+    <script is:inline define:vars={{ once: preloaderOncePerSession }}>
+      try {
+        if (once && sessionStorage.getItem('rr-seen')) {
+          document.documentElement.classList.add('rr-skip-preloader');
+        }
+      } catch (e) {}
+    </script>
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#faf9f6" />
+
+    {/*
+      ------------------------------------------------------------------- FONTS
+
+      THE BUG THIS FIXES
+      A plain <link rel="stylesheet"> to a third-party origin is RENDER
+      BLOCKING. Nothing paints — not the page, not even the preloader's white
+      overlay — until DNS + TLS + a full round trip to fonts.googleapis.com
+      completes. `display=swap` governs how the FACE swaps once the CSS is in
+      hand; it does nothing about the CSS request itself blocking first paint.
+      That single link was the largest share of "the initial load feels heavy":
+      the title card could not start until Google answered.
+
+      THE PATTERN
+      `media="print"` makes the browser fetch the sheet at normal priority but
+      apply it to no medium, so it never blocks rendering. `onload` flips it to
+      `all` the moment it arrives. The preload above keeps the request at high
+      priority so the swap still lands early. <noscript> covers the no-JS case,
+      where the sheet blocks — correctly, since nothing can flip it later.
+
+      Only the weights actually used are requested — the mockups pull the entire
+      100..900 variable range, which is a wasted download.
+    */}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@400;500&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      media="print"
+      onload="this.media='all';this.onload=null"
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@400;500&display=swap"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:wght@400;500&display=swap"
+      />
+    </noscript>
+
+    {/*
+      ---------------------------------------------------------------- ANALYTICS
+
+      Two parts, in this order:
+        (a) the vendor tag itself, so `window.gtag` / `plausible` actually EXIST
+        (b) the config block the CTA tracker reads
+
+      Both are driven by Site Settings, so switching vendors is a content edit
+      rather than a deploy. Nothing loads until the client fills in
+      `analyticsId` — an empty ID means no third-party script and no cookie
+      banner obligation, which is the right default for a site that has not
+      launched its ad campaigns yet.
+    */}
+    {
+      analyticsId && provider === 'gtag' && (
+        <Fragment>
+          <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${analyticsId}`} />
+          <script is:inline define:vars={{ analyticsId }}>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() {
+              window.dataLayer.push(arguments);
+            }
+            window.gtag = gtag;
+            gtag('js', new Date());
+            gtag('config', analyticsId);
+          </script>
+        </Fragment>
+      )
+    }
+
+    {
+      analyticsId && provider === 'dataLayer' && (
+        <script is:inline define:vars={{ analyticsId }}>
+          {/* Google Tag Manager */}
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+          var f = document.getElementsByTagName('script')[0];
+          var j = document.createElement('script');
+          j.async = true;
+          j.src = 'https://www.googletagmanager.com/gtm.js?id=' + analyticsId;
+          f.parentNode.insertBefore(j, f);
+        </script>
+      )
+    }
+
+    {
+      analyticsId && provider === 'plausible' && (
+        <script
+          is:inline
+          defer
+          data-domain={analyticsId}
+          src="https://plausible.io/js/script.tagged-events.js"
+        />
+      )
+    }
+
+    {
+      analyticsId && provider === 'cloudflare' && (
+        <script
+          is:inline
+          defer
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          data-cf-beacon={`{"token": "${analyticsId}"}`}
+        />
+      )
+    }
+
+    {/*
+      Config for the CTA tracker, inlined ahead of the module so the very first
+      click on the page is never dropped.
+    */}
+    <script
+      is:inline
+      define:vars={{ provider, endpoint: analyticsEndpoint, debug: import.meta.env.DEV }}
+    >
+      window.__RR_ANALYTICS__ = {
+        provider: provider,
+        // First-party sink. Set PUBLIC_ANALYTICS_ENDPOINT to a Worker or Pages
+        // Function URL to keep a record of conversions that survives ad
+        // blockers — those are often the highest-intent visitors. README §3.
+        endpoint: endpoint || undefined,
+        debug: debug,
+      };
+    </script>
+
+    {/*
+      The CTA tracker. A module script is deferred by default, but the listener
+      is attached at document level in the capture phase, so any click that
+      happens before hydration still lands as long as the module has parsed.
+    */}
+    <script>
+      import { initCtaTracking } from '@/lib/analytics';
+      initCtaTracking();
+    </script>
+
+    {/*
+      ----------------------------------------------------------- SMOOTH SCROLL
+
+      Lenis, plus the single `rr:scroll` signal the navbar reads. Astro compiles
+      a bare <script> to `type="module"`, which is deferred — this cannot block
+      the parser or first paint.
+
+      The module is a thin bootstrapper on purpose. Lenis itself is behind a
+      dynamic import that does not fire until the preloader has unmounted, so
+      the library is never parsed on the same thread that is painting the title
+      card's stroke animation. Under `prefers-reduced-motion` it is never
+      fetched at all. src/lib/smooth-scroll.ts documents the rest.
+    */}
+    <script>
+      import { initSmoothScroll } from '@/lib/smooth-scroll';
+      initSmoothScroll();
+    </script>
+
+    <slot name="head" />
+  </head>
+
+  <body class="bg-surface text-on-surface font-body antialiased">
+    <Preloader />
+
+    {/*
+      Everything the visitor actually came for lives inside #rr-page. The
+      preloader sits above it as a fullscreen overlay and simply fades away, so
+      this is an ordinary wrapper — it carries nothing but a `min-height`
+      (declared in Preloader.astro) that keeps the footer at the bottom of the
+      viewport on short pages. Nothing here depends on JavaScript.
+    */}
+    <div id="rr-page">
+      <a
+        href="#main"
+        class="sr-only focus:not-sr-only focus:absolute focus:left-6 focus:top-6 focus:z-[100] focus:bg-charcoal focus:px-6 focus:py-3 focus:text-label-caps focus:uppercase focus:tracking-[0.15em] focus:text-surface"
+      >
+        Skip to content
+      </a>
+
+      <Nav overHero={overHero} />
+
+      <main id="main">
+        <slot />
+      </main>
+
+      <Footer />
+    </div>
+
+    {/*
+      Scroll reveal. Deliberately additive: elements render settled in the HTML
+      and are only *armed* (hidden) by this script once we know the browser can
+      un-hide them. A crawler, a reader-mode parser, or a visitor whose JS fails
+      sees finished content rather than an empty page.
+    */}
+    <script>
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      if ('IntersectionObserver' in window && !prefersReduced) {
+        const targets = document.querySelectorAll<HTMLElement>('[data-reveal]');
+
+        targets.forEach((el) => el.classList.add('reveal-armed'));
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (!entry.isIntersecting) return;
+              const el = entry.target as HTMLElement;
+              const delay = Number(el.dataset.revealDelay ?? 0);
+              window.setTimeout(() => el.classList.add('is-visible'), delay);
+              observer.unobserve(el);
+            });
+          },
+          { rootMargin: '0px 0px -12% 0px', threshold: 0.05 }
+        );
+
+        targets.forEach((el) => observer.observe(el));
+      }
+    </script>
+  </body>
+</html>

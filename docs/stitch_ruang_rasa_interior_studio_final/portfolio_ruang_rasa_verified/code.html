@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Ruang Rasa - Selected Portfolio</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&amp;family=Playfair+Display:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-surface": "#1a1c1a",
+                      "tertiary-container": "#1b1d1b",
+                      "on-surface-variant": "#444748",
+                      "primary-fixed-dim": "#c8c6c5",
+                      "tertiary-fixed": "#e2e3e0",
+                      "primary-container": "#1c1c1c",
+                      "error-container": "#ffdad6",
+                      "inverse-primary": "#c8c6c5",
+                      "surface-variant": "#e3e3e0",
+                      "primary": "#010101",
+                      "outline": "#747878",
+                      "inverse-on-surface": "#f1f1ee",
+                      "inverse-surface": "#2f312f",
+                      "on-primary-container": "#858484",
+                      "on-secondary": "#ffffff",
+                      "error": "#ba1a1a",
+                      "secondary-fixed": "#ffdea5",
+                      "surface-dim": "#dadad7",
+                      "on-tertiary-fixed": "#1a1c1b",
+                      "on-tertiary-container": "#848583",
+                      "on-background": "#1a1c1a",
+                      "surface-container": "#eeeeeb",
+                      "on-secondary-container": "#785a1a",
+                      "secondary": "#775a19",
+                      "on-tertiary-fixed-variant": "#454745",
+                      "on-primary": "#ffffff",
+                      "surface-container-low": "#f4f4f1",
+                      "outline-variant": "#c4c7c7",
+                      "surface-bright": "#faf9f6",
+                      "on-primary-fixed": "#1b1b1b",
+                      "secondary-container": "#fed488",
+                      "surface-tint": "#5f5e5e",
+                      "on-primary-fixed-variant": "#474746",
+                      "surface-container-highest": "#e3e3e0",
+                      "on-error": "#ffffff",
+                      "on-secondary-fixed": "#261900",
+                      "tertiary": "#010202",
+                      "surface": "#faf9f6",
+                      "on-error-container": "#93000a",
+                      "tertiary-fixed-dim": "#c6c7c4",
+                      "primary-fixed": "#e5e2e1",
+                      "surface-container-high": "#e8e8e5",
+                      "on-tertiary": "#ffffff",
+                      "secondary-fixed-dim": "#e9c176",
+                      "on-secondary-fixed-variant": "#5d4201",
+                      "background": "#faf9f6",
+                      "surface-container-lowest": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "32px",
+                      "container-max": "1440px",
+                      "unit": "8px",
+                      "margin-mobile": "24px",
+                      "section-gap": "160px"
+              },
+              "fontFamily": {
+                      "headline-lg": [
+                              "Playfair Display"
+                      ],
+                      "display-lg": [
+                              "Playfair Display"
+                      ],
+                      "body-md": [
+                              "Montserrat"
+                      ],
+                      "display-lg-mobile": [
+                              "Playfair Display"
+                      ],
+                      "body-lg": [
+                              "Montserrat"
+                      ],
+                      "headline-md": [
+                              "Playfair Display"
+                      ],
+                      "headline-lg-mobile": [
+                              "Playfair Display"
+                      ],
+                      "label-caps": [
+                              "Montserrat"
+                      ]
+              },
+              "fontSize": {
+                      "headline-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display-lg": [
+                              "80px",
+                              {
+                                      "lineHeight": "90px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display-lg-mobile": [
+                              "48px",
+                              {
+                                      "lineHeight": "54px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "300"
+                              }
+                      ],
+                      "headline-md": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.15em",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        .filter-btn.active {
+            border-bottom: 1px solid theme('colors.secondary');
+            color: theme('colors.primary');
+        }
+        .filter-btn {
+            border-bottom: 1px solid transparent;
+            transition: all 0.3s ease;
+        }
+      </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md antialiased overflow-x-hidden min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-xl transition-all duration-700 ease-in-out border-b border-outline-variant/30 hidden md:block">
+<div class="flex justify-between items-center w-full px-gutter py-6 max-w-container-max mx-auto">
+<a class="font-headline-md text-headline-md text-on-surface hover:text-secondary transition-colors duration-500" href="#">Ruang Rasa</a>
+<div class="flex gap-8 items-center font-body-md text-label-caps">
+<a class="text-on-surface-variant hover:text-secondary transition-colors duration-500" href="#">The Studio</a>
+<a class="text-on-surface-variant hover:text-secondary transition-colors duration-500" href="#">Expertise</a>
+<a class="text-primary border-b border-secondary pb-1 hover:text-secondary transition-colors duration-500" href="#">Portfolio</a>
+<a class="text-on-surface-variant hover:text-secondary transition-colors duration-500" href="#">Journal</a>
+<a class="text-on-surface-variant hover:text-secondary transition-colors duration-500" href="#">Inquiries</a>
+</div>
+<button class="text-primary hover:text-secondary transition-colors duration-500 flex items-center">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+</div>
+</nav>
+<!-- Mobile Header (Simplified) -->
+<header class="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-xl border-b border-outline-variant/30 flex md:hidden justify-between items-center px-margin-mobile py-4">
+<a class="font-headline-md text-headline-lg-mobile text-on-surface" href="#">Ruang Rasa</a>
+<button class="text-primary">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+</header>
+<main class="flex-grow pt-[100px] md:pt-[120px]">
+<!-- Hero Section -->
+<section class="w-full relative h-[60vh] md:h-[80vh] mb-section-gap">
+<div class="absolute inset-0 z-0">
+<img alt="Massive full-width penthouse interior" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAelrPp8qk069sDfMl05WwMdS_1djm8Loygo0-m7POPHIoCuA0xfDe6So17AvGpdFSHMPpSO2ikZQW_tQnsMRzUmblZGqKiOxbMsHmAlmRoa_vE5fZpT8pb5fe-EVMFRpkdZxABr3VmCi1mX_QHIFRlUvatY9qplxJ35HVjAxET0Q_8Eed4KD1PX_0L414E96uNHGTfQYzpEBXuhOzSVAFJhwfqNX6XKimmI7LlujJfYASCZ0kqhLTP"/>
+<div class="absolute inset-0 bg-primary/20 mix-blend-multiply"></div>
+</div>
+<div class="relative z-10 h-full flex flex-col justify-end px-margin-mobile md:px-gutter max-w-container-max mx-auto pb-16 md:pb-24">
+<h1 class="font-display-lg-mobile text-display-lg-mobile md:font-display-lg md:text-display-lg text-surface mb-6 drop-shadow-md">Selected Portfolio</h1>
+<p class="font-body-lg text-body-lg text-surface-bright max-w-2xl drop-shadow">A curated exhibition of our most definitive spatial narratives.</p>
+</div>
+</section>
+<!-- Portfolio Gallery Section -->
+<section class="max-w-container-max mx-auto px-margin-mobile md:px-gutter mb-section-gap">
+<!-- Filters -->
+<div class="flex flex-wrap gap-6 md:gap-12 mb-16 justify-center md:justify-start font-body-md text-label-caps uppercase tracking-widest text-on-surface-variant">
+<button class="filter-btn active hover:text-primary">All</button>
+<button class="filter-btn hover:text-primary">Residential</button>
+<button class="filter-btn hover:text-primary">Commercial</button>
+<button class="filter-btn hover:text-primary">Hospitality</button>
+</div>
+<!-- Masonry Grid -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter auto-rows-[300px] md:auto-rows-[100px]">
+<!-- Item 1 (Large) -->
+<div class="group relative overflow-hidden md:col-span-8 md:row-span-6 bg-surface-container-low border border-transparent hover:border-outline-variant/30 transition-all duration-700">
+<img alt="A sweeping, dramatic wide-angle shot of a luxurious contemporary living room bathed in natural light. High-end modern furniture with clean lines sits on polished concrete floors. The aesthetic is high-contrast minimalist chic, featuring deep charcoal accents against bright alabaster walls. Subtle organic textures like teak wood and linen add warmth to the serene, architectural space." class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAD5UzVZTpKZGlOwptTGv-gg4oNQMCdUNmlDTXUO6dt-97_vuILqdsimsZebJVW7T5kavKMKT_mfTD2rqwwq1z6kXuinYySwIHFdZEJZid3TA8ff2DYlvdcwE0zmyN2YER0O19s5gDCkg72IOX46pn2rxnWMdrTVY6KLSNfpJMgK8IZK8ILvBj5ipSeqVpnAhs0gqBqu0D0CH9OGLwoDBTFlZCLPFqY9PJrXFMDGJ1lTb-Jtt_V1Vtt"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/10 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-700"></div>
+<div class="absolute bottom-0 left-0 p-8 w-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-700">
+<span class="absolute top-8 right-8 font-body-md text-label-caps text-surface-bright/70 uppercase tracking-widest">RESIDENTIAL / JAKARTA</span>
+<h3 class="font-headline-md text-headline-md text-surface mb-2">The Cliffside Villa</h3>
+<p class="font-body-md text-body-md text-surface-variant/90 max-w-md opacity-0 group-hover:opacity-100 transition-opacity duration-700 delay-100">An exploration of verticality and brutalist grace overlooking the sea.</p>
+</div>
+</div>
+<!-- Item 2 (Tall) -->
+<div class="group relative overflow-hidden md:col-span-4 md:row-span-7 md:mt-16 bg-surface-container-low border border-transparent hover:border-outline-variant/30 transition-all duration-700">
+<img alt="A sophisticated, high-fashion portrait-oriented shot of a boutique hotel lobby. The space is defined by towering, fluted plaster columns and a sweeping curved staircase. The lighting is moody and editorial, casting dramatic architectural shadows. The color palette is restricted to muted alabaster, deep charcoal, and brushed brass fixtures, conveying quiet luxury and bespoke craftsmanship." class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWb9-HoA5VLpXM-dnervtLry1Rcr7z-49AW-b12kIMexqVmPjGTXgXZCvuOHk6iSZh7qH5pvx1XXx7dLm0VQTz8QX2rKxk3gsXI9q84Q2vLPVsIA9vqWVi4p10OZ9v8LqxkTvJ0RAqzYlNQnys1gPjCCMxthDSNhj1-vzHuOYsOMEJgo1tSsQvD2rzmZMOUfaYgykEHjH9RUX4rNSpmDivXuDs9V1vxvExclXYzzxqyNmeMGDB7dJa"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-700"></div>
+<div class="absolute bottom-0 left-0 p-8 w-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-700">
+<span class="absolute top-8 right-8 font-body-md text-label-caps text-surface-bright/70 uppercase tracking-widest">HOSPITALITY / BALI</span>
+<h3 class="font-headline-md text-headline-md text-surface mb-2">Jakarta Boutique Hotel</h3>
+</div>
+</div>
+<!-- Item 3 (Square-ish) -->
+<div class="group relative overflow-hidden md:col-span-5 md:row-span-5 bg-surface-container-low border border-transparent hover:border-outline-variant/30 transition-all duration-700">
+<img alt="A close-up, highly textural shot of a minimalist dining space. A bespoke, raw-edge teak dining table is the centerpiece, surrounded by matte black minimalist chairs. Soft, diffused daylight spills across the textured alabaster plaster walls, highlighting the organic irregularities. The composition is asymmetrical, emphasizing a high-end editorial, wabi-sabi inspired aesthetic." class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7aMpAv4N0n9vmoU9nf1ZvX-Prf5iOaa-IvkKZezcj7NIinZa3vlELNCm32EhvzFYAtk_ZGemDe69BhtPOhyGOhJos8ynUB_7qp9zKekcRRLEat6gxUvZ8AAPIG9lWQuxvK22jHuHyb_5yAJb1AmyPhIfjM0sb501CF_3agH_F5z5fcPdZf9CoXGahSegl9OhYzc3gTE9yp1ILyGRC4vFvTxz6-DCoANEG7Rx9HGPA1DeHuuQpQQ80"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-700"></div>
+<div class="absolute bottom-0 left-0 p-6 w-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-700">
+<span class="absolute top-6 right-6 font-body-md text-label-caps text-surface-bright/70 uppercase tracking-widest">COMMERCIAL / TOKYO</span>
+<h3 class="font-headline-md text-headline-md text-surface mb-2">Zenith Studio</h3>
+</div>
+</div>
+<!-- Item 4 (Wide) -->
+<div class="group relative overflow-hidden md:col-span-7 md:row-span-4 md:-mt-12 bg-surface-container-low border border-transparent hover:border-outline-variant/30 transition-all duration-700">
+<img alt="A sleek, modern kitchen interior featuring dark, matte charcoal cabinetry contrasting sharply with a bright, vein-cut marble island. The lighting is precise and architectural, illuminating specific work zones while leaving the periphery in sophisticated shadow. Subtle brass hardware accents catch the light, adding a touch of understated glamour to the highly functional, minimalist space." class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGZ3lahBJpxcA3CWgZ-DwPDl-Jjb_J3LgbkRrwuQe_A6pXHgISZVwnYcvY5t3SjVBV68may-NfJ13WT5q1pcqIq9YK1u2beuLpCQn81buamacaYTrwbyWt7NC_V5Dc7xaznv2sNn5JqdO-BSelp0QoF7VWpewCSJ_xoM8njfwfXcbV7RlKZ6j1sGOlMdN40fwZ1EfFYr_CeGKSHgIw4I_XqlDUE0cw8ytR_Uo_ZcrgviVgHEiosEPX"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-700"></div>
+<div class="absolute bottom-0 left-0 p-8 w-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-700">
+<span class="absolute top-8 right-8 font-body-md text-label-caps text-surface-bright/70 uppercase tracking-widest">RESIDENTIAL / SINGAPORE</span>
+<h3 class="font-headline-md text-headline-md text-surface mb-2">The Monochrome Loft</h3>
+</div>
+</div>
+<!-- Item 5 (Small Square) -->
+<div class="group relative overflow-hidden md:col-span-4 md:row-span-4 bg-surface-container-low border border-transparent hover:border-outline-variant/30 transition-all duration-700">
+<img alt="A serene bathroom interior designed as a personal sanctuary. Features a freestanding sculptural stone bathtub resting on dark charcoal slate tiles. The walls are finished in a smooth, warm alabaster tadelakt. Natural light filters softly through a linen shade, creating a calm, spa-like atmosphere that embodies minimalist luxury." class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWvO3O1AOSLhbmgpjCTRPB9heA1pJI1VfcVZ5s28NZZauMIoU5JmUTj0UU4935mGTd6f8oUVNO7Za5HOJ6pj13PJVazWE4qLh9YJfMvqGr2pC1v7NNfiUppFhw5AvxizlVsE_hQk0YaPHPwV-dfE1078rEUZrwj3_tqbnSjoZi3Kt1v2fWtRB-gbsN6V_AbnXuf_ubEzQUwA22kdInQP-sAap1czj1dzy5HA7MNR7audVZeCLCn8EG"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-700"></div>
+<div class="absolute bottom-0 left-0 p-6 w-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-700">
+<h3 class="font-headline-md text-headline-md text-surface mb-2">Oasis Bath</h3>
+</div>
+</div>
+<!-- Item 6 (Wide offset) -->
+<div class="group relative overflow-hidden md:col-span-8 md:row-span-5 md:ml-12 bg-surface-container-low border border-transparent hover:border-outline-variant/30 transition-all duration-700">
+<img alt="An expansive, open-plan office space that feels more like a luxury lounge. Wide-plank oak floors warm the space, contrasting with exposed concrete ceilings painted in deep charcoal. Clusters of low-slung, minimalist seating in neutral tones are arranged for collaboration. Large industrial windows flood the space with cool, directional daylight, creating a high-end, productive sanctuary." class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFfFtkWPouVUhUlxaIukLSAfxEH5sHK_hueDN6o_jYouBwxyU7A1bXYVqLoPHXy4C-ggv7aQwlrIxI4118wwJXz0P7DC92EX72So1lOutXZuIzNXcN6VzfAlnuapok4QeZ6UjiHPNkqPsq6-vD8RKjaPu7LmXjetHRnm2VeTkgS1l36GTLIxhCxCzK2cdUI4C50HORMd7DGHpfz_GU1yeD8xUwt2rZsWiFECYBnLj-BR9K3Uwwn7A0"/>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-700"></div>
+<div class="absolute bottom-0 left-0 p-8 w-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-700">
+<span class="absolute top-8 right-8 font-body-md text-label-caps text-surface-bright/70 uppercase tracking-widest">COMMERCIAL / SEOUL</span>
+<h3 class="font-headline-md text-headline-md text-surface mb-2">Atelier Workspace</h3>
+</div>
+</div>
+</div>
+<div class="mt-24 flex justify-center">
+<button class="border border-primary text-primary hover:bg-secondary hover:text-surface hover:border-secondary transition-all duration-500 px-8 py-4 font-body-md text-label-caps uppercase tracking-widest">Load More Projects</button>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full mt-section-gap bg-primary dark:bg-tertiary-container text-surface dark:text-surface-bright font-body-lg text-body-lg grid grid-cols-1 md:grid-cols-3 gap-gutter px-gutter py-20 max-w-container-max mx-auto">
+<div class="flex flex-col gap-4">
+<span class="font-headline-lg text-headline-lg text-surface-bright">Ruang Rasa</span>
+<p class="text-surface-variant/70 text-sm mt-4">© 2024 Ruang Rasa Studio. All rights reserved.</p>
+</div>
+<div class="flex flex-col gap-4 md:items-center">
+<div class="flex flex-col gap-2">
+<a class="text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="#">Philosophy</a>
+<a class="text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="#">Press</a>
+</div>
+</div>
+<div class="flex flex-col gap-4 md:items-end">
+<div class="flex flex-col gap-2 md:text-right">
+<a class="text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="#">Terms</a>
+<a class="text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="#">Privacy</a>
+</div>
+</div>
+</footer>
+</body></html>

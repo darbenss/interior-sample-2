@@ -1,0 +1,148 @@
+---
+import { buildWhatsAppUrl } from '@/lib/whatsapp';
+
+/* ---------------------------------------------------------------------------
+ * WhatsAppButton — the conversion primitive. Zero JavaScript.
+ *
+ * WHY THIS IS NOT AN ISLAND ANY MORE
+ * The React version's own header comment made the case for deleting it:
+ *
+ *   1. "It does not preventDefault. It renders a real <a href>."       -> markup
+ *   2. "It does not own the analytics call. It delegates to trackCta(),
+ *      which dedupes against the document-level listener."             -> the
+ *      delegated [data-cta] listener in src/lib/analytics.ts, booted once from
+ *      BaseLayout, already catches every click on this element. The island's
+ *      onClick was the loser of that dedupe race on every single click.
+ *   3. "It does not animate in from opacity:0. Framer Motion only drives
+ *      hover/tap."                                                     -> which
+ *      is `transform` on `:hover`, i.e. CSS.
+ *
+ * Everything it hydrated for was already free. `buildWhatsAppUrl` is pure, so
+ * the href resolves at build time. Three of these on the homepage were each
+ * booting React + LazyMotion on `client:visible` — two of them above the fold,
+ * hydrating straight through the preloader's draw window.
+ *
+ * The hover treatment below is the same one the "View Portfolio" link in
+ * index.astro has always used: a group-hover transform, no framework.
+ * ------------------------------------------------------------------------- */
+
+type Variant = 'primary' | 'ghost' | 'inverse';
+
+export type Props = {
+  /** Digits or pretty-printed — normalised by buildWhatsAppUrl. */
+  number: string;
+  /** Pre-filled message body. */
+  message?: string;
+  /** Appended to the message, e.g. "Project: The Artisan Haven". */
+  context?: string;
+
+  /* --- analytics --- */
+  /** REQUIRED. Becomes the `data-cta` attribute and the event's ctaId. */
+  ctaId: string;
+  /** Where on the page this sits: "hero", "nav", "footer", "case-study-end". */
+  ctaLocation?: string;
+  /** Case-study slug, when on a project page. */
+  ctaProject?: string;
+  /** Overrides the auto-derived label in reporting. */
+  ctaLabel?: string;
+
+  variant?: Variant;
+  class?: string;
+  /** Renders the arrow glyph. */
+  showArrow?: boolean;
+};
+
+const base =
+  'group relative inline-flex items-center justify-center gap-3 overflow-hidden ' +
+  'rounded-none px-8 py-4 font-body text-label-caps uppercase ' +
+  'no-underline focus-visible:outline-2 focus-visible:outline-offset-4 ' +
+  /* One explicit property list, not `transition-colors` + `transition-transform`.
+     Both of those set `transition-property`, so listing them together leaves the
+     winner to stylesheet order rather than to intent — and the loser silently
+     stops transitioning. `whileTap={{ scale: 0.985 }}` becomes `active:`. */
+  'transition-[color,background-color,border-color,transform] duration-500 ' +
+  'active:scale-[0.985] motion-reduce:transition-none motion-reduce:active:scale-100';
+
+const variants: Record<Variant, string> = {
+  // DESIGN.md: "Deep Charcoal background, Alabaster text, 0px radius."
+  primary: 'bg-charcoal text-surface focus-visible:outline-brass-deep',
+  // DESIGN.md: "1px Deep Charcoal border, no fill."
+  ghost:
+    'border border-charcoal text-charcoal hover:text-surface focus-visible:outline-brass-deep',
+  // For the charcoal footer.
+  inverse:
+    'border border-surface/40 text-surface hover:text-charcoal focus-visible:outline-brass',
+};
+
+/** The wipe panel. DESIGN.md: "On hover, the background shifts to Muted Brass." */
+const wipe: Record<Variant, string> = {
+  primary: 'bg-brass',
+  ghost: 'bg-charcoal',
+  inverse: 'bg-brass',
+};
+
+const {
+  number,
+  message,
+  context,
+  ctaId,
+  ctaLocation,
+  ctaProject,
+  ctaLabel,
+  variant = 'primary',
+  class: className = '',
+  showArrow = true,
+} = Astro.props;
+
+const href = buildWhatsAppUrl({ number, message, context });
+---
+
+<a
+  href={href}
+  target="_blank"
+  rel="noopener noreferrer"
+  data-cta={ctaId}
+  data-cta-location={ctaLocation}
+  data-cta-project={ctaProject}
+  data-cta-label={ctaLabel}
+  class={`${base} ${variants[variant]} ${className}`}
+>
+  {/* Brass wipe rising from the baseline. Sharp edges only — no radius.
+      scaleY on a composited layer: the compositor owns it end to end, so the
+      wipe stays at 60fps even mid-hydration elsewhere on the page.
+
+      REDUCED MOTION REMOVES THE TRANSITION, NOT THE PANEL.
+      The React version rendered this element only when motion was allowed
+      (`{!reduceMotion && <m.span/>}`) — but `hover:text-surface` on the anchor
+      fires regardless. So on the `ghost` variant, a reduced-motion visitor
+      hovering the button got near-white text on the alabaster page background
+      with no charcoal panel behind it: the label vanished. `prefers-reduced-
+      motion` asks for less ANIMATION, not for the loss of a state the design
+      depends on for contrast. So the panel still appears — it just snaps
+      instead of wiping.
+
+      `group-focus-visible` is new: the React version drove this from
+      `whileHover` only, so keyboard users never saw the fill. */}
+  <span
+    aria-hidden="true"
+    class={`pointer-events-none absolute inset-0 origin-bottom scale-y-0 ${wipe[variant]} transition-transform duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-y-100 group-focus-visible:scale-y-100 motion-reduce:transition-none`}
+  >
+  </span>
+
+  <span class="relative z-10 tracking-[0.15em]"><slot>Chat on WhatsApp</slot></span>
+
+  {
+    showArrow && (
+      <span
+        aria-hidden="true"
+        class="relative z-10 inline-block transition-transform duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1.5 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0"
+      >
+        {/* Inline SVG rather than an icon font: no extra network request,
+            and it inherits currentColor through the wipe transition. */}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M5 12h14M13 6l6 6-6 6" />
+        </svg>
+      </span>
+    )
+  }
+</a>

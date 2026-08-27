@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-70 -70 837 810">
+  <!--
+    Ruang Rasa house mark. Same geometry as src/components/BrandMark.astro and
+    public/ruang-rasa-logo.svg.
+
+    Two things differ from the in-page mark, both because a favicon renders at
+    16px:
+      - stroke-width is 34 rather than 20. A 20-unit stroke on an 837-unit box
+        is ~0.4 device px at 16px and disappears into the background.
+      - the viewBox is padded further (70 units) so the mark reads as a shape
+        with air around it rather than a square that touches its own edges.
+
+    Colours are literal, not currentColor: a favicon has no inheritance context.
+    Alabaster ground + Charcoal ink, matching --color-surface / --color-charcoal
+    in src/styles/global.css.
+  -->
+  <rect x="-70" y="-70" width="837" height="810" fill="#faf9f6"/>
+  <g fill="none" stroke="#1c1c1c" stroke-width="34" stroke-linecap="butt" stroke-linejoin="miter">
+    <path d="M349.006 13.0908L10.0059 299.591L10.5059 659.091H686.506V298.091L349.006 13.0908Z"/>
+    <path d="M10.5059 473.591L204.506 318.591L419.006 72.0908"/>
+    <path d="M347.006 156.091L686.506 441.591"/>
+    <path d="M205.006 577.591H477.006"/>
+    <path d="M205.006 580.091V319.091"/>
+    <path d="M477.006 268.091V656.091"/>
+    <path d="M588.506 361.091V658.091"/>
+    <path d="M108.506 618.591V395.591"/>
+    <path d="M20.5059 656.091L210.506 575.091L213.006 574.091"/>
+  </g>
+</svg>

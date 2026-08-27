@@ -1,0 +1,1882 @@
+@import 'tailwindcss';
+
+/* ---------------------------------------------------------------------------
+   Design tokens — transcribed from stitch_ruang_rasa_interior_studio_final/
+   ruang_rasa/DESIGN.md. Tailwind v4 is CSS-first, so this @theme block IS the
+   config: every token below emits real utilities (bg-surface, text-brass, …).
+--------------------------------------------------------------------------- */
+@theme {
+  /* Surfaces — the "Alabaster" foundation. Warm, never clinical white. */
+  --color-surface: #faf9f6;
+  --color-surface-dim: #dadad7;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f4f4f1;
+  --color-surface-container: #eeeeeb;
+  --color-surface-container-high: #e8e8e5;
+  --color-surface-container-highest: #e3e3e0;
+
+  /* Ink */
+  --color-on-surface: #1a1c1a;
+  --color-on-surface-variant: #444748;
+  --color-charcoal: #1c1c1c;
+  --color-inverse-surface: #2f312f;
+  --color-inverse-on-surface: #f1f1ee;
+
+  /* Lines */
+  --color-outline: #747878;
+  --color-outline-variant: #c4c7c7;
+
+  /* Muted Brass. Two stops on purpose:
+     - `brass`      #C5A059 is the decorative stop from DESIGN.md. It sits at
+                    ~2.1:1 on Alabaster, so it is used ONLY for rules, borders,
+                    and hover fills — never for text.
+     - `brass-deep` #775A19 clears 5.6:1 on Alabaster and carries every accent
+                    that a human actually has to read. */
+  --color-brass: #c5a059;
+  --color-brass-deep: #775a19;
+  --color-brass-container: #fed488;
+
+  /* Type — Playfair Display for editorial voice, Montserrat for function. */
+  --font-display: 'Playfair Display', ui-serif, Georgia, serif;
+  --font-body: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+
+  /* ══════════════════════════════════════════════════════════════════
+     THE HEADING RAMP — THE ONE PLACE TO CHANGE MOBILE TYPE SIZE.
+
+     All three heading sizes live here and nowhere else BUT for one exception:
+     display-lg gets a further override below 380px — see THE SMALL-PHONE
+     OVERRIDE a little further down — because iPhone SE and Galaxy S8+ each
+     needed a size this ramp's single vw-slope could not give them both at
+     once. Below `md` these two blocks together are the whole mobile story;
+     at `md` and above, the block immediately after this @theme resets all
+     three to fixed desktop values. The @utility overrides that used to hold
+     these were deleted, because they were the reason the sizes were
+     scattered across four blocks and impossible to tune — don't recreate one.
+
+     REVISION — everything from ~390px up was still too large. Three earlier
+     passes had all been spent getting the NARROW end right (SE, Galaxy S8+,
+     both under 380px, both handled by the small-phone override and left
+     alone here) while the range that covers the most actual phones —
+     iPhone 12 through 16, most Android flagships, 390-430px — was still
+     landing at 62-69px display-lg, 39-40px headline-lg (pinned at its own
+     ceiling, i.e. not scaling down at all past ~400px). That is most of the
+     ceiling desktop gets at 80/48/32, on a screen a fifth the width.
+
+     Fixed by scaling all three tokens uniformly by 0.75 — floor, slope and
+     ceiling together, so the curve keeps the same shape and just sits lower.
+     A side effect worth knowing about: at 12vw the main ramp now reads
+     ~45.6px at 380px, almost exactly where the small-phone override already
+     leaves off at 379px (~45px) — the old 16vw ramp had a ~16px jump at that
+     seam and this one is within a rounding error of continuous, unplanned
+     but welcome.
+
+     HOW TO TUNE: change the MIDDLE number (the vw). It is the slope.
+     The first number is the floor for small phones, the last is the ceiling
+     — now reached around 450px and held flat from there to the `md`
+     breakpoint, rather than the old ceiling's 72px held flat across the same
+     span. The 320px column below is what THIS block alone produces —
+     everything under 380px is actually decided by the small-phone override
+     further down (real iPhone SE, the only one Apple still sells, is 375px
+     wide, not 320 — see that block's revision history before trusting a
+     320px number for "SE").
+
+                        320px    375px    390px    430px    >=768px
+       display-lg        42px*    45px*    47px     52px      80px
+       headline-lg       24px     28px     29px     30px      48px
+       headline-md       19px     23px     23px     26px      32px
+       (* display-lg's 320/375 columns are THE SMALL-PHONE OVERRIDE, not this
+          block — everything else in this table is what THIS clamp alone gives)
+
+     REVISION HISTORY, so the next pass does not repeat either swing.
+     Pass 1 pinned 430px to the old flat 48px and scaled down, which left a
+     390px phone reading 44px of Playfair — too large for the column width.
+     Pass 2 (this one, reversed) cut the whole ramp ~12%, which read as too
+     small at the SAME 390-430px band it was meant to fix — a display heading
+     under 40px stopped feeling like a hero headline. This pass raises the
+     floor and ceiling roughly 60-70% over pass 2, landing display-lg in the
+     60-70px band on mainstream phones per direct instruction, with
+     headline-lg and headline-md scaled up by a comparable factor so the
+     hierarchy between the three does not compress.
+
+     Note headline-md now reads SMALLER at 430px (34px) than at its own
+     ceiling would suggest, because its ceiling (36px) sits just above the
+     desktop value (32px) — by design, so the mobile-to-desktop jump at `md`
+     is a step down in ratio terms, not a discontinuity in absolute size.
+
+     WHY THE TOKEN AND NOT AN @utility. An @utility with no @media block is
+     MERGED with the utility Tailwind generates from the token, and the
+     generated declarations land last — so a fluid font-size written that way
+     reads correctly in the source and does nothing in the browser. Setting
+     the token means the generated utility, and every rule that reads
+     var(--text-*) directly (.rr-plate__title), pick it up together.
+
+     Line heights are unitless so the ratio survives a font-size that varies
+     across the phone range; a hard `54px` would drift from 1.12 to 1.5.
+     ══════════════════════════════════════════════════════════════════ */
+  --text-display-lg: clamp(2.625rem, 12vw, 3.375rem);
+  --text-display-lg--line-height: 1.125;
+  --text-display-lg--letter-spacing: -0.01em;
+  --text-display-lg--font-weight: 400;
+
+  --text-headline-lg: clamp(1.3125rem, 7.5vw, 1.875rem);
+  --text-headline-lg--line-height: 1.22;
+  --text-headline-lg--font-weight: 400;
+
+  --text-headline-md: clamp(1.125rem, 6vw, 1.6875rem);
+  --text-headline-md--line-height: 1.25;
+  --text-headline-md--font-weight: 400;
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 32px;
+  --text-body-lg--letter-spacing: 0.01em;
+  --text-body-lg--font-weight: 300;
+
+  --text-body-md: 16px;
+  --text-body-md--line-height: 28px;
+  --text-body-md--font-weight: 400;
+
+  /* "increased letter spacing for a sophisticated, technical look" */
+  --text-label-caps: 12px;
+  --text-label-caps--line-height: 16px;
+  --text-label-caps--letter-spacing: 0.15em;
+  --text-label-caps--font-weight: 600;
+
+  /* Spatial silence */
+  --spacing-gutter: 32px;
+  --spacing-margin-mobile: 24px;
+  --spacing-section-gap: 160px;
+  --container-max: 1440px;
+
+  /* "Sharp (0) roundedness strategy" — architectural precision. */
+  --radius-none: 0px;
+
+  /* "Transitions should be slow and intentional" */
+  --ease-intent: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* THE SMALL-PHONE OVERRIDE — narrower than the main ramp can reach on its own.
+
+   The @theme clamp above (56px floor, 16vw, 72px ceiling) is a single straight
+   line: below its floor-threshold width (350px) it goes flat at 56px, which
+   was too large on the narrowest phones actually being tested against.
+
+   REVISION HISTORY — READ THIS BEFORE PICKING ANCHOR WIDTHS AGAIN.
+   Pass 1 and pass 2 both anchored "iPhone SE" at 320px. That is the ORIGINAL
+   2016 SE, discontinued in 2018. Every SE Apple has sold since — 2nd gen
+   (2020), 3rd gen (2022, the current model) — is 375x667 in CSS pixels, and
+   375 is also Chrome DevTools' own "iPhone SE" preset. Anchoring at 320 meant
+   the override was correctly firing at a width almost nobody actually tests,
+   while the real 375px device kept landing on the MAIN ramp's ~59px — so pass
+   2's "45px" fix looked like it was not applying at all, because on the
+   device actually being tested, it wasn't; the override's 45px only ever
+   existed at 320px.
+
+   Pass 3 (this one) anchors correctly: (320px -> 42px), (375px -> 45px).
+   320 is kept as the low end for the rare true first-gen SE or an equally
+   narrow device, not as the target anymore. Galaxy S8+ (360px), pinned at
+   55px in an earlier pass, was never re-confirmed after the width mistake was
+   found and is NOT preserved here — on this corrected, monotonic line it now
+   reads ~44px. A device narrower than the SE showing LARGER text than the SE
+   would be its own bug (values must not decrease as width increases), so this
+   was the trade-off once 375, not 320, became the real SE anchor. Flag if
+   Galaxy S8+ needs to be pinned again; it will need its own breakpoint, since
+   one straight line cannot hold 44px at 360 AND 55px at 360.
+
+   width < 380px, NOT 350px or 400px: 380 sits below 390 (the iPhone 12/13/14
+   Pro width, confirmed correct on the main ramp above — this block must never
+   reach it) and above 375, so the real SE anchor lands inside this rule with
+   room either side. The line is nearly flat (42 to 45 over 60px of width), so
+   it stays close to 45px right up to the 380px seam, then jumps to the main
+   ramp's ~61px — a bigger single step than pass 2's, but the alternative is
+   steepening the slope and pulling 375px back up away from the 45px target
+   this pass exists to hit.
+
+   HOW TO RETUNE: this is two points on a line, not a slope-and-floor. Pick the
+   two target (width, px) pairs — and confirm the width first against an
+   actual current device or DevTools preset, not an assumption — resolve
+     a = (y2 - y1) / (w2 - w1)     b = y1 - a * w1
+   and rewrite as calc(${b}px + ${a * 100}vw) — b in px, converted to rem below
+   since custom properties don't do the px->rem math for you. Only display-lg
+   is overridden here — headline-lg and headline-md were not reported as wrong
+   at these widths, and the main ramp already gives them moderate values
+   (32px/26px at 320px, 36px/29px at 360px) that this block leaves untouched. */
+@media (width < 380px) {
+  :root {
+    --text-display-lg: clamp(2.625rem, calc(1.534rem + 5.4545vw), 3rem);
+  }
+}
+/* THE DESKTOP HALF OF THE HEADING RAMP. The other half is the @theme block
+   above; between them they are the whole story for every heading on the site.
+
+   UNLAYERED ON PURPOSE: @theme emits its :root block ahead of this, and an
+   unlayered rule outranks anything inside an @layer whatever order the layers
+   are in — so this override holds however Tailwind chooses to emit the theme. */
+@media (width >= 48rem) {
+  :root {
+    --text-display-lg: 80px;
+    --text-display-lg--line-height: 1.125;
+    --text-display-lg--letter-spacing: -0.02em;
+
+    --text-headline-lg: 48px;
+    --text-headline-lg--line-height: 1.1667;
+
+    --text-headline-md: 32px;
+  }
+}
+@layer base {
+  html {
+    /* `scroll-behavior: smooth` was REMOVED here when Lenis was introduced —
+       do not put it back. Lenis eases the page by calling window.scrollTo on
+       every frame; if the platform also animates each of those calls, every
+       frame targets a position the browser has not finished easing to yet and
+       the scroll lags and overshoots. Lenis owns the easing, so the platform
+       must jump. Same reason Tailwind's smooth-scroll utility is gone from the
+       <html> tag in BaseLayout.astro. */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* ------------------------------------------------------------------ LENIS
+     The four rules the library needs, transcribed from lenis/dist/lenis.css
+     rather than imported, so this stylesheet has no path dependency on the
+     package's internal layout.
+
+     `height: auto` is the load-bearing one: Lenis measures the document to
+     work out its scroll limit, and any `height: 100%` on html/body reports a
+     one-viewport document — the page then refuses to scroll past the first
+     screen. The classes are added to <html> by Lenis itself; when it never
+     boots (reduced motion) none of this matches and native scrolling is
+     untouched. */
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+
+  /* Opt-out hook: put `data-lenis-prevent` on an independently scrollable
+     panel (a modal, a long dropdown) and the page will not scroll behind it. */
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  /* An iframe swallows the wheel events Lenis needs while a drag is in
+     flight; re-enabled the moment the gesture ends. */
+  .lenis.lenis-smooth iframe {
+    pointer-events: none;
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-on-surface);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background-color: var(--color-charcoal);
+    color: var(--color-surface);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brass-deep);
+    outline-offset: 3px;
+  }
+}
+
+/* Section rhythm: "extreme vertical padding (160px+) between major sections". */
+@utility section-gap {
+  padding-block: 80px;
+  @media (width >= 48rem) {
+    padding-block: var(--spacing-section-gap);
+  }
+}
+
+@utility shell {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--spacing-margin-mobile);
+  @media (width >= 48rem) {
+    padding-inline: var(--spacing-gutter);
+  }
+}
+
+/* Scroll reveal. Renders SETTLED by default so prerendered HTML is never blank
+   for crawlers or no-JS visitors; the hidden state is only applied by script
+   once we know IntersectionObserver is available. */
+@layer components {
+  .reveal-armed {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  .reveal-armed.is-visible {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 1.1s var(--ease-intent),
+      transform 1.1s var(--ease-intent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal-armed,
+    .reveal-armed.is-visible {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+}
+
+/* ===========================================================================
+   THE EDITORIAL GRID
+
+   DESIGN.md asks for photography that is "not uniform… a rhythmic,
+   magazine-style flow". A masonry library gives the opposite of that: uniform
+   columns packed by an algorithm, where the composition is a side effect of
+   image heights. What follows is a deliberate one — a 12-column field in which
+   every card is assigned a SLOT that carries three things:
+
+     · how many columns it spans
+     · what shape it is        (--rr-card-ratio, read by .rr-ratio-slot)
+     · how far it is pushed down relative to its row-mates
+
+   The third is what breaks the grid. Without it, varying spans and ratios still
+   produce cards whose tops all align — a magazine page never does that.
+
+   Slots are named, not numbered, because they are a composition rather than a
+   sequence: `--lead` is the anchor image, `--tall` is the offset counterweight
+   beside it, `--band` is the full-width breath between movements.
+   =========================================================================== */
+
+@layer components {
+  /* The shape half of a slot. Applied to the image box (MaterialImage) while
+     the custom property is set on the grid cell, so re-slotting a card is one
+     class change on the cell and nothing at all on its contents. */
+  .rr-ratio-slot {
+    aspect-ratio: var(--rr-card-ratio, 4 / 5);
+    /* Ceiling, for the same reason MaterialImage caps every other ratio: a
+       1:1 card seven columns wide is 790px of image on a 1440px canvas, and a
+       viewport shorter than that turns one photograph into a full screen of
+       scrolling. Height wins over the ratio here; object-cover takes the crop. */
+    max-height: 78svh;
+  }
+
+  .rr-editorial {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 3.5rem var(--spacing-gutter);
+    /* Cards must keep their own height rather than being stretched to their
+       row — stretching is precisely what makes a grid look like a grid. */
+    align-items: start;
+  }
+
+  @media (width >= 48rem) {
+    .rr-editorial {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 5rem var(--spacing-gutter);
+    }
+  }
+
+  /* -------------------------------------------------------------- THE SLOTS
+
+     Below `md` every slot collapses to one full-width column and drops its
+     offset: a broken grid needs two dimensions to break, and on a phone there
+     is only one. The ratios stay, so the rhythm of tall/wide/square survives
+     the collapse — that is the part that still reads on a narrow screen. */
+
+  .rr-slot {
+    --rr-card-ratio: 4 / 5;
+    grid-column: span 1;
+  }
+
+  @media (width >= 48rem) {
+    /* Anchor. The largest image, hard against the left margin. */
+    .rr-slot--lead {
+      --rr-card-ratio: 1 / 1;
+      grid-column: 1 / span 7;
+    }
+
+    /* Counterweight. Narrow, tall, and pushed down so its top edge lands
+       roughly a third of the way into the lead image — the offset that stops
+       the pair from reading as two columns of a table. */
+    .rr-slot--tall {
+      --rr-card-ratio: 3 / 4;
+      grid-column: 9 / span 4;
+      margin-top: 6rem;
+    }
+
+    /* Full-bleed breath between movements. */
+    .rr-slot--band {
+      --rr-card-ratio: 16 / 9;
+      grid-column: 1 / span 12;
+    }
+
+    /* Indented landscape — starts a column in from the margin so the left edge
+       of the composition steps rather than ruling straight down the page. */
+    .rr-slot--inset {
+      --rr-card-ratio: 3 / 2;
+      grid-column: 2 / span 6;
+    }
+
+    /* Square, offset, sitting opposite an inset. */
+    .rr-slot--drop {
+      --rr-card-ratio: 1 / 1;
+      grid-column: 9 / span 4;
+      margin-top: 4rem;
+    }
+
+    /* Wide pair, used where two projects should read as equals. */
+    .rr-slot--pair-a {
+      --rr-card-ratio: 3 / 2;
+      grid-column: 1 / span 6;
+    }
+
+    .rr-slot--pair-b {
+      --rr-card-ratio: 1 / 1;
+      grid-column: 7 / span 6;
+      margin-top: 5rem;
+    }
+  }
+
+  /* A hidden cell must leave the flow completely, or the grid keeps its track
+     and the filter leaves a hole where the card was. */
+  .rr-editorial > [hidden] {
+    display: none;
+  }
+}
+
+/* ===========================================================================
+   THE ENTRANCE — one animation vocabulary, keyed to the preloader
+
+   Everything above the fold (navbar, hero copy, hero photograph) has to arrive
+   AFTER the title card starts lifting, and it has to arrive in a sequence
+   rather than as one flat block. That is three components — Nav.astro,
+   HeroHeadline.astro, index.astro — needing the same two numbers, so the
+   numbers are a pair of inherited custom properties and the choreography is
+   one class.
+
+     --rr-enter-start   when the cascade begins. Set inline from
+                        TIMELINE.fadeStart (2500ms), i.e. the frame the overlay
+                        BEGINS its 500ms fade. Overlapping the fade rather than
+                        waiting for it is what makes the reveal read as one
+                        continuous gesture instead of two.
+     --rr-enter-step    the gap between siblings.
+     --rr-i             this element's position in the cascade. Defaults to 0,
+                        so an element that is first needs no inline style.
+
+   THREE RULES PER ANIMATION, NOT ONE. Each of the two below is a shipped bug
+   if it is missing:
+
+     1. html.rr-skip-preloader — the overlay is `display:none` on a repeat view
+        in the same session, so a 2500ms delay would leave the navbar and hero
+        copy INVISIBLE for two and a half seconds on every internal navigation.
+     2. prefers-reduced-motion — the overlay is also `display:none` there, and
+        reduced motion does NOT stamp rr-skip-preloader (that head script only
+        reads sessionStorage). Two independent paths to the same failure.
+
+   WHY IT IS SAFE TO SHIP A HIDDEN STATE HERE, when .reveal-armed is
+   deliberately additive: there is no hidden state to ship. `both` fill mode
+   holds the FROM keyframe through the delay, and the rule and the keyframe are
+   in the same stylesheet — if one applies so does the other. Nothing can fail
+   independently and leave an invisible element. (Same argument as
+   HeroHeadline.astro; the opposite argument to .reveal-armed, which depends on
+   JavaScript to un-hide and therefore must never ship hidden.)
+   =========================================================================== */
+
+@layer components {
+  .rr-enter {
+    /* transform + opacity only: compositor-owned, so this cannot be starved by
+       whatever the main thread is doing while the page hydrates behind it. */
+    animation: rr-enter-up 1000ms var(--ease-intent)
+      calc(var(--rr-enter-start, 0ms) + var(--rr-i, 0) * var(--rr-enter-step, 90ms)) both;
+  }
+
+  /* Horizontal wipe, for a mark or a tracked wordmark that should draw itself
+     on rather than drift up. Ends on a NEGATIVE inset so the settled state does
+     not clip the navbar's text-shadow at the right edge — the box is expanded,
+     not merely un-inset, and `clip-path` cannot interpolate to the `none`
+     keyword that would otherwise be the obvious end state. */
+  .rr-enter--wipe {
+    animation-name: rr-enter-wipe;
+  }
+
+  @keyframes rr-enter-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes rr-enter-wipe {
+    from {
+      opacity: 0;
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      opacity: 1;
+      clip-path: inset(0 -30% 0 0);
+    }
+  }
+
+  /* Repeat view in this session: no title card, so nothing to wait for. The
+     stagger survives; only the 2500ms head start is dropped. */
+  html.rr-skip-preloader .rr-enter {
+    animation-delay: calc(var(--rr-i, 0) * var(--rr-enter-step, 90ms));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rr-enter {
+      animation: none;
+    }
+  }
+}
+
+/* ===========================================================================
+   SCROLL REVEAL VARIANTS
+
+   The observer in BaseLayout selects `[data-reveal]`, which matches the
+   attribute whether or not it carries a value — so `data-reveal="rise"` is
+   picked up by the existing observer with ZERO JavaScript changes and zero
+   extra observers. The variants below are pure CSS keyed on the attribute
+   value.
+
+     (none)  fade-up.  Body copy, headings, list items.
+     rise    fade-up + a slight scale-down from over-size. Photographs only:
+             the frame settles into place the way a plate does, and the extra
+             scale is invisible on text but reads clearly on an image.
+     wipe    horizontal clip-path sweep. Rules, eyebrows, small caps — SMALL
+             boxes, deliberately. A clip-path animation across a full-viewport
+             photograph is the one case engines composite inconsistently, so
+             large imagery uses `rise` instead.
+
+   Specificity is load-bearing: `[data-reveal='rise'].reveal-armed` is (0,2,0)
+   against `.reveal-armed`'s (0,1,0), so the variants win. The reduced-motion
+   reset therefore has to match at (0,2,0) / (0,3,0) too and sit later in the
+   sheet — `.reveal-armed` alone would lose to the variant it is trying to
+   cancel. (It is belt-and-braces regardless: the observer never arms anything
+   under reduced motion.)
+   =========================================================================== */
+
+@layer components {
+  [data-reveal='rise'].reveal-armed {
+    transform: translateY(40px) scale(1.04);
+  }
+
+  [data-reveal='rise'].reveal-armed.is-visible {
+    transform: none;
+    transition:
+      opacity 1.2s var(--ease-intent),
+      transform 1.5s var(--ease-intent);
+  }
+
+  [data-reveal='wipe'].reveal-armed {
+    /* Opacity stays at 1: the whole point of a wipe is that the element is
+       uncovered, not faded. Overriding the base rule's `opacity: 0` here is
+       what keeps the two from reading as the same animation. */
+    opacity: 1;
+    transform: none;
+    clip-path: inset(0 100% 0 0);
+  }
+
+  [data-reveal='wipe'].reveal-armed.is-visible {
+    clip-path: inset(0 -30% 0 0);
+    transition: clip-path 1.1s var(--ease-intent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-reveal].reveal-armed,
+    [data-reveal].reveal-armed.is-visible {
+      opacity: 1;
+      transform: none;
+      clip-path: none;
+      transition: none;
+    }
+  }
+}
+
+/* ===========================================================================
+   MASK REVEAL — the fourth `data-reveal` variant
+
+   A curtain, not a fade: the element's first child starts one full height below
+   its own box and rises into it, clipped by the parent. The parent must carry
+   `overflow: clip` (or `hidden`) for this to mean anything — that is the
+   contract, and it is why this variant is not usable on arbitrary markup the
+   way `rise` and `wipe` are.
+
+   `overflow: clip` PREFERRED, AND NOT AS A STYLE PREFERENCE. `hidden` makes the
+   element a scroll container, and a scroll container is a scrollport — any
+   scroll-driven animation on a descendant (the plate parallax, below) then
+   resolves against a box that never scrolls and freezes at progress 0. It
+   still looks like a working page, which is what makes it expensive to find.
+
+   Transform only. A `clip-path` reveal would be the obvious way to write this
+   and is the one thing here engines composite inconsistently at photograph
+   scale; two nested boxes and one translate are boring and always cheap.
+   =========================================================================== */
+
+@layer components {
+  [data-reveal='mask'].reveal-armed {
+    /* The element itself does not move or fade — it is the frame. Only what is
+       inside it does. Both properties are overriding the base .reveal-armed. */
+    opacity: 1;
+    transform: none;
+  }
+
+  [data-reveal='mask'].reveal-armed > :first-child {
+    transform: translateY(101%);
+  }
+
+  [data-reveal='mask'].reveal-armed.is-visible > :first-child {
+    transform: none;
+    transition: transform 1.3s var(--ease-intent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-reveal='mask'].reveal-armed > :first-child,
+    [data-reveal='mask'].reveal-armed.is-visible > :first-child {
+      transform: none;
+      transition: none;
+    }
+  }
+}
+
+/* ===========================================================================
+   OUR PHILOSOPHY — the scrollytelling stage
+
+   One sticky photographic stage, three blocks of type scrolling over it, the
+   photograph behind changing as each block reaches the middle of the screen.
+
+   THE MECHANISM IS TWO DECLARATIONS.
+     .rr-scrolly__stage    position: sticky, first child, one viewport tall
+     .rr-scrolly__scenes   margin-top: -100svh, second child
+
+   The scenes follow the stage in the flow and are then pulled back up over it.
+   No fixed positioning, no measuring, no JS-driven layout. The stage stays
+   pinned for as long as its parent is passing the viewport, which is exactly
+   as long as there are scenes left to read.
+
+   PAINT ORDER IS LOAD-BEARING. A `position: sticky` box with no z-index loses
+   to a later `position: relative` sibling — which is the only reason the type
+   sits ON the photograph rather than under it. Give the stage a z-index to
+   order the image layers inside it and it lifts above the scenes and swallows
+   every word. So the layers are ordered by DOM position within the stage and
+   the stage itself never gets a z-index. Do not add one.
+
+   THE SECTION'S HEIGHT IS DERIVED, NOT CHOSEN.
+   Three 70svh scenes plus a 24svh tail is 234svh, so the stage stays pinned
+   until 234 - 100 = 134svh of scroll. The last scene's midpoint — the moment
+   its photograph is supposed to be up — is reached at 125svh. The tail is what
+   buys that margin: without it the stage would start scrolling away while the
+   final claim was still being read.
+   =========================================================================== */
+
+@layer components {
+  .rr-scrolly {
+    position: relative;
+    background-color: var(--color-charcoal);
+  }
+
+  .rr-scrolly__stage {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    /* clip, not hidden — see the note above on scrollports. */
+    overflow: clip;
+  }
+
+  .rr-scrolly__layer {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    /* The outgoing photograph recedes as it leaves and the incoming one settles
+       as it arrives. Opacity is quick enough to be a cut; the scale is slow
+       enough to still be moving when the next scene starts, which is what stops
+       the sequence reading as a slideshow. */
+    transform: scale(1.06);
+    transition:
+      opacity 1000ms var(--ease-intent),
+      transform 2400ms var(--ease-intent);
+  }
+
+  .rr-scrolly__layer img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* NO SCRIPT — and this is the authored state, not something JS restores.
+     A crawler, a failed bundle, or a browser with no IntersectionObserver gets
+     three blocks of real type over one real photograph. The alternative, an
+     all-transparent stage waiting for a class that never arrives, is a blank
+     screen for a third of the page. */
+  .rr-scrolly__layer:first-child {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* SCRIPT IS RUNNING. It now owns every layer, the first one included — same
+     specificity as the rule above and later in the sheet, so it wins. */
+  .rr-scrolly__stage.is-live .rr-scrolly__layer {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+
+  .rr-scrolly__stage.is-live .rr-scrolly__layer.is-active {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Two flat layers rather than anything clever. Alabaster type lands on three
+     different photographs here — and one of them is a room full of white linen
+     in full daylight — so the wash has to guarantee contrast against the
+     WORST of them, not the average. The directional gradient puts the extra
+     weight on the left, which is where every scene's copy sits. */
+  .rr-scrolly__scrim {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to right, rgb(0 0 0 / 0.5), rgb(0 0 0 / 0.1) 62%, transparent),
+      rgb(28 28 28 / 0.45);
+  }
+
+  /* ------------------------------------------------------------- THE HUD
+     Section label and progress, pinned inside the stage so they hold still
+     while the type scrolls past them. */
+
+  .rr-scrolly__hud {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--spacing-margin-mobile);
+    font-family: var(--font-body);
+    font-size: var(--text-label-caps);
+    font-weight: var(--text-label-caps--font-weight);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.55);
+  }
+
+  @media (width >= 48rem) {
+    .rr-scrolly__hud {
+      bottom: 2.5rem;
+      padding-inline: var(--spacing-gutter);
+    }
+  }
+
+  .rr-scrolly__dots {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .rr-scrolly__dot {
+    position: relative;
+    display: block;
+    width: 30px;
+    height: 1px;
+    overflow: hidden;
+    background-color: rgb(255 255 255 / 0.25);
+  }
+
+  /* The fill is a pseudo-element so the track stays visible behind it — a rule
+     that scales from nothing to full reads as progress; one that simply
+     changes colour reads as a toggle. */
+  .rr-scrolly__dot::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: var(--color-brass);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 700ms var(--ease-intent);
+  }
+
+  .rr-scrolly__stage[data-active='0'] .rr-scrolly__dot:nth-child(1)::after,
+  .rr-scrolly__stage[data-active='1'] .rr-scrolly__dot:nth-child(2)::after,
+  .rr-scrolly__stage[data-active='2'] .rr-scrolly__dot:nth-child(3)::after {
+    transform: scaleX(1);
+  }
+
+  /* ---------------------------------------------------------- THE SCENES */
+
+  .rr-scrolly__scenes {
+    position: relative;
+    /* The whole trick. Pulls the scenes back up over the stage they follow. */
+    margin-top: -100svh;
+    padding-bottom: 24svh;
+  }
+
+  .rr-scrolly__scene {
+    display: flex;
+    align-items: center;
+    min-height: 70svh;
+  }
+
+  .rr-scrolly__copy {
+    width: 100%;
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--spacing-margin-mobile);
+  }
+
+  @media (width >= 48rem) {
+    .rr-scrolly__copy {
+      padding-inline: var(--spacing-gutter);
+    }
+  }
+
+  .rr-scrolly__eyebrow {
+    font-family: var(--font-body);
+    font-size: var(--text-label-caps);
+    line-height: var(--text-label-caps--line-height);
+    font-weight: var(--text-label-caps--font-weight);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color-brass);
+  }
+
+  /* Between headline-lg and display-lg on purpose: this is the largest type on
+     the page after the hero, and it is sitting alone on a photograph with a
+     whole viewport to itself. */
+  .rr-scrolly__heading {
+    margin-top: 1.75rem;
+    max-width: 18ch;
+    font-family: var(--font-display);
+    /* BESPOKE, AND THE ONE HEADING NOT ON THE RAMP. It is the largest type on
+       the page after the hero and it sits alone on a photograph with a whole
+       viewport to itself, so it runs past headline-lg at the top end. Below
+       ~710px the vw term never reaches the floor, which means the floor IS the
+       phone size — change 2.125rem, not the 4.8vw, to tune a handset. Bumped
+       from 1.625rem (26px) alongside the shared ramp above, same instruction:
+       the mobile sizes read too small. Still clears --text-headline-md so the
+       hierarchy holds even at headline-md's own mobile ceiling. */
+    font-size: clamp(2.125rem, 4.8vw, 3.5rem);
+    line-height: 1.14;
+    letter-spacing: -0.015em;
+    font-weight: 400;
+    color: var(--color-surface);
+    /* Belt-and-braces over the scrim: a photograph is arbitrary content and
+       this costs nothing. Same reasoning as the navbar's `top` state. */
+    text-shadow: 0 2px 34px rgb(0 0 0 / 0.5);
+  }
+
+  .rr-scrolly__body {
+    margin-top: 1.75rem;
+    max-width: 36rem;
+    font-family: var(--font-body);
+    font-size: var(--text-body-lg);
+    line-height: var(--text-body-lg--line-height);
+    font-weight: 300;
+    color: rgb(255 255 255 / 0.78);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* The photograph still changes — that is content, and the observer keeps
+       running. What stops is the crossfade and the drift. */
+    .rr-scrolly__layer,
+    .rr-scrolly__dot::after {
+      transition: none;
+    }
+
+    .rr-scrolly__layer,
+    .rr-scrolly__stage.is-live .rr-scrolly__layer {
+      transform: none;
+    }
+  }
+}
+
+/* ===========================================================================
+   SERVICES — the horizontal rail
+
+   The one section that moves sideways, and the reason the page does not read
+   as one long column. Two implementations of the same markup:
+
+   1. DEFAULT — a swipe carousel. `overflow-x: auto` with scroll snapping.
+      This is what phones get, what a browser without scroll-driven animations
+      gets, and what anyone who has asked for reduced motion gets. It is a
+      complete, good experience on its own; nothing below is required for the
+      section to work.
+
+   2. ENHANCED — vertical scroll mapped onto horizontal travel. The section is
+      250vh tall, the viewport inside it is `position: sticky` at one screen
+      high, and the rail translates X across a `view()` timeline scoped to the
+      section. No scroll listener, no rAF, no JavaScript whatsoever: the
+      animation is driven by the compositor from the scroll offset directly.
+
+   WHY `overflow: clip` AND NOT `hidden` ON THE VIEWPORT.
+   `hidden` makes the viewport a scroll container. Two things then go wrong: the
+   rail becomes programmatically scrollable, so focusing a link in an
+   off-screen panel scrolls the container sideways underneath the animation and
+   the two fight; and any scroll-driven animation inside would resolve against
+   this box instead of the document. `clip` clips without any of that.
+
+   THE TRAVEL IS TUNED, NOT GUESSED. At 1440px the rail measures ~2900px, so it
+   has ~1460px to travel. 250vh of section leaves 150vh of pinned scroll, which
+   on a 900px-high viewport is 1350px. The ratio is ~1.08 — the rail moves very
+   slightly faster than the wheel, which reads as responsive. Push it past ~1.4
+   and the section feels like it is yanking the page out of the reader's hands.
+   =========================================================================== */
+
+@layer components {
+  .rr-services {
+    background-color: var(--color-surface);
+  }
+
+  .rr-services__viewport {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    /* The rail is the affordance; a scrollbar under it is noise. Swiping and
+       trackpad panning are unaffected. */
+    scrollbar-width: none;
+    padding-block: 80px;
+  }
+
+  .rr-services__viewport::-webkit-scrollbar {
+    display: none;
+  }
+
+  .rr-services__rail {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-gutter);
+    /* Without this the flex line shrinks to the viewport and every panel is
+       squeezed instead of overflowing. */
+    width: max-content;
+    padding-inline: var(--spacing-margin-mobile);
+  }
+
+  .rr-services__panel {
+    flex: none;
+    width: min(84vw, 440px);
+    scroll-snap-align: center;
+  }
+
+  .rr-services__figure {
+    margin-bottom: 2rem;
+  }
+
+  /* ------------------------------------------- DESKTOP WITHOUT THE RAIL
+
+     The swipe carousel above is right for a phone and wrong for a 1440px
+     window: four 440px panels in a scrollbar-hidden strip reads as a cramped
+     widget, not as a section. And it is not only old browsers that land here —
+     the enhanced block below is gated on `prefers-reduced-motion:
+     no-preference`, so EVERY reduced-motion visitor on desktop lands here too.
+     That is a stated preference, not an old engine, and it should not be served
+     the worst-looking version of the page's centrepiece.
+
+     So at `md` the rail becomes a plain three-up grid with the intro block
+     spanning the top. Deliberate, static, and complete on its own. The
+     enhanced block then turns it back into a rail, restating the five base
+     declarations it needs — which is less code than duplicating this layout
+     under a negated @supports and a reduced-motion query. */
+  @media (width >= 48rem) {
+    .rr-services__viewport {
+      overflow: visible;
+      scroll-snap-type: none;
+      padding-block: var(--spacing-section-gap);
+    }
+
+    .rr-services__rail {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 4rem var(--spacing-gutter);
+      align-items: start;
+      width: 100%;
+      max-width: var(--container-max);
+      margin-inline: auto;
+      padding-inline: var(--spacing-gutter);
+    }
+
+    .rr-services__panel {
+      width: auto;
+    }
+
+    .rr-services__panel--intro {
+      grid-column: 1 / -1;
+      max-width: 46rem;
+    }
+  }
+
+  /* -------------------------------------------------------- THE RAIL
+
+     Applied by adding `rr-services--rail`, which the script in
+     index.astro does on every width whenever motion is allowed. It used to
+     be a bare media query at `md` and up, which meant phones never got
+     the horizontal movement at all — a visitor on a phone could only reach
+     panels 2 and 3 by swiping sideways, and an ordinary downward scroll
+     walked straight past them. Vertical scroll now drives the rail on every
+     device.
+
+     WHY A CLASS AND NOT A MEDIA QUERY. The rail needs two different drivers
+     — the compositor where `animation-timeline` exists, a few lines of
+     script where it does not (iOS before Safari 26, most of the reason the
+     fallback is here at all) — and both need this same layout. A class is
+     the only selector both paths can share, so the layout is written once.
+     It also means no-JS gets the swipe carousel, which is a complete
+     section, rather than a 210svh box whose contents never move.
+
+     THE HEIGHTS ARE DERIVED FROM THE TRAVEL, not picked. At 390x844 the
+     rail measures ~1392px and so has ~1002px to cross; 210svh leaves 928px
+     of pinned scroll. The ratio is ~1.08, and it stays within a point of
+     that from a 360px Android to a 430px Pro Max because the panels are
+     sized in vw. Desktop keeps its own pair of numbers for the same reason.
+  */
+  @media (prefers-reduced-motion: no-preference) {
+    .rr-services--rail {
+      height: 210svh;
+      view-timeline-name: --rr-services;
+      view-timeline-axis: block;
+    }
+
+    .rr-services--rail .rr-services__viewport {
+      position: sticky;
+      top: 0;
+      display: flex;
+      align-items: center;
+      height: 100svh;
+      /* clip, NOT hidden — `hidden` makes this a scroll container, which
+         both re-enables a sideways drag that fights the animation and turns
+         the box into a scrollport for anything scroll-driven inside it. */
+      overflow: clip;
+      scroll-snap-type: none;
+      padding-block: 0;
+    }
+
+    .rr-services--rail .rr-services__rail {
+      /* Back to the base flex line — these restate what the static desktop
+         grid above overrode. */
+      display: flex;
+      align-items: center;
+      width: max-content;
+      max-width: none;
+      margin-inline: 0;
+      padding-inline: var(--spacing-margin-mobile);
+    }
+
+    /* 80vw leaves a fifth of the next panel showing, which is what tells a
+       reader mid-scroll that the rail continues. */
+    .rr-services--rail .rr-services__panel,
+    .rr-services--rail .rr-services__panel--intro {
+      width: 80vw;
+      max-width: none;
+    }
+
+    @media (width >= 48rem) {
+      .rr-services--rail {
+        height: 250vh;
+      }
+
+      .rr-services--rail .rr-services__rail {
+        padding-inline: var(--spacing-gutter);
+      }
+
+      /* Wide, and a two-column spread inside. A panel this wide with the
+         image stacked above the text would be taller than the viewport it is
+         pinned inside; side by side, it fits with room to spare. Narrower
+         panels would fit either way but leave the rail with nothing to
+         travel, and a horizontal section that barely moves is worse than no
+         horizontal section. */
+      .rr-services--rail .rr-services__panel {
+        width: min(62vw, 760px);
+        display: grid;
+        grid-template-columns: 1.15fr 1fr;
+        align-items: center;
+        gap: var(--spacing-gutter);
+      }
+
+      .rr-services--rail .rr-services__panel--intro {
+        display: block;
+        width: min(40vw, 470px);
+      }
+
+      .rr-services--rail .rr-services__figure {
+        margin-bottom: 0;
+      }
+    }
+
+    /* The fast path. Where this applies the script normally never touches
+       the rail again: the transform is interpolated by the compositor
+       straight off the scroll offset, with no main-thread work per frame.
+
+       `:not(.rr-services--driven)` is the escape hatch. A browser can parse
+       every declaration in this block — which is all @supports and
+       CSS.supports() can ever tell us — and still resolve the timeline to
+       nothing, in which case `both` fill parks the rail at translateX(0)
+       forever and panels two and three are simply unreachable. The script
+       checks once, mid-section, whether the rail has actually moved, and
+       stamps this class if it has not. Losing the class costs one
+       animation; keeping it when the animation is dead costs the section. */
+    @supports (animation-timeline: view()) {
+      .rr-services--rail:not(.rr-services--driven) .rr-services__rail {
+        animation-name: rr-services-rail;
+        /* Spelled out because the `animation` shorthand resets duration to
+           its initial value, and the whole behaviour of the section rests on
+           that value being `auto` (fill the timeline) rather than 0s. */
+        animation-duration: auto;
+        animation-timing-function: linear;
+        animation-fill-mode: both;
+        animation-timeline: --rr-services;
+        /* `contain` is exactly the pinned window: it opens when the section
+           top reaches the viewport top and closes when its bottom reaches the
+           bottom, which is the span the sticky viewport is stuck for. */
+        animation-range: contain 0% contain 100%;
+      }
+    }
+  }
+  @keyframes rr-services-rail {
+    to {
+      transform: translateX(calc(-100% + 100vw));
+    }
+  }
+}
+
+/* ===========================================================================
+   PORTFOLIO — the plates and the details
+
+   The old Curated Spaces grid and the old standalone gallery, fused. They were
+   two sections doing one job on two different grounds, and nothing told the
+   reader they were about the same work. One ground now, one heading, and an
+   explicit hierarchy: three plates that lead somewhere, then photography that
+   does not, labelled as detail.
+
+   NEITHER HALF IS THE BROKEN GRID. The plates alternate left and right, which
+   is a magazine spread; the details are a plain, even three-up. The asymmetric
+   slot system is still in this stylesheet and still correct — for /portfolio,
+   where a filterable set of twenty projects needs the composition to survive
+   half of them disappearing.
+   =========================================================================== */
+
+@layer components {
+  .rr-work {
+    background-color: var(--color-charcoal);
+    padding-block: 96px;
+  }
+
+  @media (width >= 48rem) {
+    .rr-work {
+      padding-block: var(--spacing-section-gap);
+    }
+  }
+
+  .rr-work__plates {
+    display: flex;
+    flex-direction: column;
+    gap: 6rem;
+    margin-top: 5rem;
+  }
+
+  @media (width >= 48rem) {
+    .rr-work__plates {
+      gap: 10rem;
+      margin-top: 8rem;
+    }
+  }
+
+  .rr-plate {
+    display: grid;
+    gap: 2rem;
+    width: 100%;
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding-inline: var(--spacing-margin-mobile);
+    text-decoration: none;
+  }
+
+  @media (width >= 48rem) {
+    .rr-plate {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      align-items: center;
+      gap: var(--spacing-gutter);
+      padding-inline: var(--spacing-gutter);
+    }
+
+    .rr-plate__frame {
+      grid-column: 1 / span 9;
+    }
+
+    .rr-plate__meta {
+      grid-column: 10 / span 3;
+    }
+
+    /* The middle plate mirrors. `grid-row: 1` is what stops the meta column
+       from being pushed to a second row when it is declared after the frame in
+       the DOM — the DOM order is fixed because the meta must follow the image
+       for a screen reader. */
+    .rr-plate--flip .rr-plate__frame {
+      grid-column: 4 / span 9;
+    }
+
+    .rr-plate--flip .rr-plate__meta {
+      grid-column: 1 / span 3;
+      grid-row: 1;
+    }
+  }
+
+  .rr-plate__frame {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    /* clip, NOT hidden. The parallax below is a scroll-driven animation on a
+       descendant, and `hidden` here would make this its nearest scrollport —
+       a box that never scrolls, so the animation would sit at progress 0 and
+       the image would simply never move. */
+    overflow: clip;
+  }
+
+  /* What the mask reveal moves. It is the frame's first child, which is the
+     contract [data-reveal='mask'] expects. */
+  .rr-plate__shutter {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* Oversized and offset so the parallax drift can never expose an edge: the
+     image spans -10% to 110% of the frame, and ±6% of its own height is ±7.2%
+     of the frame, so the covered range is -17.2%..117.2% at the extremes. */
+  .rr-plate__img {
+    position: absolute;
+    left: 0;
+    top: -10%;
+    width: 100%;
+    height: 120%;
+    object-fit: cover;
+    /* `scale`, not `transform` — see the hover note below. */
+    transition: scale 1200ms var(--ease-intent);
+  }
+
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .rr-plate__img {
+        animation-name: rr-plate-parallax;
+        animation-duration: auto;
+        animation-timing-function: linear;
+        animation-fill-mode: both;
+        /* Anonymous timeline: the subject is the image itself, measured
+           against the document. `cover` is the whole span during which any
+           part of it is on screen, which is the only sensible range for
+           parallax — anything narrower and the drift starts mid-view. */
+        animation-timeline: view();
+        animation-range: cover;
+      }
+    }
+  }
+
+  @keyframes rr-plate-parallax {
+    from {
+      transform: translateY(-6%);
+    }
+    to {
+      transform: translateY(6%);
+    }
+  }
+
+  .rr-plate__label {
+    position: absolute;
+    left: 1.25rem;
+    bottom: 1.25rem;
+    font-family: var(--font-body);
+    font-size: var(--text-label-caps);
+    line-height: var(--text-label-caps--line-height);
+    font-weight: var(--text-label-caps--font-weight);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color-surface);
+    text-shadow: 0 1px 16px rgb(0 0 0 / 0.6);
+  }
+
+  .rr-plate__index {
+    display: block;
+    font-family: var(--font-body);
+    font-size: var(--text-label-caps);
+    font-weight: var(--text-label-caps--font-weight);
+    letter-spacing: 0.15em;
+    color: var(--color-brass);
+  }
+
+  .rr-plate__title {
+    margin-top: 0.85rem;
+    font-family: var(--font-display);
+    /* The token itself is the ramp now — fluid below md, 32px above it — so
+       this stays in step with every text-headline-md on the site for free. */
+    font-size: var(--text-headline-md);
+    line-height: 1.25;
+    font-weight: 400;
+    color: var(--color-surface);
+    transition: color 500ms var(--ease-intent);
+  }
+
+  .rr-plate__where {
+    margin-top: 0.6rem;
+    font-family: var(--font-body);
+    font-size: var(--text-body-md);
+    font-weight: 300;
+    color: rgb(255 255 255 / 0.55);
+  }
+
+  .rr-plate__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 1.5rem;
+    font-family: var(--font-body);
+    font-size: var(--text-label-caps);
+    font-weight: var(--text-label-caps--font-weight);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.6);
+    transition: color 500ms var(--ease-intent);
+  }
+
+  .rr-plate__cta svg {
+    transition: transform 700ms var(--ease-intent);
+  }
+
+  @media (hover: hover) {
+    /* `scale` rather than a `transform: scale()`. The image already has a
+       scroll-driven ANIMATION on `transform` for the parallax, and an
+       animation beats a transition on the same property outright — the hover
+       would simply never apply. `scale` is an independent property that
+       composes with `transform` instead of competing with it. */
+    .rr-plate:hover .rr-plate__img {
+      scale: 1.04;
+    }
+
+    .rr-plate:hover .rr-plate__title,
+    .rr-plate:hover .rr-plate__cta {
+      color: var(--color-brass);
+    }
+
+    .rr-plate:hover .rr-plate__cta svg {
+      transform: translate(2px, -2px);
+    }
+  }
+
+  /* ---------------------------------------------------------- THE DETAILS */
+
+  .rr-work__detail-head {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 6rem;
+    font-family: var(--font-body);
+    font-size: var(--text-label-caps);
+    font-weight: var(--text-label-caps--font-weight);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.45);
+  }
+
+  @media (width >= 48rem) {
+    .rr-work__detail-head {
+      margin-top: 10rem;
+    }
+  }
+
+  .rr-work__detail-rule {
+    flex: 1;
+    height: 1px;
+    background-color: rgb(255 255 255 / 0.15);
+  }
+
+  .rr-work__details {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem;
+    margin-top: 2.5rem;
+  }
+
+  @media (width >= 48rem) {
+    .rr-work__details {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--spacing-gutter);
+      margin-top: 3.5rem;
+    }
+  }
+
+  .rr-detail {
+    position: relative;
+  }
+
+  .rr-detail__label {
+    position: absolute;
+    left: 1rem;
+    bottom: 1rem;
+    font-family: var(--font-body);
+    font-size: var(--text-label-caps);
+    line-height: var(--text-label-caps--line-height);
+    font-weight: var(--text-label-caps--font-weight);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color-surface);
+    text-shadow: 0 1px 16px rgb(0 0 0 / 0.6);
+  }
+
+  @media (hover: hover) {
+    /* MaterialImage's <figure> already clips and already transitions
+       `transform, translate, scale, rotate` for 1200ms, so this rule only has
+       to name the destination. */
+    .rr-detail:hover img {
+      scale: 1.05;
+    }
+  }
+
+  .rr-work__all {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 4rem;
+    font-family: var(--font-body);
+    font-size: var(--text-label-caps);
+    font-weight: var(--text-label-caps--font-weight);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color-surface);
+    text-decoration: none;
+    transition: color 500ms var(--ease-intent);
+  }
+
+  .rr-work__all:hover {
+    color: var(--color-brass);
+  }
+}
+
+/* ===========================================================================
+   THE RESULT GALLERY — the asymmetric grid inside a case study
+
+   Twelve columns and a five-slot cycle, driven entirely by the class the
+   component stamps on each cell. See ResultGallery.astro for the composition
+   diagram and for why shape and span are decided separately.
+
+   This is the third grid in this stylesheet and they are not interchangeable:
+
+     .rr-editorial   /portfolio index. A filterable set, so the slots have to
+                     survive half the cards disappearing — the script re-slots
+                     survivors so the composition stays deliberate.
+     .rr-work        homepage. Alternating full-width plates, no grid at all.
+     .rr-rg          inside one case study. Fixed content, known order, and a
+                     count that ranges from two images to fourteen — so the
+                     cycle repeats rather than being hand-placed.
+   =========================================================================== */
+
+@layer components {
+  .rr-rg {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem;
+    /* Cells keep their own height rather than stretching to their row —
+       stretching is exactly what makes a grid look like a grid. */
+    align-items: start;
+  }
+
+  @media (width >= 48rem) {
+    .rr-rg {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 5rem var(--spacing-gutter);
+    }
+  }
+
+  .rr-rg__cell {
+    /* Required by [data-reveal='mask'], which translates this cell's first
+       child up from below its own box. `clip` rather than `hidden` for the
+       reason given on the variant: `hidden` makes the element a scroll
+       container, and a scroll container is a scrollport. */
+    overflow: clip;
+  }
+
+  /* ------------------------------------------------------------ THE SHAPES
+     Set here rather than inline from the component so the panorama can revert
+     on a narrow screen — an inline custom property would win over any media
+     query and leave phones with a 167px letterbox. Read by .rr-ratio-slot on
+     the <figure> MaterialImage renders inside. */
+
+  .rr-rg__cell[data-shape='wide'],
+  .rr-rg__cell[data-shape='pano'] {
+    --rr-card-ratio: 3 / 2;
+  }
+
+  .rr-rg__cell[data-shape='tall'] {
+    --rr-card-ratio: 4 / 5;
+  }
+
+  @media (width >= 48rem) {
+    .rr-rg__cell[data-shape='pano'] {
+      --rr-card-ratio: 21 / 9;
+    }
+
+    /* ------------------------------------------------------- THE FIVE SLOTS
+       Only a column and an offset each. Rows are left to auto-placement. */
+
+    .rr-rg__cell--a {
+      grid-column: 1 / span 7;
+    }
+
+    .rr-rg__cell--b {
+      grid-column: 9 / span 4;
+      margin-top: 7rem;
+    }
+
+    .rr-rg__cell--c {
+      grid-column: 2 / span 5;
+    }
+
+    .rr-rg__cell--d {
+      grid-column: 8 / span 5;
+      margin-top: 5rem;
+    }
+
+    .rr-rg__cell--e {
+      grid-column: 1 / span 12;
+      margin-top: 2rem;
+    }
+  }
+
+  @media (hover: hover) {
+    /* MaterialImage's <figure> already clips and already transitions
+       `transform, translate, scale, rotate` for 1200ms, so this only names the
+       destination. `scale` rather than `transform: scale()` for the same
+       reason the homepage plates use it — nothing here competes for it today,
+       but a parallax added later would. */
+    .rr-rg__cell:hover img {
+      scale: 1.04;
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   THE HERO SLIDER — moved here from an inline <style is:global> in
+   src/pages/index.astro.
+
+   WHY IT MOVED: that inline block, positioned deep in a large .astro
+   template between JSX markup and a <script>, was being silently dropped
+   from the production CSS bundle on every build — reproduced against the
+   last committed baseline too, so this predates any change in this session.
+   astro check passed and the build reported success throughout; the only way
+   to see it was to grep the compiled output for `.rr-hero-slider` and find
+   nothing. The Ken Burns zoom and, more seriously, the LOAD-BEARING Splide
+   positioning rule (without which the slider is a `position: relative`,
+   initially-hidden block sitting in normal flow instead of an absolutely
+   positioned, full-bleed backdrop) were never actually shipping.
+
+   UNLAYERED, NOT INSIDE @layer components — same reasoning as THE DESKTOP
+   HALF OF THE HEADING RAMP above. `@layer` rules lose to ANY unlayered rule
+   of equal-or-lower specificity, full stop, before specificity is even
+   compared — layer origin is sorted first in the cascade. Splide's own
+   `@splidejs/splide/css/core` import lands in this same compiled stylesheet
+   unlayered, so `.rr-hero-slider.splide` MUST also stay unlayered or its
+   documented "two classes beats one regardless of sheet order" guarantee,
+   below, would be silently false. Everything in this section stays bare CSS.
+   ═══════════════════════════════════════════════════════════════════════ */
+    /* ================================================ VERTICAL POSITION
+
+       `justify-end` on the section (Tailwind, in the markup above) seats the
+       copy on the bottom third of the hero. That is deliberate on a phone and
+       on a real desktop — both are wide relative to their height (a phone in
+       portrait is still only ~2:1 tall, a laptop is ~16:9 wide), so the empty
+       space above the headline is modest either way.
+
+       An iPad is neither. Every model, in either orientation, is close to 4:3 —
+       far taller relative to its width than a phone or a laptop — and
+       `justify-end` on that aspect ratio leaves a very large gap above the type
+       and reads as the text sitting in the bottom corner rather than composed
+       in the frame.
+
+       SCOPED TO TOUCH, NOT TO A WIDTH RANGE. `(hover: none) and (pointer: coarse)`
+       is what an iPad reports for its primary input, and it is what separates
+       "an iPad at 1024px" from "a desktop browser window resized to 1024px" —
+       the latter is still wide-format hardware and should keep the bottom-seated
+       composition the phone and desktop styles already agree on. No upper bound:
+       a touch-primary device is the right target at any size, including the
+       12.9" iPad Pro, which is the tallest-relative-to-width model of all. */
+    @media (min-width: 48rem) and (hover: none) and (pointer: coarse) {
+      .rr-hero {
+        justify-content: center;
+      }
+    }
+
+    /* ===================================================== THE HERO SLIDER
+
+       Splide's core CSS handles positioning (the fade layout puts every slide
+       at inset 0 and animates opacity). Everything here is either sizing it to
+       the section or driving the Ken Burns move.
+    */
+
+    /* ------------------------------------------- POSITIONING (LOAD-BEARING)
+
+       `.rr-hero-slider.splide`, not `.rr-hero-slider` — the doubled class is
+       the whole point.
+
+       Splide's core CSS contains `.splide { position: relative; visibility:
+       hidden }`. That is a single class, exactly as specific as Tailwind's
+       `.absolute`, and it is injected AFTER the Tailwind sheet — so the
+       `absolute inset-0 -z-20` utilities this element used to carry silently
+       lost the cascade. The slider became a 900px block in the section's flex
+       column instead of a backdrop: it pushed the hero content out of the
+       section's `overflow: hidden` box and the photograph was clipped to the
+       top ~385px, with the scrims compositing over the page background below.
+       Every box measured 1440x900 the whole time; only `position` was wrong.
+
+       `visibility` matters just as much, and for a case that never shows up in
+       a browser with JS on: Splide only flips `.splide` back to visible when it
+       stamps `is-initialized` on mount. We deliberately do NOT mount under
+       `prefers-reduced-motion`, and a no-JS visitor never mounts either — both
+       of which would have left the hero with no photograph at all. Forcing it
+       visible here is what makes the static single-slide fallback actually
+       render.
+
+       Two classes beats one regardless of sheet order, so this cannot regress
+       if the CSS import moves. */
+    .rr-hero-slider.splide {
+      position: absolute;
+      inset: 0;
+      z-index: -20;
+      visibility: visible;
+    }
+
+    .rr-hero-slider,
+    .rr-hero-slider .splide__track,
+    .rr-hero-slider .splide__list {
+      height: 100%;
+    }
+
+    .rr-hero-slider .splide__slide {
+      width: 100%;
+      height: 100%;
+      /* The zoom pushes the image past its own box; without this the scaled
+         edges would spill over the section's rounded/clipped bounds. */
+      overflow: hidden;
+    }
+
+    .rr-hero-slider .splide__slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      /* NOT centred. Every studio render carries the Ruang Rasa watermark low and
+         centred in the frame; pulling the crop up to 38% drops it out of view on
+         any landscape viewport, which is every desktop. A phone crops the hero
+         horizontally instead — the full height is shown whatever this says — so
+         the mark stays visible there, sitting under the bottom scrim behind the
+         CTA row. Left as it is on purpose: it is the studio's own logo on the
+         studio's own work, and stripping it from the source files is a decision
+         for them, not for a stylesheet. */
+      object-position: center 38%;
+    }
+
+    /* -------------------------------------------- NO-JS / PRE-MOUNT FALLBACK
+
+       Splide stamps `is-initialized` on the root when it mounts. Until then —
+       and forever, if JavaScript never runs or reduced motion is on — only the
+       first slide is shown. Without this the un-mounted <ul> lays all three
+       images out as flex children and the hero is a row of thirds.
+
+       `display: none` is doing double duty. It is also what keeps slides 2-3
+       from being fetched during LCP: they are stacked at inset-0, so `loading
+       ="lazy"` alone would NOT defer them (a lazy image inside the viewport
+       loads immediately). An element with no layout box never intersects
+       anything, so the fetch waits for the mount. */
+    .rr-hero-slider:not(.is-initialized) .splide__slide:not(:first-child) {
+      display: none;
+    }
+
+    /* ------------------------------------------------------- KEN BURNS
+
+       Pure CSS, no JS animation loop: one transform on a composited layer, so
+       the drift costs nothing on the main thread and cannot stutter while the
+       page hydrates.
+
+       THE RESET IS THE HARD PART, NOT THE TRIGGER.
+       When a slide loses `.is-active` it has to get back to scale(1) before its
+       next turn. Doing that with the same 8s transition means slide 3 is still
+       un-zooming while slide 1 has started zooming again; doing it instantly
+       means the outgoing slide visibly snaps back while it is still half-opaque
+       mid-crossfade.
+
+       So: duration 0s, DELAYED by exactly the crossfade length. The outgoing
+       slide holds its zoom for the whole fade — which is what the eye expects,
+       the motion does not stop dead — and then resets in a single frame at the
+       moment it becomes fully invisible. `--heroFade` is injected from
+       the element as --rr-hero-fade, from the same constant passed to Splide's
+       `speed`, so the two can never drift apart. */
+    .rr-hero-slider .splide__slide img {
+      transform: scale(1);
+      transition: transform 0s linear var(--rr-hero-fade, 1600ms);
+    }
+
+    .rr-hero-slider .splide__slide.is-active img {
+      transform: scale(1.08);
+      transition: transform 8s ease-out;
+    }
+
+    /* No standing `will-change`. Three full-viewport images promoted for the
+       life of the page is real memory on exactly the devices least able to
+       spare it, and the browser promotes a transitioning transform on its own
+       for the duration it is actually moving. Same reasoning as the preloader's
+       letters. */
+
+    @media (prefers-reduced-motion: reduce) {
+      /* The script does not mount Splide at all under reduced motion, so the
+         fallback rule above is already showing a single static slide. These
+         two are belt-and-braces for the case where something else adds the
+         class (a devtools experiment, a future refactor). */
+      .rr-hero-slider .splide__slide img,
+      .rr-hero-slider .splide__slide.is-active img {
+        transform: none;
+        transition: none;
+      }
+    }
+
+    /* --------------------------------------------------- THE ENTRANCE ZOOM
+
+       The photograph settles out of an oversize crop as the title card lifts.
+       It is the one move that makes a full-bleed hero read as a film opening
+       rather than as a wallpaper that was simply always there.
+
+       ON THE SLIDER ROOT, NOT ON THE IMAGE. The <img> already owns `transform`
+       for the Ken Burns drift, and two animations competing for one property
+       means whichever is declared last wins outright — the drift would be
+       cancelled, or this would. The root is a different element, so the two
+       transforms COMPOSE: the bed eases 1.06 -> 1 while the active slide
+       begins its own slow push, and the result is a settle that hands off into
+       a drift.
+
+       SAFE ON THIS ELEMENT SPECIFICALLY. `transform` creates a containing
+       block and a stacking context, and both of those are load-bearing here.
+       Neither changes: the element is already `position: absolute; z-index:
+       -20`, so it already had a stacking context and still paints below the
+       scrims at -10; and Splide positions its slides against `.splide__track`,
+       not against this, so the new containing block reaches nothing.
+
+       --rr-enter-start arrives inline from TIMELINE.fadeStart, alongside
+       --rr-hero-fade. The two overrides below are the same pair every
+       .rr-enter animation needs — see the long note in global.css for what
+       each one is preventing. */
+    .rr-hero-slider.splide {
+      animation: rr-hero-bed-in 1800ms var(--ease-intent) var(--rr-enter-start, 0ms) both;
+    }
+
+    @keyframes rr-hero-bed-in {
+      from {
+        transform: scale(1.06);
+      }
+      to {
+        transform: none;
+      }
+    }
+
+    html.rr-skip-preloader .rr-hero-slider.splide {
+      animation-delay: 0ms;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .rr-hero-slider.splide {
+        animation: none;
+      }
+    }
+
+    /* Slow travelling highlight down the rule, so the cue reads as an
+       invitation rather than a static label. Transform only — compositor. */
+    .rr-hero-cue {
+      transform-origin: top;
+      animation: rr-cue 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+    }
+
+    @keyframes rr-cue {
+      0% { transform: scaleY(0); opacity: 0; }
+      35% { transform: scaleY(1); opacity: 1; }
+      100% { transform: scaleY(1) translateY(100%); opacity: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .rr-hero-cue { animation: none; }
+    }
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SPLIDE'S OWN CORE CSS — INLINED, NOT IMPORTED.
+
+   The hero mount script (below, `<script>` further down this file's source
+   page) does `import '@splidejs/splide/css/core'` as documented there. That
+   import resolves correctly (verified against the installed package: it
+   points at dist/css/splide-core.min.css, which exists and contains real
+   rules) but its output has never once landed in a production build — not
+   after any change in this session, and not at the last committed baseline
+   either. Same failure family as the block above: a CSS side effect from
+   deep inside a page-level <script> silently not making it into the bundle,
+   for reasons that would take a genuine Vite/Astro bisection to run down
+   further than this file's author has taken it.
+
+   THE CONSEQUENCE WAS WORSE THAN COSMETIC. Splide's fade layout depends
+   entirely on its own core CSS for the opacity swap —
+   `.splide__track--fade > .splide__list > .splide__slide { opacity: 0 }` and
+   `.is-active { opacity: 1 }` are not something Splide sets inline via JS,
+   they are the CSS contract the library assumes is present. Without them,
+   every slide sits at whatever default opacity the browser gives a plain
+   element — all three fully visible, stacked, with no crossfade at all. The
+   `.rr-hero-slider.splide{...}` override above only ever covered POSITION;
+   it was never a substitute for this.
+
+   WHAT'S HERE IS A DELIBERATE SUBSET, not the whole core stylesheet. Splide
+   ships CSS for pagination, arrows, a loading spinner, drag/touch scrolling
+   and RTL — all switched off in this mount (`arrows:false, pagination:false,
+   drag:false`, and the site is LTR), so none of that is reproduced. This is
+   the fade-transition, list-layout and slide-layout rules only: the actual
+   minimum Splide needs to do its one job here. Confirmed against the
+   installed package's real dist/css/splide-core.min.css — read that file
+   before changing Splide versions, since a future release could rename or
+   restructure these selectors.
+
+   The `import '@splidejs/splide/css/core'` line in the script stays. It
+   costs nothing (an import whose CSS output is dropped is not injecting
+   dead weight — there is no weight), and if some future Astro/Vite upgrade
+   fixes whatever is eating this class of import, the rules below simply
+   become harmless duplicates rather than a silent gap reappearing. */
+.rr-hero-slider .splide__track {
+  position: relative;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.rr-hero-slider .splide__list {
+  display: flex;
+  backface-visibility: hidden;
+}
+
+.rr-hero-slider .splide__slide {
+  position: relative;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  list-style-type: none !important;
+  backface-visibility: hidden;
+}
+
+/* The fade transition itself — this pair is the whole reason the crossfade
+   was never visible. `type: 'fade'` in the mount options tells Splide to add
+   `.splide__track--fade` to the track; everything else is these two rules. */
+.rr-hero-slider .splide__track--fade > .splide__list > .splide__slide {
+  margin: 0 !important;
+  opacity: 0;
+  z-index: 0;
+}
+
+.rr-hero-slider .splide__track--fade > .splide__list > .splide__slide.is-active {
+  opacity: 1;
+  z-index: 1;
+}

@@ -1,0 +1,154 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import MaterialImage from '@/components/MaterialImage.astro';
+import CtaBand from '@/components/CtaBand.astro';
+
+/* These three titles, in this order, are the studio's canonical service names.
+   The homepage rail (src/pages/index.astro) links here and lists the same three
+   under the same names — they were briefly out of sync and a visitor following
+   that link landed on different words for what they had just read. If a name
+   changes, it changes in both files or in neither. */
+const services = [
+  {
+    index: '01',
+    /* Was 'Space Planning'. The body gained its second half at the same time:
+       "& Build" promises execution, and copy that only described planning would
+       have been a name writing a cheque the paragraph could not cash. */
+    title: 'Design & Build',
+    body: 'Rigorous flow optimization and thoughtful structural modifications, carried through to the site. We dissect the architecture so every square foot serves a purpose, then stay on the job — coordinating trades, joinery and finishes — until the drawing and the built room are the same thing.',
+    image: '/src/assets/images/expertise/expertise-01.jpg',
+    alt: 'A curved white volume turning into a timber wall, the junction left uninterrupted',
+    label: 'PLASTER & TIMBER / VOLUME',
+  },
+  {
+    index: '02',
+    title: 'Custom Furnishings',
+    body: 'From bespoke furniture to intricate millwork and tailored upholstery. We collaborate with master artisans to create unique pieces that are structurally sound and tactilely luxurious, designed specifically for your space.',
+    image: '/src/assets/images/expertise/expertise-02.jpg',
+    alt: 'Bespoke fluted joinery and a solid stone counter, made for the room they stand in',
+    label: 'FLUTED JOINERY / BESPOKE',
+  },
+  {
+    index: '03',
+    title: 'Interior Styling',
+    body: 'The final layer of refinement. We curate art collections, select rare accessories, and place everyday objects with intentionality, ensuring the environment feels lived-in, layered, and deeply personal upon arrival.',
+    image: '/src/assets/images/expertise/expertise-03.jpg',
+    alt: 'Styled vignette of a framed print, dried grasses and a pale timber cabinet',
+    label: 'STYLING / VIGNETTE',
+  },
+];
+
+const testimonials = [
+  {
+    quote:
+      'Ruang Rasa does not just decorate; they architect feeling. Their attention to the microscopic details of bespoke millwork transformed our residence into a sanctuary.',
+    attribution: 'Private Client, Kyoto',
+  },
+  {
+    quote:
+      'They were the only studio that asked to see our data before showing us a drawing. That told us everything about how they work.',
+    attribution: 'Managing Partner, Apex',
+  },
+];
+---
+
+<BaseLayout
+  title="Our Expertise"
+  description="Mastering the intersection of form and function. Design and build, custom furnishings and interior styling by Ruang Rasa."
+>
+  <section class="shell pt-16 md:pt-24">
+    <h1 class="max-w-4xl font-display text-display-lg text-on-surface">
+      Our Expertise
+    </h1>
+    <p class="mt-10 max-w-2xl font-body text-body-lg font-light text-on-surface-variant">
+      Mastering the intersection of form and function. We craft environments
+      that are structurally intelligent and profoundly beautiful.
+    </p>
+  </section>
+
+  <section class="section-gap">
+    <div class="shell space-y-32">
+      {
+        services.map((service, i) => (
+          <article
+            class={`grid items-center gap-12 md:grid-cols-12 md:gap-gutter ${
+              i % 2 === 1 ? 'md:[&>figure]:order-2' : ''
+            }`}
+            data-reveal
+          >
+            <div class={i % 2 === 1 ? 'md:col-span-6 md:col-start-7' : 'md:col-span-6'}>
+              <MaterialImage
+                src={service.image}
+                alt={service.alt}
+                materialLabel={service.label}
+                ratio="vertical"
+                sizes="(min-width: 768px) 50vw, 100vw"
+                priority={i === 0}
+              />
+            </div>
+
+            <div
+              class={
+                i % 2 === 1
+                  ? 'md:col-span-5 md:col-start-1 md:row-start-1'
+                  : 'md:col-span-5 md:col-start-8'
+              }
+            >
+              <span class="font-display text-headline-md text-brass-deep">
+                {service.index}
+              </span>
+              <span class="mt-6 block h-px w-16 bg-brass" aria-hidden="true" />
+              <h2 class="mt-8 font-display text-headline-lg text-on-surface">
+                {service.title}
+              </h2>
+              <p class="mt-6 font-body text-body-lg font-light text-on-surface-variant">
+                {service.body}
+              </p>
+            </div>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  {/* -------------------------------------------------------- TESTIMONIALS */}
+  <section class="section-gap bg-surface-container-low">
+    <div class="shell">
+      <h2 class="font-display text-headline-lg text-on-surface" data-reveal>
+        Client Perspectives
+      </h2>
+      <p
+        class="mt-6 font-body text-body-lg font-light text-on-surface-variant"
+        data-reveal
+      >
+        Reflections on our collaborative process and the resulting spaces.
+      </p>
+
+      <div class="mt-20 grid gap-gutter md:grid-cols-2">
+        {
+          testimonials.map((item, i) => (
+            <figure
+              class="border-t border-outline-variant/60 pt-10"
+              data-reveal
+              data-reveal-delay={i * 120}
+            >
+              <blockquote class="font-display text-headline-md text-on-surface">
+                &ldquo;{item.quote}&rdquo;
+              </blockquote>
+              <figcaption class="mt-8 font-body text-label-caps uppercase tracking-[0.15em] text-on-surface-variant">
+                &mdash; {item.attribution}
+              </figcaption>
+            </figure>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <CtaBand
+    ctaId="expertise-footer"
+    ctaLocation="expertise"
+    eyebrow="Not sure which you need?"
+    headline="Tell us about the space."
+  />
+</BaseLayout>

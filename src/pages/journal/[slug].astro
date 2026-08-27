@@ -1,0 +1,109 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import MaterialImage from '@/components/MaterialImage.astro';
+import CtaBand from '@/components/CtaBand.astro';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('journal');
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+type Props = { entry: CollectionEntry<'journal'> };
+
+const { entry } = Astro.props;
+const { data } = entry;
+
+const paragraphs = data.body
+  .split(/\n\s*\n/)
+  .map((p) => p.trim())
+  .filter(Boolean);
+
+const categoryLabels: Record<string, string> = {
+  lighting: 'Lighting',
+  materials: 'Materials',
+  architecture: 'Architecture',
+  'interior-rhythm': 'Interior Rhythm',
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: data.title,
+  description: data.excerpt,
+  datePublished: data.publishedAt.toISOString(),
+  author: { '@type': 'Organization', name: 'Ruang Rasa Studio' },
+};
+---
+
+<BaseLayout title={data.title} description={data.excerpt} ogImage={data.coverImage}>
+  <script
+    slot="head"
+    type="application/ld+json"
+    is:inline
+    set:html={JSON.stringify(jsonLd)}
+  />
+
+  <article>
+    <header class="shell pt-16 md:pt-24">
+      <a
+        href="/journal"
+        class="font-body text-label-caps uppercase tracking-[0.15em] text-on-surface-variant no-underline transition-colors hover:text-brass-deep"
+      >
+        &larr; All Essays
+      </a>
+
+      <p class="mt-14 font-body text-label-caps uppercase tracking-[0.15em] text-brass-deep">
+        {categoryLabels[data.category]}
+        <span class="text-on-surface-variant">
+          {' '}/ <time datetime={data.publishedAt.toISOString()}>
+            {
+              data.publishedAt
+                .toLocaleDateString('en-GB', {
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric',
+                })
+                .toUpperCase()
+            }
+          </time>
+        </span>
+      </p>
+
+      <h1 class="mt-8 max-w-4xl font-display text-display-lg text-on-surface">
+        {data.title}
+      </h1>
+    </header>
+
+    <div class="shell mt-16">
+      <MaterialImage
+        src={data.coverImage}
+        alt={data.coverAlt}
+        ratio="horizontal"
+        priority={true}
+        maxH="max-h-[58svh]"
+        sizes="(min-width: 1440px) 1376px, 100vw"
+        widths={[768, 1024, 1440, 1920]}
+      />
+    </div>
+
+    {/* A measure of roughly 70 characters — DESIGN.md asks for airy, readable
+        body copy, and that is a line-length decision before it is a font one. */}
+    <div class="shell section-gap">
+      <div class="mx-auto max-w-[68ch]">
+        {
+          paragraphs.map((p) => (
+            <p class="mb-8 font-body text-body-lg font-light text-on-surface-variant last:mb-0">
+              {p}
+            </p>
+          ))
+        }
+      </div>
+    </div>
+  </article>
+
+  <CtaBand ctaId="journal-article-footer" ctaLocation="journal-article" />
+</BaseLayout>

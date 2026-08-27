@@ -1,0 +1,30 @@
+# Cloudflare Pages custom headers.
+#
+# A static site removes most server-side attack surface; these headers remove
+# most of what is left, which is client-side. Cloudflare's WAF, bot management
+# and rate limiting sit in front of all of it.
+
+/*
+  # Clickjacking / MIME sniffing / referrer leakage
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), interest-cohort=()
+  Cross-Origin-Opener-Policy: same-origin
+
+  # HSTS. Two years, subdomains included, preload-eligible.
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+
+  # CSP.
+  # - 'unsafe-inline' on script-src is required by Astro: the island hydration
+  #   bootstrap and the define:vars analytics config are inline. Tightening this
+  #   to a nonce needs request-time header injection, which a prerendered site
+  #   does not have. Documented rather than silently accepted.
+  # - fonts.googleapis.com / fonts.gstatic.com cover the two webfont families.
+  # - connect-src allows the analytics beacon; add your vendor's domain here
+  #   when you switch providers, or the beacon will be blocked.
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://plausible.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://www.google-analytics.com https://plausible.io; frame-ancestors 'self'; base-uri 'self'; form-action 'self' https://wa.me; object-src 'none'
+
+# Fingerprinted build assets are immutable by definition.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable

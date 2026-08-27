@@ -1,0 +1,104 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import MaterialImage from '@/components/MaterialImage.astro';
+import CtaBand from '@/components/CtaBand.astro';
+---
+
+<BaseLayout
+  title="The Studio"
+  description="Cultivating spatial silence and architectural precision. A sanctuary for design rooted in deep cultural context and modern restraint."
+>
+  <section class="shell pt-16 md:pt-24">
+    <h1 class="max-w-4xl font-display text-display-lg text-on-surface">
+      The Studio
+    </h1>
+    <p class="mt-10 max-w-2xl font-body text-body-lg font-light text-on-surface-variant">
+      Cultivating spatial silence and architectural precision. A sanctuary for
+      design rooted in deep cultural context and modern restraint.
+    </p>
+  </section>
+
+  <section class="shell mt-16">
+    <MaterialImage
+      src="/src/assets/images/studio/studio-01.jpg"
+      alt="The Ruang Rasa atelier in Jakarta, a member of the studio crossing the workspace under north light"
+      materialLabel="THE ATELIER / JAKARTA"
+      ratio="horizontal"
+      priority={true}
+      maxH="max-h-[62svh]"
+      sizes="(min-width: 1440px) 1376px, 100vw"
+      widths={[768, 1024, 1440, 1920]}
+    />
+  </section>
+
+  {/* ------------------------------------------------------------- ORIGINS */}
+  <section class="section-gap">
+    <div class="shell grid gap-12 md:grid-cols-12 md:gap-gutter">
+      <h2
+        class="font-display text-headline-lg text-on-surface md:col-span-4"
+        data-reveal
+      >
+        Origins
+      </h2>
+
+      <div class="md:col-span-7 md:col-start-6" data-reveal data-reveal-delay="80">
+        <p class="font-body text-body-lg font-light text-on-surface-variant">
+          Founded in the heart of Indonesia, Ruang Rasa emerged from a desire to
+          reconcile the rich, tactile heritage of Southeast Asian craftsmanship
+          with the rigorous geometries of contemporary minimalism. We believe
+          that true luxury is found in restraint, in the spaces left
+          intentionally blank.
+        </p>
+        <p class="mt-8 font-body text-body-lg font-light text-on-surface-variant">
+          Our practice is an ongoing dialogue between raw materials and refined
+          form. Every space we conceive is a study in light, shadow, and
+          silence — a deliberate retreat from the noise of the modern world,
+          prioritizing timeless functionality over fleeting trends.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  {/* ----------------------------------------------------------- PRINCIPAL */}
+  <section class="section-gap bg-surface-container-low">
+    <div class="shell grid items-start gap-12 md:grid-cols-12 md:gap-gutter">
+      <div class="md:col-span-5" data-reveal>
+        <MaterialImage
+          src="/src/assets/images/studio/studio-02.jpg"
+          alt="The principal's desk, with a set of working drawings open beneath the task lamp"
+          materialLabel="PRINCIPAL / DESK"
+          ratio="vertical"
+          sizes="(min-width: 768px) 40vw, 100vw"
+        />
+      </div>
+
+      <div class="md:col-span-6 md:col-start-7" data-reveal data-reveal-delay="100">
+        <h2 class="font-display text-headline-lg text-on-surface">Elara Lin</h2>
+        <p class="mt-4 font-body text-label-caps uppercase tracking-[0.15em] text-brass-deep">
+          Lead Architect &amp; Founder
+        </p>
+
+        <p class="mt-10 font-body text-body-lg font-light text-on-surface-variant">
+          With a background spanning classical architecture and industrial
+          design, Elara approaches interiors not as decoration, but as
+          volumetric composition. Her work is characterized by a profound
+          respect for materiality and an unwavering commitment to spatial
+          harmony.
+        </p>
+
+        <blockquote class="mt-12 border-l border-brass pl-8 font-display text-headline-md text-on-surface">
+          &ldquo;We design not just for the eye, but for the hand. The texture of
+          a wall should invite touch, just as the layout of a room invites
+          stillness.&rdquo;
+        </blockquote>
+      </div>
+    </div>
+  </section>
+
+  <CtaBand
+    ctaId="studio-footer"
+    ctaLocation="studio"
+    eyebrow="Want to work with us?"
+    headline="Start with a conversation."
+  />
+</BaseLayout>

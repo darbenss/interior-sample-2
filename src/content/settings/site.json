@@ -1,0 +1,15 @@
+{
+  "studioName": "Ruang Rasa",
+  "tagline": "Elevating environments through mindful design and uncompromising craftsmanship.",
+  "whatsappNumber": "+62 811 234 5678",
+  "whatsappDefaultMessage": "Hello Ruang Rasa, I would like to discuss an interior project.",
+  "email": "hello@ruangrasa.com",
+  "addressLines": [
+    "Level 4, The Design District",
+    "Jakarta, Indonesia"
+  ],
+  "instagram": "https://instagram.com/ruangrasa",
+  "linkedin": "https://linkedin.com/company/ruangrasa",
+  "analyticsProvider": "gtag",
+  "analyticsId": ""
+}

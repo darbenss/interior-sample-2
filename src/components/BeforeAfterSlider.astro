@@ -1,0 +1,340 @@
+---
+import { Image } from 'astro:assets';
+import { resolveImage, clampWidths } from '@/lib/images';
+
+/* ---------------------------------------------------------------------------
+ * Before & After comparison slider.
+ *
+ * WHY THIS IS ASTRO AND NOT A REACT ISLAND
+ * Both plates go through `astro:assets`, which is a build-time API — a React
+ * component cannot render <Image>, so an island would mean raw <img> tags and
+ * the loss of the AVIF/srcset pipeline that src/lib/images.ts exists to
+ * provide. On interior photography that is the difference between ~20 KB and
+ * ~370 KB per plate, paid twice. A wipe driven by one custom property does not
+ * need a framework.
+ *
+ * HOW THE WIPE WORKS
+ * The two plates are stacked. The top one is clipped with
+ * `inset(0 calc(100% - var(--pos)) 0 0)`, so `--pos` alone decides how much of
+ * the "before" survives. CSS sets it to 50% up front, which means a visitor
+ * with no JavaScript — or one who arrives before the module parses — still
+ * sees a valid half-and-half comparison rather than an empty box.
+ *
+ * WHY THERE IS A RANGE INPUT
+ * A div listening for pointer events is not operable by keyboard and announces
+ * nothing to a screen reader. A real <input type="range"> is: arrow keys move
+ * it, it reports its value, and it needs no ARIA. It is visually hidden but
+ * focusable, with the visible handle picking up a ring via `:focus-visible ~`.
+ * ------------------------------------------------------------------------- */
+
+export type ComparisonPlate = {
+  image?: string | null;
+  alt?: string | null;
+};
+
+export type Props = {
+  before: ComparisonPlate;
+  after: ComparisonPlate;
+  /** Falls back to the project title in the alt text of each plate. */
+  label?: string;
+};
+
+const { before, after, label = 'this space' } = Astro.props;
+
+const beforeImage = resolveImage(before?.image);
+const afterImage = resolveImage(after?.image);
+
+/* Inside the 1376px shell, never full-bleed — a comparison the eye has to
+   travel across stops being a comparison. */
+const widths = [768, 1024, 1440];
+const sizes = '(min-width: 1440px) 1376px, 100vw';
+const format = import.meta.env.DEV ? 'webp' : 'avif';
+
+/* One id per instance so the <label> binds to the right control if a page ever
+   carries two comparisons. Derived from the label rather than randomised: a
+   random id makes every rebuild emit different HTML for unchanged content,
+   which turns "did my change do anything?" into an unanswerable question. */
+const inputId = `ba-${label
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, '-')
+  .replace(/^-|-$/g, '')}`;
+---
+
+{
+  beforeImage && afterImage && (
+    <figure class="ba" data-ba>
+      <div class="ba-frame relative aspect-[3/2] max-h-[80svh] w-full select-none overflow-hidden bg-surface-container">
+        {/* AFTER — the base layer. Always fully painted; the before plate is
+            what gets clipped away over the top of it. */}
+        <Image
+          src={afterImage}
+          alt={after.alt ?? `${label}, after`}
+          widths={clampWidths(widths, afterImage.width)}
+          sizes={sizes}
+          format={format}
+          quality={72}
+          loading="lazy"
+          decoding="async"
+          draggable="false"
+          class="absolute inset-0 h-full w-full object-cover object-center"
+        />
+
+        <div class="ba-before absolute inset-0">
+          <Image
+            src={beforeImage}
+            alt={before.alt ?? `${label}, before`}
+            widths={clampWidths(widths, beforeImage.width)}
+            sizes={sizes}
+            format={format}
+            quality={72}
+            loading="lazy"
+            decoding="async"
+            draggable="false"
+            class="absolute inset-0 h-full w-full object-cover object-center"
+          />
+
+          {/* Inside the clipped layer on purpose: the tag wipes away with the
+              photograph it names, so it can never end up sitting over the
+              other plate. */}
+          <span class="ba-tag ba-tag-before">Before</span>
+        </div>
+
+        <span class="ba-tag ba-tag-after">After</span>
+
+        <label class="sr-only" for={inputId}>
+          Reveal more of the before or after photograph of {label}
+        </label>
+        <input
+          id={inputId}
+          class="ba-range sr-only"
+          type="range"
+          min="0"
+          max="100"
+          step="0.5"
+          value="50"
+        />
+
+        {/* Sits after the input in the DOM so `:focus-visible ~ .ba-handle`
+            can put a ring on it for keyboard users. */}
+        <span class="ba-handle" aria-hidden="true">
+          <span class="ba-knob">
+            <span class="ba-arrow ba-arrow-left" />
+            <span class="ba-arrow ba-arrow-right" />
+          </span>
+        </span>
+      </div>
+
+      <figcaption class="ba-hint mt-6 font-body text-label-caps uppercase tracking-[0.15em] text-on-surface-variant">
+        Drag to compare
+      </figcaption>
+    </figure>
+  )
+}
+
+<style>
+  .ba {
+    /* The single source of truth for the wipe. Declared here rather than
+       inline so the component is correct before any script runs. */
+    --pos: 50%;
+  }
+
+  .ba-frame {
+    /* pan-y, not none: a vertical swipe still scrolls the page on a phone,
+       while a horizontal drag is ours. `none` would trap the scroll. */
+    touch-action: pan-y;
+    cursor: ew-resize;
+  }
+
+  .ba-before {
+    clip-path: inset(0 calc(100% - var(--pos)) 0 0);
+  }
+
+  .ba-handle {
+    position: absolute;
+    inset-block: 0;
+    left: var(--pos);
+    width: 1px;
+    background-color: color-mix(in srgb, var(--color-surface) 85%, transparent);
+    transform: translateX(-0.5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Slow and intentional on keyboard input; switched off the moment a pointer
+     takes over, where any easing reads as lag. */
+  .ba-before,
+  .ba-handle {
+    transition:
+      clip-path 320ms var(--ease-intent),
+      left 320ms var(--ease-intent);
+  }
+
+  .ba.is-scrubbing .ba-before,
+  .ba.is-scrubbing .ba-handle {
+    transition: none;
+  }
+
+  .ba-knob {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    /* Sharp corners — the "0 roundedness" rule from DESIGN.md. A circular
+       knob is the stock treatment and reads as a widget; a square one reads
+       as architecture. */
+    height: 48px;
+    width: 48px;
+    border: 1px solid color-mix(in srgb, var(--color-surface) 85%, transparent);
+    background-color: color-mix(in srgb, var(--color-charcoal) 35%, transparent);
+    backdrop-filter: blur(6px);
+    transition: background-color 400ms var(--ease-intent);
+  }
+
+  .ba-frame:hover .ba-knob {
+    background-color: color-mix(in srgb, var(--color-charcoal) 55%, transparent);
+  }
+
+  .ba-arrow {
+    width: 0;
+    height: 0;
+    border-block: 4px solid transparent;
+  }
+
+  .ba-arrow-left {
+    border-right: 6px solid var(--color-surface);
+  }
+
+  .ba-arrow-right {
+    border-left: 6px solid var(--color-surface);
+  }
+
+  .ba-range:focus-visible ~ .ba-handle .ba-knob {
+    outline: 2px solid var(--color-brass);
+    outline-offset: 3px;
+  }
+
+  .ba-tag {
+    position: absolute;
+    top: 1rem;
+    font-family: var(--font-body);
+    font-size: var(--text-label-caps);
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    line-height: 1;
+    text-transform: uppercase;
+    color: var(--color-surface);
+    mix-blend-mode: difference;
+    pointer-events: none;
+  }
+
+  .ba-tag-before {
+    left: 1rem;
+  }
+
+  .ba-tag-after {
+    right: 1rem;
+  }
+
+  /* The hint is a promise the page can only keep once the script is running,
+     so it fades in from there rather than shipping in the painted HTML. */
+  .ba-hint {
+    opacity: 0;
+    transition: opacity 600ms var(--ease-intent);
+  }
+
+  .ba.is-ready .ba-hint {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ba-before,
+    .ba-handle,
+    .ba-knob,
+    .ba-hint {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  /* One handler set per comparison on the page. Everything below is additive:
+     the markup is already a valid 50/50 comparison without it. */
+  document.querySelectorAll<HTMLElement>('[data-ba]').forEach((root) => {
+    const frame = root.querySelector<HTMLElement>('.ba-frame');
+    const range = root.querySelector<HTMLInputElement>('.ba-range');
+    if (!frame || !range) return;
+
+    const setPosition = (value: number) => {
+      const clamped = Math.min(100, Math.max(0, value));
+      root.style.setProperty('--pos', `${clamped}%`);
+      return clamped;
+    };
+
+    /* Keyboard and assistive tech drive the input; the input drives the wipe. */
+    range.addEventListener('input', () => setPosition(Number(range.value)));
+
+    const positionFromPointer = (event: PointerEvent) => {
+      const rect = frame.getBoundingClientRect();
+      return ((event.clientX - rect.left) / rect.width) * 100;
+    };
+
+    const scrub = (event: PointerEvent) => {
+      range.value = String(setPosition(positionFromPointer(event)));
+    };
+
+    let scrubbing = false;
+    let origin: { x: number; y: number } | null = null;
+
+    const beginScrub = (event: PointerEvent) => {
+      scrubbing = true;
+      root.classList.add('is-scrubbing');
+      /* Capture keeps the drag alive when the pointer leaves the frame —
+         without it, a fast drag past the edge strands the handle. */
+      frame.setPointerCapture(event.pointerId);
+      scrub(event);
+    };
+
+    frame.addEventListener('pointerdown', (event) => {
+      origin = { x: event.clientX, y: event.clientY };
+
+      /* A mouse press is unambiguous, so it positions the wipe immediately.
+         A touch is not: `touch-action: pan-y` lets a finger scroll the page
+         past this photograph, and that gesture still fires pointerdown first.
+         Scrubbing on it would snap the handle to wherever the finger landed
+         and leave it there when the scroll takes over. So a touch has to
+         declare itself horizontal first — see pointermove. */
+      if (event.pointerType === 'mouse') beginScrub(event);
+    });
+
+    frame.addEventListener('pointermove', (event) => {
+      if (!scrubbing) {
+        if (!origin) return;
+        const dx = event.clientX - origin.x;
+        const dy = event.clientY - origin.y;
+        /* Committed only once the movement is clearly sideways and past an
+           8px slop threshold — below that every vertical scroll would be
+           read as a drag. */
+        if (Math.abs(dx) < 8 || Math.abs(dx) <= Math.abs(dy)) return;
+        beginScrub(event);
+        return;
+      }
+
+      /* Safe here: the gesture is already ours, so suppressing the browser
+         default cannot cost the visitor a page scroll. */
+      event.preventDefault();
+      scrub(event);
+    });
+
+    const stop = () => {
+      scrubbing = false;
+      origin = null;
+      root.classList.remove('is-scrubbing');
+    };
+
+    frame.addEventListener('pointerup', stop);
+    frame.addEventListener('pointercancel', stop);
+
+    root.classList.add('is-ready');
+  });
+</script>

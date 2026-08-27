@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Our Expertise - Ruang Rasa</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&amp;family=Playfair+Display:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface": "#1a1c1a",
+                        "tertiary-container": "#1b1d1b",
+                        "on-surface-variant": "#444748",
+                        "primary-fixed-dim": "#c8c6c5",
+                        "tertiary-fixed": "#e2e3e0",
+                        "primary-container": "#1c1c1c",
+                        "error-container": "#ffdad6",
+                        "inverse-primary": "#c8c6c5",
+                        "surface-variant": "#e3e3e0",
+                        "primary": "#010101",
+                        "outline": "#747878",
+                        "inverse-on-surface": "#f1f1ee",
+                        "inverse-surface": "#2f312f",
+                        "on-primary-container": "#858484",
+                        "on-secondary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "secondary-fixed": "#ffdea5",
+                        "surface-dim": "#dadad7",
+                        "on-tertiary-fixed": "#1a1c1b",
+                        "on-tertiary-container": "#848583",
+                        "on-background": "#1a1c1a",
+                        "surface-container": "#eeeeeb",
+                        "on-secondary-container": "#785a1a",
+                        "secondary": "#775a19",
+                        "on-tertiary-fixed-variant": "#454745",
+                        "on-primary": "#ffffff",
+                        "surface-container-low": "#f4f4f1",
+                        "outline-variant": "#c4c7c7",
+                        "surface-bright": "#faf9f6",
+                        "on-primary-fixed": "#1b1b1b",
+                        "secondary-container": "#fed488",
+                        "surface-tint": "#5f5e5e",
+                        "on-primary-fixed-variant": "#474746",
+                        "surface-container-highest": "#e3e3e0",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed": "#261900",
+                        "tertiary": "#010202",
+                        "surface": "#faf9f6",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#c6c7c4",
+                        "primary-fixed": "#e5e2e1",
+                        "surface-container-high": "#e8e8e5",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#e9c176",
+                        "on-secondary-fixed-variant": "#5d4201",
+                        "background": "#faf9f6",
+                        "surface-container-lowest": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "32px",
+                        "container-max": "1440px",
+                        "unit": "8px",
+                        "margin-mobile": "24px",
+                        "section-gap": "160px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Playfair Display"],
+                        "display-lg": ["Playfair Display"],
+                        "body-md": ["Montserrat"],
+                        "display-lg-mobile": ["Playfair Display"],
+                        "body-lg": ["Montserrat"],
+                        "headline-md": ["Playfair Display"],
+                        "headline-lg-mobile": ["Playfair Display"],
+                        "label-caps": ["Montserrat"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["48px", {"lineHeight": "56px", "fontWeight": "400"}],
+                        "display-lg": ["80px", {"lineHeight": "90px", "letterSpacing": "-0.02em", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "display-lg-mobile": ["48px", {"lineHeight": "54px", "letterSpacing": "-0.01em", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "32px", "letterSpacing": "0.01em", "fontWeight": "300"}],
+                        "headline-md": ["32px", {"lineHeight": "40px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.15em", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .material-label {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            background: rgba(250, 249, 246, 0.9);
+            padding: 4px 8px;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased font-body-md selection:bg-secondary selection:text-surface">
+<!-- Top Navigation (Shared Component) -->
+<nav class="fixed top-0 w-full z-50 bg-surface/90 dark:bg-on-surface/90 backdrop-blur-xl border-b border-outline-variant/30 transition-all duration-700 ease-in-out">
+<div class="flex justify-between items-center w-full px-gutter py-6 max-w-container-max mx-auto">
+<a class="font-headline-md text-headline-md text-on-surface dark:text-surface-bright hover:opacity-80 transition-opacity" href="#">Ruang Rasa</a>
+<div class="hidden md:flex items-center space-x-8 font-body-md text-label-caps uppercase">
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-secondary transition-colors duration-500" href="#">The Studio</a>
+<a class="text-primary dark:text-surface border-b border-secondary pb-1 transition-colors duration-500" href="#">Expertise</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-secondary transition-colors duration-500" href="#">Portfolio</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-secondary transition-colors duration-500" href="#">Journal</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:text-secondary transition-colors duration-500" href="#">Inquiries</a>
+</div>
+<button class="md:hidden text-primary focus:outline-none">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">menu</span>
+</button>
+<div class="hidden md:flex items-center">
+<button class="text-primary focus:outline-none hover:text-secondary transition-colors duration-500">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">menu</span>
+</button>
+</div>
+</div>
+</nav>
+<main class="pt-32 pb-section-gap w-full">
+<!-- Header & Main Image -->
+<header class="max-w-container-max mx-auto px-gutter mb-section-gap">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter items-end">
+<div class="md:col-span-5 pb-12">
+<h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-primary mb-6">Our Expertise</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-md">Mastering the intersection of form and function. We craft environments that are structurally intelligent and profoundly beautiful.</p>
+</div>
+<div class="md:col-span-7 relative h-[60vh] md:h-[80vh] w-full">
+<img alt="Macro shot of materials" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvtFWJgwILz195emh7r_T2ESGje8Uv9MSnlTHViI5AWksYoOT4cy-oQ_0IFYvvY8uF9B72JwiXjeLkB2VCI2t_9auMYLkG36P2N9MRt6zxLJl9Gvm5-hqpJHD4wmM5_yf-csg1aQEBPwFrBlb5ot1vEBMUBGbMiycyNfBRDcx5AtNwLK9MX71n_9XujU-4cFs5BZT7GA-IKy7PcKvzfSPtTh4IZSTT9KZlbdj47yUv96-Gt88UTjXq"/>
+<div class="material-label font-body-md text-label-caps text-primary uppercase">
+                        MARBLE &amp; OAK / DETAIL
+                    </div>
+</div>
+</div>
+</header>
+<!-- Services / Expertise Sections -->
+<section class="max-w-container-max mx-auto px-gutter mb-section-gap w-full mt-section-gap">
+<div class="flex flex-col space-y-32">
+<!-- Service 1: Space Planning -->
+<article class="grid grid-cols-1 md:grid-cols-12 gap-gutter items-center">
+<div class="md:col-span-5 md:col-start-2 order-2 md:order-1">
+<div class="font-body-md text-label-caps text-secondary uppercase tracking-widest mb-4">01</div>
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary mb-6">Space Planning</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mb-8">Rigorous flow optimization and thoughtful structural modifications. We dissect the architecture to ensure every square foot serves a purpose, fostering a natural cadence to daily living.</p>
+<a class="inline-flex items-center space-x-2 font-body-md text-label-caps uppercase text-primary border-b border-primary pb-1 hover:text-secondary hover:border-secondary transition-colors duration-300" href="#">
+<span class="">Learn More</span>
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+<div class="md:col-span-5 order-1 md:order-2 relative aspect-[4/5] w-full mb-8 md:mb-0">
+<img class="w-full h-full object-cover" data-alt="A minimalist architectural blueprint resting on a raw concrete surface, illuminated by natural daylight casting sharp, structural shadows. High-end editorial photography style focusing on the crisp lines of the technical drawing against the textured background, conveying precision and spatial intelligence. The overall palette features cool greys and soft whites, with a serene and intellectual mood." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXCo25Dtl3tKwHYQkjd0LIJXhjNwV2iCuLBlSwzeMNNrcpt9RNi0VXtzyS4cAIDmR5ZRBgZEb6Ro3DrEBzpKbY0UjN4M3531ejvu18Kr_W5VhaUJp9tpruOEIOwoaZc96up18Sw1J5k0sU1Xg201qtyNcxl51IQ3Sq5ShFf1MnbTxGS0rJoJbOmXu4mSgySy3EFnfS-TUDECxghpfrtYbF43hhreHhgaGJ7UX9eeQrSBN5me2bwF8p"/>
+</div>
+</article>
+<!-- Service 2: Custom Furnishings -->
+<article class="grid grid-cols-1 md:grid-cols-12 gap-gutter items-center">
+<div class="md:col-span-5 md:col-start-2 relative aspect-[3/4] w-full mb-8 md:mb-0">
+<img class="w-full h-full object-cover" data-alt="A close-up shot of a bespoke walnut wood cabinet featuring exquisite, handcrafted joinery and a solid brass pull handle. The lighting is warm and directional, emphasizing the rich grain of the wood and the subtle gleam of the metal. Shot in a high-end editorial style, conveying luxury, craftsmanship, and a tactile, grounded aesthetic within a sophisticated dark-mode compatible palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyBAnngozoXRLhWGuUwenW-v1QtQ8cfXdOOVgy_cGXdTMg9Izg_yhKQ7dK39x8uMaYOBAQ4oOue_Lw3PcF6GfyiN7aOHcvhYPnjXbJsiFaGO6ApEHfJzKyL1cx6pHsssbWL2g1StXNY-2OaFdwsT0rF2jtjtBsLgKOJVvkzs7hBu0jXQu7SdTcUwyooEYGnBusMjzodGQt-zYC2HhiT_DEIKfo7aM2K5UY4fUPhUrI-M4UYb_a6m9e"/>
+<div class="material-label font-body-md text-label-caps text-primary uppercase">
+                            WALNUT &amp; BRASS / BESPOKE
+                        </div>
+</div>
+<div class="md:col-span-5 md:col-start-8">
+<div class="font-body-md text-label-caps text-secondary uppercase tracking-widest mb-4">02</div>
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary mb-6">Custom Furnishings</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mb-8">From bespoke furniture to intricate millwork and tailored upholstery. We collaborate with master artisans to create unique pieces that are structurally sound and tactilely luxurious, designed specifically for your space.</p>
+<a class="inline-flex items-center space-x-2 font-body-md text-label-caps uppercase text-primary border-b border-primary pb-1 hover:text-secondary hover:border-secondary transition-colors duration-300" href="#">
+<span class="">Explore Craftsmanship</span>
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+</article>
+<!-- Service 3: Turnkey Styling -->
+<article class="grid grid-cols-1 md:grid-cols-12 gap-gutter items-center">
+<div class="md:col-span-5 md:col-start-2 order-2 md:order-1">
+<div class="font-body-md text-label-caps text-secondary uppercase tracking-widest mb-4">03</div>
+<h2 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary mb-6">Turnkey Styling</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mb-8">The final layer of refinement. We curate art collections, select rare accessories, and place everyday objects with intentionality, ensuring the environment feels lived-in, layered, and deeply personal upon arrival.</p>
+<a class="inline-flex items-center space-x-2 font-body-md text-label-caps uppercase text-primary border-b border-primary pb-1 hover:text-secondary hover:border-secondary transition-colors duration-300" href="#">
+<span class="">View Styling</span>
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+<div class="md:col-span-6 order-1 md:order-2 relative aspect-[3/2] w-full mb-8 md:mb-0">
+<img class="w-full h-full object-cover" data-alt="A beautifully styled vignette on a monolithic stone console table. The composition includes an abstract ceramic sculpture, a stack of large art books, and a delicate branch in a dark, textured vase. The scene is bathed in soft, diffused light, highlighting the varying textures from smooth stone to rough ceramic. High-end editorial aesthetic, minimalist yet culturally resonant." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzHUE_dtvcBG9mC4xyK_J6Can2ux776CucDSsKaCrVCnNzjVDZUOUOhNyOLYLY8eugTlP2Nf1pu8GDVx4IYDanWFj5YE85RwluyIph9JRqurYiujfo6faOT9uemZ8XnUb4FpELzg6GDhaEOJX6VqW2JUjM4lyFQrgWP2wjY0h4sliroKCEz_sVXf8GiNdKdYZN4GOdmxlU863mWfXvOD7z86OWh1L6bg69hT_6h55R0hYKPeKQFACL"/>
+</div>
+</article>
+</div>
+</section>
+<!-- Testimonials -->
+<section class="bg-surface-container-low py-32 mb-section-gap w-full mt-0">
+<div class="max-w-container-max mx-auto px-gutter flex flex-col md:flex-row gap-gutter items-center">
+<div class="w-full md:w-1/3">
+<h3 class="font-headline-md text-headline-md text-primary mb-4">Client Perspectives</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-8">Reflections on our collaborative process and the resulting spaces.</p>
+<div class="flex space-x-4">
+<button class="w-12 h-12 flex items-center justify-center border border-primary text-primary hover:bg-primary hover:text-surface transition-colors duration-300" id="prev-testimonial">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center bg-primary text-surface hover:bg-secondary transition-colors duration-300" id="next-testimonial">
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+<div class="w-full md:w-2/3 relative overflow-hidden" id="testimonial-container">
+<div class="flex transition-transform duration-700 ease-in-out w-full" id="testimonial-track">
+<!-- Quote 1 -->
+<div class="w-full flex-shrink-0 px-4 md:px-12">
+<span class="material-symbols-outlined text-4xl text-outline-variant/30 mb-6 block">format_quote</span>
+<p class="font-headline-md text-headline-lg-mobile md:text-headline-md text-primary mb-8 leading-relaxed">"Ruang Rasa doesn't just decorate; they architect feeling. Their attention to the microscopic details of bespoke millwork transformed our residence into a sanctuary."</p>
+<div class="font-body-md text-label-caps uppercase text-secondary tracking-widest">— Private Client, Kyoto</div>
+</div>
+<!-- Quote 2 -->
+<div class="w-full flex-shrink-0 px-4 md:px-12">
+<span class="material-symbols-outlined text-4xl text-outline-variant/30 mb-6 block">format_quote</span>
+<p class="font-headline-md text-headline-lg-mobile md:text-headline-md text-primary mb-8 leading-relaxed">"The spatial flow they achieved was revelatory. We never realized how much the layout was hindering our daily life until they redefined the architecture of our home."</p>
+<div class="font-body-md text-label-caps uppercase text-secondary tracking-widest">— S.T., Architecture Digest Feature</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer (Shared Component) -->
+<footer class="w-full bg-primary dark:bg-tertiary-container mt-section-gap relative">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter px-gutter py-20 max-w-container-max mx-auto text-surface dark:text-surface-bright">
+<!-- Brand -->
+<div class="flex flex-col space-y-6">
+<a class="font-headline-lg text-headline-lg text-surface-bright" href="#">Ruang Rasa</a>
+<p class="font-body-md text-body-md text-surface-variant/70 max-w-xs">Curating spatial silence through architectural precision and modern editorial design.</p>
+</div>
+<!-- Links -->
+<div class="flex flex-col space-y-4 font-body-lg text-body-lg">
+<a class="text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="#">Philosophy</a>
+<a class="text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="#">Press</a>
+<a class="text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="#">Terms</a>
+<a class="text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="#">Privacy</a>
+</div>
+<!-- Contact / Copyright -->
+<div class="flex flex-col justify-between md:items-end">
+<div class="flex space-x-6 mb-12 md:mb-0">
+<a class="text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="#">
+<span class="font-body-md text-label-caps uppercase">Instagram</span>
+</a>
+<a class="text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="#">
+<span class="font-body-md text-label-caps uppercase">Pinterest</span>
+</a>
+</div>
+<div class="font-body-md text-label-caps text-surface-variant/50 uppercase">
+                    © 2024 Ruang Rasa Studio. All rights reserved.
+                </div>
+</div>
+</div>
+</footer>
+<script>
+        // Simple slider logic for testimonials
+        document.addEventListener('DOMContentLoaded', () => {
+            const track = document.getElementById('testimonial-track');
+            const prevBtn = document.getElementById('prev-testimonial');
+            const nextBtn = document.getElementById('next-testimonial');
+            let currentIndex = 0;
+            const slideCount = track.children.length;
+
+            const updateSlider = () => {
+                track.style.transform = `translateX(-${currentIndex * 100}%)`;
+            };
+
+            nextBtn.addEventListener('click', () => {
+                currentIndex = (currentIndex + 1) % slideCount;
+                updateSlider();
+            });
+
+            prevBtn.addEventListener('click', () => {
+                currentIndex = (currentIndex - 1 + slideCount) % slideCount;
+                updateSlider();
+            });
+        });
+    </script>
+</body></html>

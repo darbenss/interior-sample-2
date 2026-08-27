@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en" style=""><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Design Journal - Ruang Rasa</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&amp;family=Playfair+Display:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-surface": "#1a1c1a",
+                    "tertiary-container": "#1b1d1b",
+                    "on-surface-variant": "#444748",
+                    "primary-fixed-dim": "#c8c6c5",
+                    "tertiary-fixed": "#e2e3e0",
+                    "primary-container": "#1c1c1c",
+                    "error-container": "#ffdad6",
+                    "inverse-primary": "#c8c6c5",
+                    "surface-variant": "#e3e3e0",
+                    "primary": "#010101",
+                    "outline": "#747878",
+                    "inverse-on-surface": "#f1f1ee",
+                    "inverse-surface": "#2f312f",
+                    "on-primary-container": "#858484",
+                    "on-secondary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "secondary-fixed": "#ffdea5",
+                    "surface-dim": "#dadad7",
+                    "on-tertiary-fixed": "#1a1c1b",
+                    "on-tertiary-container": "#848583",
+                    "on-background": "#1a1c1a",
+                    "surface-container": "#eeeeeb",
+                    "on-secondary-container": "#785a1a",
+                    "secondary": "#775a19",
+                    "on-tertiary-fixed-variant": "#454745",
+                    "on-primary": "#ffffff",
+                    "surface-container-low": "#f4f4f1",
+                    "outline-variant": "#c4c7c7",
+                    "surface-bright": "#faf9f6",
+                    "on-primary-fixed": "#1b1b1b",
+                    "secondary-container": "#fed488",
+                    "surface-tint": "#5f5e5e",
+                    "on-primary-fixed-variant": "#474746",
+                    "surface-container-highest": "#e3e3e0",
+                    "on-error": "#ffffff",
+                    "on-secondary-fixed": "#261900",
+                    "tertiary": "#010202",
+                    "surface": "#faf9f6",
+                    "on-error-container": "#93000a",
+                    "tertiary-fixed-dim": "#c6c7c4",
+                    "primary-fixed": "#e5e2e1",
+                    "surface-container-high": "#e8e8e5",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed-dim": "#e9c176",
+                    "on-secondary-fixed-variant": "#5d4201",
+                    "background": "#faf9f6",
+                    "surface-container-lowest": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "32px",
+                    "container-max": "1440px",
+                    "unit": "8px",
+                    "margin-mobile": "24px",
+                    "section-gap": "160px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Playfair Display"],
+                    "display-lg": ["Playfair Display"],
+                    "body-md": ["Montserrat"],
+                    "display-lg-mobile": ["Playfair Display"],
+                    "body-lg": ["Montserrat"],
+                    "headline-md": ["Playfair Display"],
+                    "headline-lg-mobile": ["Playfair Display"],
+                    "label-caps": ["Montserrat"]
+            },
+            "fontSize": {
+                    "headline-lg": ["48px", {"lineHeight": "56px", "fontWeight": "400"}],
+                    "display-lg": ["80px", {"lineHeight": "90px", "letterSpacing": "-0.02em", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["48px", {"lineHeight": "54px", "letterSpacing": "-0.01em", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "32px", "letterSpacing": "0.01em", "fontWeight": "300"}],
+                    "headline-md": ["32px", {"lineHeight": "40px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.15em", "fontWeight": "600"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+          font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md antialiased overflow-x-hidden selection:bg-primary-container selection:text-surface">
+<!-- Top Navigation -->
+<nav class="fixed top-0 w-full z-50 bg-surface/90 dark:bg-on-surface/90 backdrop-blur-xl border-b border-outline-variant/30 transition-all duration-700 ease-in-out">
+<div class="flex justify-between items-center w-full px-gutter py-6 max-w-container-max mx-auto hidden md:flex">
+<div class="font-headline-md text-headline-md text-on-surface dark:text-surface-bright tracking-tight">
+                Ruang Rasa
+            </div>
+<div class="flex space-x-12 items-center">
+<a class="font-body-md text-label-caps text-on-surface-variant dark:text-surface-variant hover:text-secondary transition-colors duration-500" href="#">
+                    The Studio
+                </a>
+<a class="font-body-md text-label-caps text-on-surface-variant dark:text-surface-variant hover:text-secondary transition-colors duration-500" href="#">
+                    Expertise
+                </a>
+<a class="font-body-md text-label-caps text-on-surface-variant dark:text-surface-variant hover:text-secondary transition-colors duration-500" href="#">
+                    Portfolio
+                </a>
+<a class="font-body-md text-label-caps text-primary dark:text-surface border-b border-secondary pb-1 hover:text-secondary transition-colors duration-500" href="#">
+                    Journal
+                </a>
+<a class="font-body-md text-label-caps text-on-surface-variant dark:text-surface-variant hover:text-secondary transition-colors duration-500" href="#">
+                    Inquiries
+                </a>
+<button aria-label="Menu" class="text-primary dark:text-surface hover:text-secondary transition-colors duration-500">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+</div>
+</div>
+<!-- Mobile Nav Header -->
+<div class="flex justify-between items-center w-full px-margin-mobile py-4 md:hidden">
+<div class="font-headline-md text-headline-md text-on-surface dark:text-surface-bright tracking-tight">
+                Ruang Rasa
+            </div>
+<button aria-label="Menu" class="text-primary dark:text-surface">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+</div>
+</nav>
+<main class="pt-32 pb-section-gap max-w-container-max mx-auto px-gutter">
+<!-- Header Section -->
+<header class="md:mb-32 flex flex-col items-center text-center mt-12 md:mt-24 mb-section-gap w-full py-20">
+<h1 class="font-display-lg-mobile text-display-lg-mobile md:font-display-lg md:text-display-lg text-primary mb-6">Design Journal</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto">Explorations in material, light, and the quiet spaces in between.</p>
+</header>
+<!-- Main Featured Article -->
+<section class="px-0 w-full mb-32">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter items-center">
+<div class="md:col-span-8 relative">
+<img alt="Featured Article Image" class="w-full h-[60vh] object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuCuQWW0xsqn7rx8UnvLphOhaFhtUoUtnSup7h55obcjG29XhukiU0-JUtMPjqkl4nTxd6guIYqSxGx0wWq6x7rjFPEK9PADSUIBAdZktd_AnxVcJ_7Mig-B8pzijbzwNu6e5rmRJf3X7K_4pp2RcmexdYsHAd-ho0YDYkBEfsj_rQ0j0i0pSNFceW3h5fEyHmcahhn9eS-smMx2FjAePZowvhBT3nRm30HSFdUvR714VeDhoSwahI"/>
+<div class="absolute bottom-4 right-4 bg-surface text-primary px-3 py-1 font-body-md text-label-caps border border-outline-variant/30">
+                        FEATURED
+                    </div>
+</div>
+<div class="md:col-span-4 flex flex-col justify-center space-y-6 mt-8 md:mt-0 md:-ml-12 relative z-10 bg-surface p-8 md:p-12 border border-outline-variant/30">
+<span class="font-body-md text-label-caps text-secondary tracking-widest">INTERIOR RHYTHM</span>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-primary">The Philosophy of Stillness</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">How curated emptiness and intentional vignettes shape the modern Asian aesthetic, creating sanctuaries of calm within urban chaos.</p>
+<a class="inline-flex items-center space-x-2 font-body-md text-label-caps text-primary hover:text-secondary transition-colors duration-300 w-max border-b border-primary pb-1 group" href="#">
+<span class="">READ FULL ESSAY</span>
+<span class="material-symbols-outlined transform group-hover:translate-x-1 transition-transform duration-300 text-sm" data-icon="arrow_forward">arrow_forward</span>
+</a>
+</div>
+</div>
+</section>
+<!-- Article Grid -->
+<section class="px-0 w-full">
+<div class="flex justify-between items-end border-b border-outline-variant/30 pb-4 mb-16">
+<h3 class="font-headline-md text-headline-md text-primary">Recent Essays</h3>
+<span class="font-body-md text-label-caps text-on-surface-variant hidden md:block">03 ENTRIES</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-x-gutter gap-y-16">
+<!-- Article 1 -->
+<article class="group cursor-pointer">
+<div class="relative overflow-hidden mb-6 aspect-[4/5]">
+<div class="bg-cover bg-center w-full h-full transform group-hover:scale-105 transition-transform duration-700 ease-in-out" data-alt="A softly lit interior showing a minimalist corner with textured plaster walls, warm morning light washing over a raw linen chair. High-end editorial architectural photography style, muted natural tones, focusing on the interplay of light and organic textures in a serene, modern space." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBUku0Wkjprk_Dsztwu1IyQz8f_KXNKi3BeSFt1-hAK2_30ts73Yu9XNHNDmOuh6E81ThLBtxGGOe7mvhHbKImjfQDv_-YRJO4l6iJM5LJkk2jyd8Bs79BYNI-LH2MAz8kSx_MEJZp7lzVpER8PXts3gA1xPYxjzruF45DtUyA2sbSsMH-v82df73F0qUN8n8rFWEtuvf0Cuvkx4mUaAwc3UIZZlJiFAkuMrsG1gGBE2qAakATJR4gJ')"></div>
+<div class="absolute top-4 left-4 bg-surface text-primary px-3 py-1 font-body-md text-label-caps opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                             LIGHTING
+                         </div>
+</div>
+<time class="font-body-md text-label-caps text-secondary block mb-3">OCTOBER 12, 2024</time>
+<h4 class="font-headline-md text-headline-md text-primary mb-3 group-hover:text-secondary transition-colors duration-300">The Psychology of Warm Lighting</h4>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-3">Examining how the spectrum of domestic illumination alters emotional resonance and architectural perception.</p>
+</article>
+<!-- Article 2 -->
+<article class="group cursor-pointer md:mt-16">
+<div class="relative overflow-hidden mb-6 aspect-[3/4]">
+<div class="bg-cover bg-center w-full h-full transform group-hover:scale-105 transition-transform duration-700 ease-in-out" data-alt="Close up detail of raw tactile materials: deeply grained dark walnut wood meeting heavily textured woven natural linen, alongside a piece of imperfect hand-thrown ceramic. High contrast, shallow depth of field, emphasizing the honest, unrefined beauty of natural elements in contemporary luxury design." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAK1qlSU5cBKtqdkFBxMG44P3gcX0tqZNF_q1duYMO9xlR79yUBJ6lCm1xOgqYAzF1cfSuWWHD5AzkGQI8LVAkhQ4YPAK5LDE_3C_iBFKEm-cO2TZr1BG356taXwQm8voGqU5qCVSKyEysfkkWdrfRuDsOmAiROJWrBJrweA5AXcwFBdY6kGjFOQIrG6J0bLWaNfhkl86G9PKMMq6zVwTSZR3FiE08NeZnj9MFh-Y4gBKq41mtLlhgY')"></div>
+<div class="absolute top-4 left-4 bg-surface text-primary px-3 py-1 font-body-md text-label-caps opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                             MATERIALS
+                         </div>
+</div>
+<time class="font-body-md text-label-caps text-secondary block mb-3">SEPTEMBER 28, 2024</time>
+<h4 class="font-headline-md text-headline-md text-primary mb-3 group-hover:text-secondary transition-colors duration-300">Embracing Organic Textures</h4>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-3">Moving beyond flat perfection: why the future of high-end design lies in the raw, the tactile, and the beautifully imperfect.</p>
+</article>
+<!-- Article 3 -->
+<article class="group cursor-pointer">
+<div class="relative overflow-hidden mb-6 aspect-[4/5]">
+<div class="bg-cover bg-center w-full h-full transform group-hover:scale-105 transition-transform duration-700 ease-in-out" data-alt="A wide architectural shot of an open-plan living space where large structural concrete forms are softened by vast, sheer curtains diffusing harsh sunlight. The composition is asymmetrical, highlighting the balance between brutalist weight and delicate, ephemeral fabrics in a sophisticated modern residence." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCfZFZ8xaqjr2PFWH76H0cdfB57ZmKrIrj1qfsGm4H1UfZUuhXb9w1hrXUPTmrepIOXWfTJr46N-kIO5uEswRhY1Oep978GWbtVaH2dmDO4m-pKrqGUKWO9FHjrM3083nIkc-zSGNTcAv8ldRF9gxq9DYTS0neihedYmIYA2DL6Mngdx44O5hyy1PlBcZjmrW7wlKN8o5LMu2Jxa53YsW7nedY2xpH3TToC-krITiXMXrCd2H0CXttj')"></div>
+<div class="absolute top-4 left-4 bg-surface text-primary px-3 py-1 font-body-md text-label-caps opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                             ARCHITECTURE
+                         </div>
+</div>
+<time class="font-body-md text-label-caps text-secondary block mb-3">SEPTEMBER 05, 2024</time>
+<h4 class="font-headline-md text-headline-md text-primary mb-3 group-hover:text-secondary transition-colors duration-300">Spatial Silence</h4>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-3">Designing negative space as an active architectural element. How 'nothingness' dictates the flow and feeling of a room.</p>
+</article>
+</div>
+<div class="flex justify-center mt-24">
+<button class="border border-primary text-primary px-8 py-4 font-body-md text-label-caps hover:bg-secondary hover:text-surface hover:border-secondary transition-colors duration-500 uppercase tracking-widest">
+                     Load More Entries
+                 </button>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full mt-section-gap bg-primary dark:bg-tertiary-container">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter px-gutter py-20 max-w-container-max mx-auto">
+<div class="flex flex-col space-y-6">
+<div class="font-headline-lg text-headline-lg text-surface-bright tracking-tight">
+                    Ruang Rasa
+                </div>
+<p class="font-body-md text-body-md text-surface-variant/70 max-w-sm">
+                    Curating spaces that breathe. A meticulous approach to modern living rooted in spatial harmony and cultural depth.
+                </p>
+</div>
+<div class="flex flex-col space-y-4 md:items-center">
+<nav class="flex flex-col space-y-4">
+<a class="font-body-lg text-body-lg text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="#">
+                        Philosophy
+                    </a>
+<a class="font-body-lg text-body-lg text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="#">
+                        Press
+                    </a>
+<a class="font-body-lg text-body-lg text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="#">
+                        Terms
+                    </a>
+<a class="font-body-lg text-body-lg text-surface-variant/70 hover:text-secondary-fixed transition-colors duration-300" href="#">
+                        Privacy
+                    </a>
+</nav>
+</div>
+<div class="flex flex-col space-y-6 md:items-end">
+<p class="font-body-md text-label-caps text-surface-bright uppercase tracking-widest">
+                    Newsletter
+                </p>
+<form class="w-full max-w-sm relative group">
+<input class="w-full bg-transparent border-b border-surface-variant/30 py-3 text-surface-bright font-body-md text-body-md focus:outline-none focus:border-secondary-fixed transition-colors duration-300 placeholder:text-surface-variant/50" placeholder="Email Address" type="email"/>
+<button class="absolute right-0 top-3 text-surface-variant/70 group-hover:text-secondary-fixed transition-colors duration-300" type="submit">
+<span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</form>
+<div class="font-body-md text-body-md text-surface-variant/70 mt-auto pt-8">
+                    © 2024 Ruang Rasa Studio. All rights reserved.
+                </div>
+</div>
+</div>
+</footer>
+</body></html>

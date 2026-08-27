@@ -1,0 +1,156 @@
+---
+import { Image } from 'astro:assets';
+import WhatsAppButton from '@/components/WhatsAppButton.astro';
+import { resolveImage, clampWidths } from '@/lib/images';
+import { site } from '@/lib/site';
+
+/* The closing conversion band. Appears at the end of every page, which makes it
+   the single highest-volume CTA on the site — which is exactly why its button
+   ships no JavaScript. The brass wipe is a CSS group-hover transform, so the
+   band costs nothing to render and nothing to make interactive.
+
+   BACKGROUND IMAGE
+   When `backgroundImage` is passed, the band becomes a full-bleed photographic
+   panel. It is rendered with <Image> rather than a Tailwind `bg-[url(...)]`
+   arbitrary value, for three reasons:
+
+     1. `bg-[url()]` cannot go through astro:assets, so the browser downloads
+        the original JPEG — no AVIF, no srcset, no responsive sizing. On this
+        band that is the difference between ~20 KB and ~350 KB.
+     2. A CSS background has no `alt`, and cannot be lazily decoded per-viewport.
+     3. Arbitrary-value URLs break under content hashing — the filename changes
+        every build, which is precisely why a hardcoded background URL goes
+        stale and renders as "missing".
+
+   The image is absolutely positioned behind the content with a charcoal scrim
+   over it, and the type switches to the inverse palette so contrast holds
+   regardless of what the photograph is doing underneath. */
+
+export type Props = {
+  eyebrow?: string;
+  headline?: string;
+  /** Distinguishes which page produced the lead. */
+  ctaId: string;
+  ctaLocation?: string;
+  ctaProject?: string;
+  message?: string;
+  context?: string;
+  /** CMS/asset path. When set, the band renders as a photographic panel. */
+  backgroundImage?: string | null;
+  backgroundAlt?: string;
+};
+
+const {
+  eyebrow = 'Ready to transform your space?',
+  headline = 'Where form meets feeling.',
+  ctaId,
+  ctaLocation = 'cta-band',
+  ctaProject,
+  message = site.whatsappDefaultMessage,
+  context,
+  backgroundImage,
+  backgroundAlt = '',
+} = Astro.props;
+
+const bg = resolveImage(backgroundImage);
+const hasBg = Boolean(bg);
+---
+
+<section
+  class:list={[
+    'relative isolate overflow-hidden',
+    hasBg ? 'bg-charcoal' : 'bg-surface-container-low',
+  ]}
+>
+  {
+    bg && (
+      <>
+        {/* Behind everything: -z-20. Decorative, so alt is empty unless the
+            caller supplies one. */}
+        <Image
+          src={bg}
+          alt={backgroundAlt}
+          widths={clampWidths([768, 1024, 1440, 1920], bg.width)}
+          sizes="100vw"
+          format={import.meta.env.DEV ? 'webp' : 'avif'}
+          quality={70}
+          loading="lazy"
+          decoding="async"
+          class="absolute inset-0 -z-20 h-full w-full object-cover object-center"
+        />
+
+        {/* Scrim. Two layers: a flat charcoal wash for guaranteed contrast on
+            the buttons, plus a vertical gradient so the headline sits on the
+            darkest part without the whole photograph turning to mud. */}
+        <div
+          aria-hidden="true"
+          class="absolute inset-0 -z-10 bg-charcoal/70"
+        />
+        <div
+          aria-hidden="true"
+          class="absolute inset-0 -z-10 bg-gradient-to-b from-charcoal/50 via-charcoal/20 to-charcoal/60"
+        />
+      </>
+    )
+  }
+
+  <div
+    class:list={[
+      'shell text-center',
+      /* A photographic band gets a real minimum height so the image reads as an
+         image, but capped so it never eats a whole viewport. */
+      hasBg ? 'flex min-h-[60vh] flex-col justify-center py-28 md:py-36' : 'section-gap',
+    ]}
+  >
+    <p
+      class:list={[
+        'font-body text-label-caps uppercase tracking-[0.15em]',
+        hasBg ? 'text-surface/75' : 'text-on-surface-variant',
+      ]}
+      data-reveal
+    >
+      {eyebrow}
+    </p>
+
+    <h2
+      class:list={[
+        'mx-auto mt-8 max-w-3xl font-display text-display-lg',
+        hasBg ? 'text-surface' : 'text-on-surface',
+      ]}
+      data-reveal
+      data-reveal-delay="80"
+    >
+      {headline}
+    </h2>
+
+    <div
+      class="mt-14 flex flex-wrap items-center justify-center gap-6"
+      data-reveal
+      data-reveal-delay="160"
+    >
+      <WhatsAppButton
+        number={site.whatsappNumber}
+        message={message}
+        context={context}
+        ctaId={ctaId}
+        ctaLocation={ctaLocation}
+        ctaProject={ctaProject}
+        variant="primary"
+      >
+        Book a Consultation
+      </WhatsAppButton>
+
+      <a
+        href="/inquiries"
+        class:list={[
+          'border px-8 py-4 font-body text-label-caps uppercase tracking-[0.15em] no-underline transition-colors duration-500',
+          hasBg
+            ? 'border-surface/60 text-surface hover:bg-surface hover:text-charcoal'
+            : 'border-charcoal text-charcoal hover:bg-charcoal hover:text-surface',
+        ]}
+      >
+        Send an Inquiry
+      </a>
+    </div>
+  </div>
+</section>

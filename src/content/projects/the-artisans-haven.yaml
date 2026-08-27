@@ -1,0 +1,68 @@
+title: The Artisan's Haven
+category: residential
+location: Ubud, Bali
+year: 2024
+featured: true
+order: 10
+summary: A compartmented 1990s villa reopened into a single daylit volume, without losing the privacy a family of five actually needs.
+coverImage: /src/assets/images/portfolio/project-01.jpg
+coverAlt: Living room with a low teak credenza, boucle seating and bare pendant lamps against lime-washed walls
+materialLabel: TEAK / UBUD
+facts:
+  - label: Scope
+    value: Full interior architecture and custom joinery
+  - label: Area
+    value: 340 sqm
+  - label: Duration
+    value: 11 months
+  - label: Collaboration
+    value: Three master woodworkers, Gianyar
+
+problem:
+  - 340 sqm cut into eleven rooms
+  - Daylight died two metres from the glass
+  - The kitchen faced a wall, not the family
+
+designApproach: >-
+  Load-bearing partitions gave way to a 4.2m teak joinery wall that stops 400mm
+  short of the ceiling, so light and air carry over the top. Sliding slatted
+  screens in Gianyar teak replace doors — drawn in the evening for privacy,
+  retracted to run the living space uninterrupted to the garden wall.
+
+result:
+  beforeAfter:
+    before:
+      image: /src/assets/images/portfolio/project-02.jpg
+      alt: The original compartmented plan, with the living space closed off and lit only at its edges
+    after:
+      image: /src/assets/images/portfolio/project-05.jpg
+      alt: The same volume opened up, daylight now reaching the full depth of the plan
+  gallery:
+    - image: /src/assets/images/portfolio/project-04.jpg
+      alt: Plaster niches at the end of the living space, with storage concealed behind the wall line
+      materialLabel: PLASTER / NICHE
+      ratio: horizontal
+    - image: /src/assets/images/portfolio/project-06.webp
+      alt: The study, walnut shelving and a fitted desk against the fluted feature wall
+      materialLabel: WALNUT / STUDY
+      ratio: vertical
+    - image: /src/assets/images/portfolio/project-07.jpg
+      alt: Evening light washing the end wall, dividing the volume without a partition
+      materialLabel: EVENING / WASH
+      ratio: vertical
+  outcomes:
+    - value: 11 to 4
+      label: enclosed rooms
+    - value: +40%
+      label: daylit floor area at 4pm
+    - value: 18m
+      label: continuous built-in joinery
+    - value: 100%
+      label: timber sourced within Bali
+  clientQuote:
+    quote: We stopped thinking about the house. That is the highest compliment I can pay it — it simply works, and we no longer notice it working.
+    attribution: Private Client, Ubud
+
+closingStatement: Eleven rooms became four, and the garden came inside.
+
+ctaMessage: Hello Ruang Rasa, I saw The Artisan's Haven on your site. I have a similar compartmented property and would like to discuss opening it up.

@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "interior-sample-2",
+  "compatibility_date": "2025-08-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "pages_build_output_dir": "./dist"
+
+  // No on-demand routes exist in this project (no CMS, no server-rendered
+  // pages) -- every page is prerendered -- so the SESSION KV namespace the
+  // Cloudflare adapter's session support would otherwise require is not
+  // needed here.
+}

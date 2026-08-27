@@ -1,0 +1,103 @@
+---
+import { site, nav } from '@/lib/site';
+import { buildWhatsAppUrl, formatWhatsAppNumber } from '@/lib/whatsapp';
+
+/* DESIGN.md, Footer: "High-contrast Deep Charcoal background (#1C1C1C) with
+   Alabaster text. This creates a grounding effect for the page. Use a 3-column
+   layout for links, contact info, and social icons." */
+
+const waHref = buildWhatsAppUrl({
+  number: site.whatsappNumber,
+  message: site.whatsappDefaultMessage,
+  context: 'Source: site footer',
+});
+
+const year = new Date().getFullYear();
+---
+
+<footer class="bg-charcoal text-inverse-on-surface">
+  <div class="shell grid gap-16 py-24 md:grid-cols-3 md:gap-gutter">
+    <div>
+      <p class="font-display text-headline-md text-surface">{site.studioName}</p>
+      <p class="mt-6 max-w-xs font-body text-body-md font-light text-surface/70">
+        {site.tagline}
+      </p>
+      <p class="mt-10 font-body text-label-caps uppercase tracking-[0.15em] text-surface/40">
+        &copy; {year} {site.studioName} Studio. All rights reserved.
+      </p>
+    </div>
+
+    <div>
+      <p class="font-body text-label-caps uppercase tracking-[0.15em] text-brass">
+        Studio
+      </p>
+      <ul class="mt-8 space-y-4">
+        {
+          nav.map((item) => (
+            <li>
+              <a
+                href={item.href}
+                class="font-body text-body-md text-surface/70 no-underline transition-colors duration-500 hover:text-brass"
+              >
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <div>
+      <p class="font-body text-label-caps uppercase tracking-[0.15em] text-brass">
+        Connect
+      </p>
+      <ul class="mt-8 space-y-4">
+        <li>
+          <a
+            href={`mailto:${site.email}`}
+            class="font-body text-body-md text-surface/70 no-underline transition-colors duration-500 hover:text-brass"
+          >
+            {site.email}
+          </a>
+        </li>
+        <li>
+          <a
+            href={waHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-cta="footer-whatsapp"
+            data-cta-location="footer"
+            data-cta-label="Footer WhatsApp number"
+            class="font-body text-body-md text-surface/70 no-underline transition-colors duration-500 hover:text-brass"
+          >
+            {formatWhatsAppNumber(site.whatsappNumber)}
+          </a>
+        </li>
+        {
+          site.addressLines.map((line) => (
+            <li class="font-body text-body-md text-surface/50">{line}</li>
+          ))
+        }
+      </ul>
+
+      <div class="mt-10 flex gap-6">
+        <a
+          href={site.instagram}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="font-body text-label-caps uppercase tracking-[0.15em] text-surface/70 no-underline transition-colors hover:text-brass"
+        >
+          Instagram
+        </a>
+        <a
+          href={site.linkedin}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="font-body text-label-caps uppercase tracking-[0.15em] text-surface/70 no-underline transition-colors hover:text-brass"
+        >
+          LinkedIn
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>

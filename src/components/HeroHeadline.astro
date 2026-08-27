@@ -1,0 +1,100 @@
+---
+import { TIMELINE } from '@/components/preloader/timeline';
+
+/* ---------------------------------------------------------------------------
+ * Hero headline with a staggered line reveal — zero JavaScript.
+ *
+ * WHY THIS IS NOT AN ISLAND ANY MORE
+ * The previous version was a React + Framer Motion island on `client:visible`.
+ * The hero is above the fold, so the IntersectionObserver fired on mount and
+ * the island hydrated during the exact 0-2000ms window the preloader is
+ * drawing — react-dom (178 KB) plus the LazyMotion feature bundle (74 KB),
+ * parsed and executed on the main thread while the preloader's
+ * `stroke-dashoffset` animation needs that same thread to repaint every frame.
+ * `stroke-dashoffset` is a PAINT property, not a compositor one, so the draw
+ * stuttered for as long as hydration ran. This markup is the whole component.
+ *
+ * WHY THE REVEAL STARTS AT `fadeStart` AND NOT ON LOAD
+ * The old island animated on mount — which is to say, entirely behind an opaque
+ * overlay, where nobody ever saw it. The delay below is read from the same
+ * TIMELINE the preloader uses, so the lines rise as the title card lifts.
+ * `html.rr-skip-preloader` (stamped in BaseLayout's head script for a repeat
+ * view in the same session) drops the delay to zero.
+ *
+ * WHY IT IS SAFE TO SHIP THE HIDDEN STATE
+ * The React version rendered its settled state during SSR because the animation
+ * needed JS: had it shipped `opacity: 0`, a visitor whose JS failed would have
+ * got an invisible headline. That failure mode does not exist here. The rule
+ * that hides the line and the keyframe that reveals it are in the same
+ * stylesheet — if one applies, so does the other. There is nothing left to fail
+ * independently.
+ * ------------------------------------------------------------------------- */
+
+export type Props = {
+  /** Each string renders as its own line, revealed in sequence. */
+  lines: string[];
+  class?: string;
+};
+
+const { lines, class: className = '' } = Astro.props;
+---
+
+<h1 class={className} style={`--rr-hero-start:${TIMELINE.fadeStart}ms`}>
+  {
+    lines.map((line, i) => (
+      /* The mask. The inner span translates up from below its own bottom edge,
+         so the line appears to rise out of the baseline rather than fade in. */
+      <span class="rr-hero__mask">
+        <span class="rr-hero__line" style={`--rr-i:${i}`}>{line}</span>
+      </span>
+    ))
+  }
+</h1>
+
+<style is:global>
+  .rr-hero__mask {
+    display: block;
+    overflow: hidden;
+  }
+
+  .rr-hero__line {
+    display: block;
+    /* text-display-lg sets line-height: 90px against an 80px font-size (54px
+       against 48px on mobile) — a 1.125 ratio. That is tight enough that
+       Playfair Display's descenders (the loop on "g", the tail on "p") extend
+       past the bottom of the line box, and since `.rr-hero__mask` sizes itself
+       to exactly this element's box with `overflow: hidden`, the descender was
+       being sliced flat. Visible even fully settled with no animation running —
+       this was never an animation artifact.
+
+       Fixed locally, not by raising text-display-lg itself: that utility also
+       sets ten other page <h1>s and CtaBand's heading, none of which are
+       clipped by a mask, so it has no clipping bug to fix. A unitless ratio
+       here scales correctly at both of text-display-lg's breakpoints without
+       hard-coding a second pixel value. */
+    line-height: 1.28;
+    /* Compositor-only: transform, nothing else. This animation cannot be
+       starved by main-thread work the way the preloader's draw can. */
+    transform: translateY(110%);
+    animation: rr-hero-line-in 1100ms var(--ease-intent, cubic-bezier(0.16, 1, 0.3, 1))
+      calc(var(--rr-hero-start, 0ms) + var(--rr-i, 0) * 120ms) both;
+  }
+
+  @keyframes rr-hero-line-in {
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  /* Repeat view in this session: no title card, so no reason to wait for one. */
+  html.rr-skip-preloader .rr-hero__line {
+    animation-delay: calc(var(--rr-i, 0) * 120ms);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rr-hero__line {
+      transform: none;
+      animation: none;
+    }
+  }
+</style>

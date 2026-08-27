@@ -1,0 +1,1042 @@
+---
+import { getCollection } from 'astro:content';
+import { Image, getImage } from 'astro:assets';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import CtaBand from '@/components/CtaBand.astro';
+import HeroHeadline from '@/components/HeroHeadline.astro';
+import MaterialImage from '@/components/MaterialImage.astro';
+import WhatsAppButton from '@/components/WhatsAppButton.astro';
+import { site, categoryLabel } from '@/lib/site';
+import { resolveImage, clampWidths, IMAGE_FORMAT, IMAGE_QUALITY } from '@/lib/images';
+import { TIMELINE } from '@/components/preloader/timeline';
+
+const featured = (await getCollection('projects'))
+  .filter((p) => p.data.featured)
+  .sort((a, b) => a.data.order - b.data.order)
+  .slice(0, 3);
+
+/* ------------------------------------------------------------- HERO PRELOAD
+   The hero photograph is the LCP element on desktop, and without this the
+   browser cannot even discover it until the parser has worked through the head
+   (a 53 KB stylesheet, the analytics module) and most of the hero markup.
+   Preloading hands the request to the network on the first scan of the head.
+
+   TWO THINGS THAT MAKE THIS SAFE RATHER THAN WASTEFUL:
+
+   1. `media` MATCHES THE BREAKPOINT THE IMAGE RENDERS AT.
+      The hero image lives in a `hidden md:block` column — below 768px it is
+      never painted, and there LCP is the headline, not a photo. An unguarded
+      preload would push bytes at exactly the visitors least able to afford
+      them. The query below is the same 768px stop the wrapper uses.
+
+   2. THE URL IS DERIVED, NOT RETYPED.
+      `getImage` is fed the identical inputs MaterialImage feeds <Image>, so the
+      preloaded bytes are the byte-identical variant the <img> resolves to. A
+      preload that names a near-miss URL does not warm the cache — it downloads
+      the hero a second time, which is strictly worse than no preload at all.
+      This is why format and quality now live in lib/images.ts. */
+const HERO_SRC = '/src/assets/images/home/home-01.jpg';
+
+/* FULL-BLEED CHANGES ALL THREE OF THESE.
+
+   `sizes` was '40vw' because the photograph used to sit in a 5-of-12 column
+   beside the headline. It now spans the viewport, so 40vw would have the
+   browser pick a variant less than half the width it is painted at — a sharp
+   source rendered blurry, which is the exact complaint this pass set out to
+   fix.
+
+   `widths` stopped at 1440 because the seeded photography was 512px on its
+   longest edge and clampWidths() was silently discarding everything above it.
+   The sources are 2400px now, so the list is real for the first time and has to
+   reach far enough for a 2x laptop and a 1440p desktop.
+
+   `media` is gone: the preload used to be guarded to >=768px because the image
+   was hidden on phones. It is the LCP element on every viewport now, and a
+   guarded preload would leave mobile — the visitors who need the head start
+   most — discovering the hero only after the parser reaches it. */
+const HERO_SIZES = '100vw';
+const HERO_WIDTHS = [640, 960, 1280, 1600, 2000, 2400];
+
+/* ------------------------------------------------------------- HERO SLIDES
+   The background is a crossfade slider now, but the LCP contract above is
+   unchanged BECAUSE SLIDE ONE IS STILL `HERO_SRC`. The preload in the head slot
+   is derived from `heroSource` with the same widths/sizes/format/quality the
+   first <Image> below receives, so it still names the byte-identical variant.
+
+   Two rules keep this from becoming four competing downloads:
+
+   1. ONLY SLIDE ONE IS EAGER. Slides 2-3 are `loading="lazy"`. Normally lazy
+      does nothing here — every slide is stacked at inset-0, so all three are
+      "in the viewport" and would fetch immediately. What actually defers them is
+      the `:not(.is-initialized)` rule in the stylesheet below: until Splide
+      mounts, slides 2-3 are `display: none`, which has no layout box and so
+      never triggers a lazy fetch. Splide mounts on `rr:preloader-done`, i.e.
+      after LCP has already happened.
+
+   2. ALL THREE ARE 2400x1600. Same 3:2 as home-01, so `clampWidths` returns the
+      identical list for each and the crossfade never changes framing.
+
+   Order matters: index 0 is the LCP image. */
+const HERO_SLIDES = [
+  {
+    src: HERO_SRC,
+    label: 'Golden-hour light raking across a timber-screened entrance hall',
+  },
+  {
+    src: '/src/assets/images/home/home-06.jpg',
+    label: 'A brick and blackened-steel stair against full-height glazing at dusk',
+  },
+  {
+    src: '/src/assets/images/home/home-07.jpg',
+    label: 'A stone colonnade with a lit coffered ceiling reflected in polished floor',
+  },
+];
+
+const heroSlides = HERO_SLIDES.map(({ src, label }) => {
+  const image = resolveImage(src)!;
+  return { image, label, widths: clampWidths(HERO_WIDTHS, image.width) };
+});
+
+/* How long Splide takes to crossfade, in ms. Shared with the stylesheet (as
+   --rr-hero-fade) and with the mount options, so the Ken Burns reset can be
+   timed to land exactly when the outgoing slide becomes invisible. One number,
+   three consumers — see the RESET note in the stylesheet. */
+const HERO_FADE_MS = 1600;
+const HERO_INTERVAL_MS = 6000;
+
+const heroSource = heroSlides[0].image;
+const heroImage = await getImage({
+  src: heroSource,
+  widths: clampWidths(HERO_WIDTHS, heroSource.width),
+  sizes: HERO_SIZES,
+  format: IMAGE_FORMAT,
+  quality: IMAGE_QUALITY,
+});
+
+/* ------------------------------------------------------- THE HERO CASCADE
+   Two inherited numbers, read by every .rr-enter element below the headline.
+   The headline itself is not on this system — HeroHeadline.astro runs its own
+   line-mask keyframe off the same TIMELINE.fadeStart, at a 120ms line step —
+   so the order across the whole fold is:
+
+     2500ms  navbar mark  /  headline line 1  /  the photograph starts settling
+     2580ms  the wordmark wipes in beside the mark
+     2620ms  headline line 2
+     2660ms  nav links begin, one every 80ms through 3060ms — and the burger,
+             which takes the same slot as the first of them on a phone
+     2890ms  the paragraph
+     3020ms  the two buttons
+     3140ms  the WhatsApp CTA, last item in the bar
+     3280ms  the scroll cue, last of everything, once there is something to
+             scroll to
+
+   130ms rather than the navbar's 80ms: these are three large blocks, and a
+   fast step on a big element reads as a stutter rather than as a cascade. */
+const heroEnterVars = `--rr-enter-start:${TIMELINE.fadeStart}ms;--rr-enter-step:130ms`;
+
+/* ------------------------------------------------------- THE PHILOSOPHY
+   Scrollytelling. Three photographs on a sticky stage, three blocks of type
+   scrolling over them, one image crossfading to the next as each block reaches
+   the middle of the screen.
+
+   WHY THE ORDER OF THESE THREE IS THE ARGUMENT
+   Listening, then material, then light. That is the sequence a studio actually
+   works in, and stating it as a sequence rather than as a paragraph of adjectives
+   is the difference between a philosophy and a mission statement. Each scene is
+   one claim and one photograph that proves it.
+
+   Images are landscape-or-square where possible: this stage is 100svh and
+   full-bleed, so a tall source is cropped hard on a wide screen. */
+const philosophy = [
+  {
+    eyebrow: '01 — Listening',
+    heading: 'We begin with the room as it is.',
+    body: 'Before a single drawing, we spend time in the space: how light crosses it through a day, where noise collects, which corner you already avoid without knowing why. The brief you arrive with is rarely the brief we finish on.',
+    src: '/src/assets/images/expertise/expertise-01.jpg',
+    alt: 'Curved plaster balustrades layered across a mezzanine, a timber wall to one side',
+  },
+  {
+    eyebrow: '02 — Material',
+    heading: 'Then we choose what it is made of.',
+    body: 'Stone, timber, plaster, wool. We specify for how a material ages and how it answers a hand, not for how it photographs on the day of the shoot. Everything here is meant to be touched.',
+    src: '/src/assets/images/expertise/expertise-04.jpg',
+    alt: 'A book-matched marble core wall beside a walnut stair, under a timber-lined ceiling',
+  },
+  {
+    eyebrow: '03 — Light',
+    heading: 'Light finishes what we started.',
+    body: 'A room is only ever as good as the light in it. We plan daylight first and place every fitting around what the sun has already done, so the space changes character from morning to evening instead of holding one flat note.',
+    src: '/src/assets/images/home/home-04.jpg',
+    alt: 'Sheer linen curtains drawn the full height of a double-height window, corduroy seating below',
+  },
+];
+
+/* --------------------------------------------------------------- SERVICES
+   Rendered as a horizontally scrolling rail — see .rr-services in global.css
+   for how vertical scroll is mapped onto horizontal travel, and for the swipe
+   carousel every browser without scroll-driven animation falls back to.
+
+   NAMING IS SHARED WITH /expertise AND HAS TO STAY THAT WAY. These three
+   titles, in this order, are the studio's canonical service names, and the
+   detail page at /expertise — which the intro panel links to — carries the same
+   three under the same names. They were briefly out of sync (this page said
+   Furniture Customization, that one said Space Planning and Turnkey Styling)
+   and a visitor following the link landed on different words for what they had
+   just read. If a name changes, it changes in both files or in neither. */
+/* Resolved and clamped up front rather than inline in the template. The stage
+   is full-bleed so the ladder has to reach 2400px, but two of these three
+   sources are only 1600px wide — asking for a 2400px variant of a 1600px file
+   makes sharp UPSCALE it, which costs encode time at build to produce a larger,
+   blurrier file than the original, silently. clampWidths() is the guard. */
+const PHILOSOPHY_WIDTHS = [768, 1280, 1920, 2400];
+
+const philosophyScenes = philosophy.map((scene) => {
+  const image = resolveImage(scene.src)!;
+  return { ...scene, image, widths: clampWidths(PHILOSOPHY_WIDTHS, image.width) };
+});
+
+const services = [
+  {
+    index: '01',
+    title: 'Design & Build',
+    body: 'Interior architecture and site execution under one roof. Measured survey, structural coordination, joinery drawings, and a team on site until handover — one party accountable for the drawing and for the thing built from it.',
+    src: '/src/assets/images/studio/studio-01.jpg',
+    alt: 'The Ruang Rasa atelier, a member of the studio crossing the workspace under north light',
+    label: 'Atelier / Jakarta',
+  },
+  {
+    index: '02',
+    title: 'Custom Furnishings',
+    body: 'Bespoke joinery and freestanding pieces, drawn in-house and made to the millimetre for the room they stand in, by the same artisans we have worked with for years.',
+    src: '/src/assets/images/expertise/expertise-02.jpg',
+    alt: 'Bespoke fluted joinery meeting a solid stone counter, made for the room it stands in',
+    label: 'Fluted Joinery / Bespoke',
+  },
+  {
+    index: '03',
+    title: 'Interior Styling',
+    body: 'The last layer, and the one people feel first. Art, objects, textiles and lamps placed with intent, so the room reads as lived-in on the day you are handed the keys rather than six months later.',
+    src: '/src/assets/images/expertise/expertise-03.jpg',
+    alt: 'A styled vignette of a framed print, dried grasses and a pale timber cabinet',
+    label: 'Styling / Vignette',
+  },
+];
+
+/* ------------------------------------------------------- PORTFOLIO DETAILS
+   The second half of the Portfolio section: photography with no case study
+   behind it, presented as an even three-up strip.
+
+   EVEN, AND THAT IS THE POINT. The plates above it alternate left and right and
+   the services rail runs sideways; a regular grid here is the section exhaling.
+   A page where every module is asymmetric has no asymmetry left — the reader
+   stops being able to tell which irregularity was meant. */
+const details = [
+  {
+    src: '/src/assets/images/home/home-03.jpg',
+    alt: 'Caged pendants over a bar counter, a blackened-steel stair and exposed brick beyond',
+    label: 'Blackened Steel / Brick',
+  },
+  {
+    src: '/src/assets/images/portfolio/project-05.jpg',
+    alt: 'The fluted dark wall of a stair hall, retained and visible from the entrance',
+    label: 'Fluted Timber / Stair Hall',
+  },
+  {
+    src: '/src/assets/images/home/home-05.jpg',
+    alt: 'Translucent panels in graded whites across a north elevation',
+    label: 'Plaster / Graded',
+  },
+];
+
+/* ---------------------------------------------------------- PLATE GEOMETRY
+   The three featured projects are rendered with bespoke markup rather than
+   through MaterialImage, for one specific reason: the parallax below is a
+   scroll-driven animation whose subject is the <img>, and a view() timeline
+   resolves against the img's NEAREST SCROLLPORT. MaterialImage's <figure>
+   carries `overflow: hidden`, which makes it a scroll container — the timeline
+   would then resolve against a box that never scrolls and the parallax would
+   sit frozen at progress 0 forever, looking exactly like a working page.
+
+   So the frame here uses `overflow: clip`, which clips without creating a
+   scroll container. Same reason .rr-services__viewport uses it. */
+const PLATE_SIZES = '(min-width: 1440px) 1030px, (min-width: 768px) 72vw, 100vw';
+const PLATE_WIDTHS = [640, 1030, 1440, 2060];
+
+const plates = featured.map((project, i) => {
+  const image = resolveImage(project.data.coverImage)!;
+  return {
+    project,
+    image,
+    widths: clampWidths(PLATE_WIDTHS, image.width),
+    /* Alternating alignment, and the meta column follows it. Index 1 is the
+       one that sits right; 0 and 2 sit left, so the section opens and closes
+       on the same edge. */
+    flip: i === 1,
+  };
+});
+
+---
+<BaseLayout
+  title="Ruang Rasa"
+  description="Bespoke interior design for luxury residential and premium commercial environments. We shape spaces that elevate the everyday."
+  overHero={true}
+>
+  <Fragment slot="head">
+    <link
+      rel="preload"
+      as="image"
+      href={heroImage.src}
+      imagesrcset={heroImage.srcSet.attribute || undefined}
+      imagesizes={HERO_SIZES}
+      type={`image/${IMAGE_FORMAT}`}
+      fetchpriority="high"
+    />
+  </Fragment>
+
+  {/* ---------------------------------------------------------------- HERO
+      Full-bleed. The photograph is the page for one viewport height, the navbar
+      floats over it transparent (BaseLayout gets `overHero`, which also removes
+      the 88px spacer that would otherwise band the top of the image), and the
+      type sits on the photograph rather than beside it.
+
+      100svh, not vh or dvh. On mobile `vh` measures the viewport WITHOUT
+      browser chrome, so a 100vh hero is taller than the visible area and the
+      CTAs sit behind the URL bar. `svh` measures the smallest state, which is
+      the only one guaranteed to be reachable without scrolling. `dvh` would
+      resize the hero as the chrome hides and show — a full-screen image
+      reflowing mid-scroll.
+
+      The image is NOT MaterialImage: that component's whole contract is an
+      aspect-ratio box with a height ceiling, and this is the one image on the
+      site that must be exactly as tall as the viewport instead. */}
+  {/* heroEnterVars goes on the SECTION, not on the .shell below it. The slider
+      and the scroll cue are siblings of .shell rather than descendants, and
+      both are part of the cascade — declaring the two variables on the text
+      wrapper would leave each of them falling back to the 0ms default and
+      arriving while the title card is still opaque. */}
+  <section
+    class="rr-hero relative isolate flex h-[100svh] flex-col justify-end overflow-hidden"
+    style={heroEnterVars}
+  >
+    {/*
+      THE BACKGROUND SLIDER.
+
+      Position, inset and z-index are set in the stylesheet rather than with
+      utilities here — see the POSITIONING note there for why the utilities lost
+      the cascade to Splide's own CSS. The slider sits at `z-index: -20` and the
+      two scrim gradients below at `-z-10`, a full stacking-order step apart, so
+      the overlay can never be out-painted by a slide whatever Splide does
+      inside its own subtree.
+
+      `aria-hidden` + empty alts: this is decorative. A rotating backdrop is not
+      content a screen-reader user can act on or navigate — the hero's meaning is
+      the <h1> and the paragraph under it, both of which are real text. Slide
+      descriptions are kept as `data-label` so they are not lost from the source.
+    */}
+    <div
+      id="rr-hero-slider"
+      class="rr-hero-slider splide"
+      aria-hidden="true"
+      style={`--rr-hero-fade:${HERO_FADE_MS}ms`}
+      data-fade={HERO_FADE_MS}
+      data-interval={HERO_INTERVAL_MS}
+    >
+      <div class="splide__track">
+        <ul class="splide__list">
+          {
+            heroSlides.map((slide, i) => (
+              <li class="splide__slide" data-label={slide.label}>
+                <Image
+                  src={slide.image}
+                  alt=""
+                  widths={slide.widths}
+                  sizes={HERO_SIZES}
+                  format={IMAGE_FORMAT}
+                  quality={IMAGE_QUALITY}
+                  loading={i === 0 ? 'eager' : 'lazy'}
+                  fetchpriority={i === 0 ? 'high' : 'low'}
+                  decoding="async"
+                />
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+
+    {/*
+      LEGIBILITY SCRIM. Three layers, stacked between the photograph and the
+      content — each one lower in the DOM paints over the one before it, and all
+      three sit at -z-10, strictly above the slider (-z-20) and strictly below
+      the headline/paragraph/buttons (no z-index, i.e. the default stacking
+      context above -z-10).
+
+      1. FLAT TINT — a uniform, mild dark wash over the whole photograph. Added
+         because the hero copy is now horizontally centered rather than confined
+         to the left column: the two directional gradients below were tuned for
+         text sitting over the bottom-left of the frame, and a centered block
+         now sits over parts of the image (centre-right) that used to carry no
+         type at all and had no scrim under them.
+      2. TOP FADE — a short dark band so the transparent navbar has something
+         consistent to sit on regardless of what the photograph is doing there.
+      3. BOTTOM FADE — a taller, stronger gradient carrying the headline block,
+         layered on top of the flat tint for extra contrast right where the type
+         actually sits.
+
+      `pointer-events-none` on all three because they cover the whole section
+      and would otherwise eat the clicks meant for the buttons underneath.
+    */}
+    <div
+      aria-hidden="true"
+      class="pointer-events-none absolute inset-0 -z-10 bg-charcoal/55"
+    >
+    </div>
+    <div
+      aria-hidden="true"
+      class="pointer-events-none absolute inset-x-0 top-0 -z-10 h-48 bg-gradient-to-b from-black/50 to-transparent"
+    >
+    </div>
+    <div
+      aria-hidden="true"
+      class="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-2/3 bg-gradient-to-t from-black/75 via-black/35 to-transparent"
+    >
+    </div>
+
+    {/* Centered on request: text-align + mx-auto/justify-center on each
+        child rather than a flex column on the wrapper, so HeroHeadline stays
+        untouched — its line-mask spans are `display: block` and simply center
+        their own text once `text-center` is inherited. */}
+    <div class="shell pb-20 text-center md:pb-28">
+      <HeroHeadline
+        lines={['Crafting Spaces', 'That Inspire.']}
+        class="font-display text-display-lg text-surface"
+      />
+
+      <p
+        class="rr-enter mx-auto mt-8 max-w-2xl font-body text-body-lg font-light text-surface/85"
+        style="--rr-i:3"
+      >
+        Bespoke interior design for luxury residential and premium commercial
+        environments. We shape spaces that elevate the everyday.
+      </p>
+
+      <div class="rr-enter mt-10 flex flex-wrap items-center justify-center gap-6" style="--rr-i:4">
+        <a
+          href="/portfolio"
+          class="group inline-flex items-center gap-3 bg-surface px-8 py-4 font-body text-label-caps uppercase tracking-[0.15em] text-charcoal no-underline transition-colors duration-500 hover:bg-brass hover:text-charcoal"
+        >
+          View Portfolio
+          <span
+            aria-hidden="true"
+            class="transition-transform duration-500 group-hover:translate-x-1.5"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+          </span>
+        </a>
+
+        <WhatsAppButton
+          number={site.whatsappNumber}
+          message={site.whatsappDefaultMessage}
+          context="Source: homepage hero"
+          ctaId="hero-primary"
+          ctaLocation="hero"
+          ctaLabel="Homepage hero WhatsApp"
+          variant="inverse"
+        >
+          Chat with the studio
+        </WhatsAppButton>
+      </div>
+    </div>
+
+    {/* Scroll cue. A full-screen image with no page edge showing gives no
+        affordance that there is anything below it — this is the only thing
+        telling a first-time visitor the site continues. */}
+    <div
+      aria-hidden="true"
+      class="rr-enter pointer-events-none absolute bottom-6 right-6 hidden items-center gap-3 font-body text-label-caps uppercase tracking-[0.15em] text-surface/70 md:flex"
+      style="--rr-i:6"
+    >
+      Scroll
+      <span class="rr-hero-cue block h-10 w-px bg-surface/50"></span>
+    </div>
+  </section>
+
+  {/*
+    Hero slider CSS (Ken Burns, Splide positioning, the scroll cue, and the
+    tablet vertical-centering override) lives in global.css, not in an inline
+    <style is:global> here — see THE HERO SLIDER in that file for the full
+    reasoning. It moved because an inline <style> block this deep into a large
+    .astro template was being silently dropped from the production CSS bundle
+    on every build (reproduced back to the last commit, so this predates this
+    pass) — a real, if quiet, bug: the Ken Burns zoom and the load-bearing
+    Splide positioning rules were never shipping. global.css does not have that
+    problem, which is also where every other page-level stylesheet on this site
+    already lives.
+  */}
+
+  <script>
+    /* --------------------------------------------------------------------
+     * Mounting the hero slider.
+     *
+     * WHY IT WAITS FOR THE PRELOADER
+     * The title card owns the viewport — and the main thread — for 3s while it
+     * paints a `stroke-dashoffset` animation, which is a paint property, not a
+     * compositor one. Parsing and mounting a slider in that window is the same
+     * contention that got HeroHeadline and WhatsAppButton de-islanded, and it
+     * would be spent autoplaying a slideshow nobody can see behind an opaque
+     * overlay. `rr:preloader-done` is the same signal smooth-scroll.ts waits on
+     * for Lenis.
+     *
+     * Mounting late is also what staggers the image loading — see the
+     * `:not(.is-initialized)` note in the stylesheet.
+     * ------------------------------------------------------------------ */
+    import Splide from '@splidejs/splide';
+    /* Core only. The full bundle ships themes, arrow and pagination styling we
+       have explicitly turned off. */
+    import '@splidejs/splide/css/core';
+
+    const el = document.getElementById('rr-hero-slider');
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* Timings come off the element rather than through define:vars, which would
+       have forced this script inline and left the imports above unresolvable. */
+    const fade = Number(el?.dataset.fade ?? 1600);
+    const interval = Number(el?.dataset.interval ?? 6000);
+
+    if (el && !reduced) {
+      const mount = () => {
+        new Splide(el, {
+          /* Crossfade, not a slide — the layout must never move. */
+          type: 'fade',
+          /* REQUIRED WITH `fade`. Splide's fade layout has no cloned slides to
+             wrap through, so without rewind the autoplay stops dead on the last
+             slide and the hero freezes on slide 3 forever. */
+          rewind: true,
+          speed: fade,
+          /* Matches the fade's own curve to the site's transition language. */
+          easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+          autoplay: true,
+          interval: interval,
+          /* This is a background, not a control. Nothing about it should react
+             to a pointer that is really aimed at the CTAs on top of it. */
+          pauseOnHover: false,
+          pauseOnFocus: false,
+          arrows: false,
+          pagination: false,
+          drag: false,
+          keyboard: false,
+          slideFocus: false,
+        }).mount();
+      };
+
+      /* Element still present => the card is running, so wait. Already gone =>
+         this is a repeat view in the same session (BaseLayout stamps
+         `rr-skip-preloader` before first paint and the overlay tears itself
+         down during parse), so mount now. */
+      if (document.getElementById('rr-preloader')) {
+        window.addEventListener('rr:preloader-done', mount, { once: true });
+      } else {
+        mount();
+      }
+    }
+  </script>
+
+  {/* ---------------------------------------------------- OUR PHILOSOPHY
+
+      Scrollytelling: one sticky photographic stage, three blocks of type
+      scrolling over it, the image behind changing as each block reaches the
+      middle of the screen.
+
+      THE STRUCTURE IS THE TRICK, AND IT IS TWO RULES.
+      The stage is the FIRST child and `position: sticky`. The scenes are the
+      SECOND child and carry `margin-top: -100svh`, which pulls them back up
+      over the stage they follow in the flow. That is the whole mechanism —
+      no fixed positioning, no JS-driven layout, no measuring.
+
+      PAINT ORDER IS LOAD-BEARING AND FRAGILE. A `position: sticky` element with
+      no z-index loses to a later `position: relative` sibling, which is exactly
+      why the text sits ON the photograph. Give the stage a z-index to control
+      its own image layers and it lifts above the scenes and swallows every word.
+      So the layer stacking lives strictly INSIDE the stage, on its children.
+
+      NO-JS AND NO-OBSERVER STATE: layer one is visible by authored CSS, not by
+      script. A crawler, a failed bundle, or a browser without
+      IntersectionObserver gets three blocks of real type over one real
+      photograph. `is-live` — added by the script below — is what switches the
+      stage into crossfade mode, so the hidden state can never be reached by
+      anything that cannot also undo it. */}
+  <section class="rr-scrolly" aria-labelledby="philosophy-heading">
+    {/* aria-hidden + empty alts, the same call the hero slider makes and for
+        the same reason: a backdrop that changes as you scroll is not content a
+        screen-reader user can navigate or act on. The meaning of this section
+        is the three headings and their body copy, all of which are real text
+        immediately below. */}
+    <div
+      class="rr-scrolly__stage"
+      id="rr-scrolly-stage"
+      data-active="0"
+      aria-hidden="true"
+    >
+      {
+        philosophyScenes.map((scene) => (
+          /* The description is kept as data-label rather than as alt so it is
+             not lost from the source — same treatment the hero slides get. */
+          <div class="rr-scrolly__layer" data-label={scene.alt}>
+            <Image
+              src={scene.image}
+              alt=""
+              widths={scene.widths}
+              sizes="100vw"
+              format={IMAGE_FORMAT}
+              quality={IMAGE_QUALITY}
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+        ))
+      }
+
+      {/* Two layers, both flat rather than clever. The type is Alabaster and
+          it lands on three different photographs — one of which (the linen
+          curtain scene) is close to white — so the wash has to guarantee
+          contrast on the WORST of them, not the average. The directional
+          gradient adds weight on the left, where every scene's copy sits. */}
+      <div aria-hidden="true" class="rr-scrolly__scrim"></div>
+
+      {/* Section label and progress, pinned in the stage so they hold still
+          while the type scrolls past. Purely a state readout — the dots are
+          driven by `data-active` on the stage, which the observer sets. */}
+      <div aria-hidden="true" class="rr-scrolly__hud">
+        <span class="rr-scrolly__hud-label">Our Philosophy</span>
+        <span class="rr-scrolly__dots">
+          <span class="rr-scrolly__dot"></span>
+          <span class="rr-scrolly__dot"></span>
+          <span class="rr-scrolly__dot"></span>
+        </span>
+      </div>
+    </div>
+
+    <div class="rr-scrolly__scenes">
+      {
+        philosophy.map((scene, i) => (
+          <div class="rr-scrolly__scene" data-scene={i}>
+            <div class="rr-scrolly__copy">
+              <p class="rr-scrolly__eyebrow" data-reveal="wipe">
+                {scene.eyebrow}
+              </p>
+              <h2
+                class="rr-scrolly__heading"
+                id={i === 0 ? 'philosophy-heading' : undefined}
+                data-reveal
+                data-reveal-delay="90"
+              >
+                {scene.heading}
+              </h2>
+              <p class="rr-scrolly__body" data-reveal data-reveal-delay="180">
+                {scene.body}
+              </p>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <script>
+    /* ------------------------------------------------------------------
+     * The scene observer.
+     *
+     * WHY THIS IS A SECOND OBSERVER AND NOT THE ONE IN BaseLayout.
+     * They have opposite contracts. The reveal observer fires ONCE per element
+     * and unobserves — an entrance. This one has to fire repeatedly, in both
+     * scroll directions, and it cares about which single element is nearest the
+     * middle of the screen rather than about anything merely being on screen.
+     * Its rootMargin collapses the root to a thin band across the viewport
+     * centre, so at most one scene intersects at a time and "intersecting"
+     * means "this is the one you are reading".
+     *
+     * IT ALSO RUNS UNDER REDUCED MOTION, which the reveal observer deliberately
+     * does not. Swapping the photograph behind the text is a content change,
+     * not an animation; refusing to do it would leave a reduced-motion visitor
+     * reading three different claims over one unchanging image. The CROSSFADE
+     * is what reduced motion turns off, and that is handled in CSS.
+     *
+     * Cost: one observer, three observed nodes, no scroll listener, no rAF, and
+     * no layout read on any frame.
+     * ---------------------------------------------------------------- */
+    const stage = document.getElementById('rr-scrolly-stage');
+    const scenes = document.querySelectorAll<HTMLElement>('[data-scene]');
+
+    if (stage && scenes.length && 'IntersectionObserver' in window) {
+      const layers = Array.from(stage.querySelectorAll<HTMLElement>('.rr-scrolly__layer'));
+
+      /* Set the initial active layer BEFORE handing the stage over to script.
+         `is-live` is what makes every layer transparent by default, so adding it
+         while nothing is marked active would blank the stage until the first
+         scene happened to cross the centre band. */
+      layers[0]?.classList.add('is-active');
+      stage.classList.add('is-live');
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            const index = Number((entry.target as HTMLElement).dataset.scene ?? 0);
+            stage.dataset.active = String(index);
+            layers.forEach((layer, i) => layer.classList.toggle('is-active', i === index));
+          });
+        },
+        /* Root collapsed to a 10% band across the middle of the viewport. */
+        { rootMargin: '-45% 0px -45% 0px' }
+      );
+
+      scenes.forEach((scene) => observer.observe(scene));
+    }
+  </script>
+
+  {/* ---------------------------------------------------------- SERVICES
+
+      The horizontal movement in the page. Vertical scroll is mapped onto a
+      sideways rail with a scroll-driven CSS animation — no scroll listener, no
+      rAF loop, no JS at all — and where that is unavailable the same markup is
+      a swipe carousel. Both paths are documented on .rr-services in
+      global.css; the markup below is identical for both, which is the reason
+      the fallback costs nothing.
+
+      Three panels, each a small editorial spread rather than a card: the panel
+      has to be wide for the rail to have any distance to travel, and a wide
+      panel with a stacked image above text would be taller than the viewport
+      it is pinned inside. Side by side, it fits. */}
+  <section class="rr-services" aria-labelledby="services-heading">
+    <div class="rr-services__viewport">
+      <div class="rr-services__rail">
+        {/* Panel zero is the section's own title, riding the rail with the
+            others. It is what stops the rail from starting mid-thought, and it
+            means the heading leaves the screen as the reader moves through the
+            services rather than sitting there being ignored. */}
+        <div class="rr-services__panel rr-services__panel--intro">
+          <p
+            class="font-body text-label-caps uppercase tracking-[0.15em] text-brass-deep"
+            data-reveal="wipe"
+          >
+            What We Do
+          </p>
+          <h2
+            id="services-heading"
+            class="mt-8 font-display text-headline-lg text-on-surface"
+            data-reveal
+          >
+            Three ways we take on a space.
+          </h2>
+          <p
+            class="mt-6 font-body text-body-lg font-light text-on-surface-variant"
+            data-reveal
+            data-reveal-delay="90"
+          >
+            Most projects use all three. Some need only one. We will tell you
+            which before you ask.
+          </p>
+          <a
+            href="/expertise"
+            class="mt-10 inline-flex items-center gap-3 font-body text-label-caps uppercase tracking-[0.15em] text-on-surface no-underline transition-colors duration-500 hover:text-brass-deep"
+            data-reveal
+            data-reveal-delay="180"
+          >
+            Full expertise
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+        </div>
+
+        {
+          services.map((service) => (
+            <article class="rr-services__panel">
+              {/* Two height caps. The panel is pinned inside a single viewport
+                  on phones now, not sitting in a free-height carousel, so the
+                  image has to leave room for the index, rule, title and body
+                  beneath it — 32svh clears that on a 667px screen, the shortest
+                  phone worth designing for. Desktop puts the image beside the
+                  copy instead of above it and has the height to spare. */}
+              <div class="rr-services__figure">
+                <MaterialImage
+                  src={service.src}
+                  alt={service.alt}
+                  materialLabel={service.label.toUpperCase()}
+                  ratio="vertical"
+                  maxH="max-h-[32svh] md:max-h-[56svh]"
+                  sizes="(min-width: 768px) 34vw, 70vw"
+                  widths={[400, 560, 800, 1120]}
+                />
+              </div>
+
+              <div class="rr-services__copy">
+                <span class="font-display text-headline-md text-brass-deep">
+                  {service.index}
+                </span>
+                <span class="mt-5 block h-px w-14 bg-brass" aria-hidden="true" />
+                <h3 class="mt-7 font-display text-headline-md text-on-surface">
+                  {service.title}
+                </h3>
+                <p class="mt-5 font-body text-body-md font-light text-on-surface-variant">
+                  {service.body}
+                </p>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <script>
+    /* ------------------------------------------------------------------
+     * The services rail.
+     *
+     * Two jobs, and on most devices the second one never runs.
+     *
+     * 1. OPT THE LAYOUT IN. `rr-services--rail` is what turns the swipe
+     *    carousel into a pinned, sideways-travelling rail. It is applied
+     *    from script rather than by a media query because the rail needs two
+     *    different drivers depending on the browser and both need the same
+     *    layout — and because a visitor with no JS should get the carousel,
+     *    which is a complete section, rather than a 210svh box whose
+     *    contents never move.
+     *
+     * 2. DRIVE IT, BUT ONLY IF THE BROWSER CANNOT. Where `animation-timeline`
+     *    is supported the rail is moved by the compositor straight off the
+     *    scroll offset and nothing below this line ever executes again.
+     *    Where it is not — iOS before Safari 26, which is most of the reason
+     *    this exists — the same travel is computed here.
+     *
+     * WHAT THE FALLBACK COSTS PER FRAME: one subtraction, one clamp, one
+     * transform write. It adds no scroll listener of its own (`rr:scroll` is
+     * already emitted once per frame by smooth-scroll.ts, from Lenis or from
+     * a rAF-coalesced native listener) and it reads no layout — every
+     * measurement is cached and recomputed only on resize or a font swap.
+     * ---------------------------------------------------------------- */
+    const rrServices = document.querySelector<HTMLElement>('.rr-services');
+    const rrViewport = rrServices?.querySelector<HTMLElement>('.rr-services__viewport');
+    const rrRail = rrServices?.querySelector<HTMLElement>('.rr-services__rail');
+
+    if (
+      rrServices &&
+      rrViewport &&
+      rrRail &&
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      rrServices.classList.add('rr-services--rail');
+
+      let start = 0;
+      let travel = 1;
+      let distance = 0;
+
+      const progressAt = (y: number) => Math.min(1, Math.max(0, (y - start) / travel));
+
+      const measure = () => {
+        start = rrServices.getBoundingClientRect().top + window.scrollY;
+        /* The pinned window: how far the page scrolls while the viewport is
+           stuck. The same span the CSS `contain` range covers. */
+        travel = Math.max(1, rrServices.offsetHeight - rrViewport.offsetHeight);
+        distance = Math.max(0, rrRail.scrollWidth - rrViewport.clientWidth);
+      };
+
+      const paint = (y: number) => {
+        rrRail.style.transform = `translate3d(${(-progressAt(y) * distance).toFixed(1)}px,0,0)`;
+      };
+
+      const onScroll = (event: WindowEventMap['rr:scroll']) => paint(event.detail.y);
+
+      /* Take the rail off the compositor and drive it here instead. */
+      const drive = () => {
+        rrServices.classList.add('rr-services--driven');
+        measure();
+        paint(window.scrollY);
+        window.addEventListener('rr:scroll', onScroll);
+      };
+
+      measure();
+
+      if (!CSS.supports('animation-timeline', 'view()')) {
+        drive();
+      } else {
+        /* TRUST THE COMPOSITOR, BUT VERIFY ONCE.
+
+           CSS.supports() and @supports both answer the same question — does
+           this declaration PARSE — and neither can tell us the timeline
+           actually resolved. Where it does not, `both` fill parks the rail at
+           translateX(0) and the section silently loses two of its three
+           panels while looking like a perfectly ordinary page. That is the
+           exact failure this whole fallback exists to prevent, so guessing
+           from a parse test is not good enough.
+
+           So: wait until the section is genuinely mid-travel, read the rail
+           once, and if it has not moved, take over. One computed-style read,
+           on one frame, on one element, and only ever once. */
+        const audit = (event: WindowEventMap['rr:scroll']) => {
+          const progress = progressAt(event.detail.y);
+          if (progress < 0.12 || progress > 0.88) return;
+
+          window.removeEventListener('rr:scroll', audit);
+
+          const matrix = getComputedStyle(rrRail).transform;
+          const x = matrix.startsWith('matrix')
+            ? Math.abs(parseFloat(matrix.split(',')[4] ?? '0'))
+            : 0;
+
+          /* Anything under a pixel of travel at 12-88% through the section
+             means the animation is not running. */
+          if (x < 1) drive();
+        };
+
+        window.addEventListener('rr:scroll', audit);
+      }
+
+      /* The rail is sized by its type, and the webfont arrives late. */
+      if (document.fonts?.ready) void document.fonts.ready.then(measure);
+
+      let rrResizeTimer = 0;
+      window.addEventListener('resize', () => {
+        window.clearTimeout(rrResizeTimer);
+        rrResizeTimer = window.setTimeout(() => {
+          measure();
+          if (rrServices.classList.contains('rr-services--driven')) paint(window.scrollY);
+        }, 150);
+      });
+    }
+  </script>
+
+  {/* --------------------------------------------------------- PORTFOLIO
+
+      Curated Spaces and the standalone gallery, fused. They were two sections
+      doing one job: the first sold the case studies, the second sold the
+      photography, and a visitor had no way to tell they were about the same
+      work. Now they are one movement on one ground — three project plates that
+      lead somewhere, then a strip of detail photography that does not, under a
+      single heading, with the second half explicitly labelled as detail so the
+      hierarchy is stated rather than implied.
+
+      TWO LAYOUTS, NEITHER OF THEM THE BROKEN GRID. The plates alternate left
+      and right, which is a magazine spread; the detail strip is a plain even
+      three-up. The asymmetric slot grid that used to be here still exists in
+      global.css and is still used by /portfolio, where a filterable set of
+      twenty projects genuinely needs it. */}
+  <section class="rr-work" aria-labelledby="work-heading">
+    <div class="shell">
+      <div class="grid gap-8 md:grid-cols-12 md:gap-gutter">
+        <p
+          class="font-body text-label-caps uppercase tracking-[0.15em] text-brass md:col-span-3"
+          data-reveal="wipe"
+        >
+          Portfolio
+        </p>
+
+        <div class="md:col-span-8 md:col-start-5">
+          <h2 id="work-heading" class="font-display text-headline-lg text-surface" data-reveal>
+            Selected work.
+          </h2>
+          <p
+            class="mt-6 max-w-xl font-body text-body-lg font-light text-surface/70"
+            data-reveal
+            data-reveal-delay="90"
+          >
+            Three projects in full, and a few details from the rest. Every one of
+            them started as a room somebody had stopped enjoying.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    {/* ------------------------------------------------------- THE PLATES */}
+    <div class="rr-work__plates">
+      {
+        plates.map(({ project, image, widths, flip }, i) => (
+          <a
+            href={`/portfolio/${project.id}`}
+            class:list={['rr-plate', flip && 'rr-plate--flip']}
+          >
+            {/* `overflow: clip` on the frame, never `hidden` — see the note in
+                the frontmatter. The shutter is what the reveal moves; the <img>
+                is what the parallax moves. Two elements, two properties, no
+                contest over `transform`. */}
+            <div class="rr-plate__frame" data-reveal="mask">
+              <div class="rr-plate__shutter">
+                <Image
+                  class="rr-plate__img"
+                  src={image}
+                  alt={project.data.coverAlt}
+                  widths={widths}
+                  sizes={PLATE_SIZES}
+                  format={IMAGE_FORMAT}
+                  quality={IMAGE_QUALITY}
+                  loading="lazy"
+                  decoding="async"
+                />
+
+                {/* INSIDE the shutter, not beside it. The mask variant moves
+                    the frame's first child, so a label left as a sibling would
+                    sit at full opacity over an empty box for the 1.3s the
+                    photograph takes to rise in behind it. Absolutely positioned
+                    against inset:0 either way, so the resting position is
+                    identical — it just travels with its own image now. */}
+                <span class="rr-plate__label">{project.data.materialLabel}</span>
+              </div>
+            </div>
+
+            <div class="rr-plate__meta">
+              <span class="rr-plate__index">{String(i + 1).padStart(2, '0')}</span>
+              <h3 class="rr-plate__title">{project.data.title}</h3>
+              <p class="rr-plate__where">
+                {categoryLabel[project.data.category]} &middot; {project.data.location}
+              </p>
+              <span class="rr-plate__cta" aria-hidden="true">
+                View case study
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25">
+                  <path d="M7 17L17 7M17 7H8M17 7v9" />
+                </svg>
+              </span>
+            </div>
+          </a>
+        ))
+      }
+    </div>
+
+    {/* ------------------------------------------------------- THE DETAILS */}
+    <div class="shell">
+      <div class="rr-work__detail-head" data-reveal="wipe">
+        <span class="rr-work__detail-label">Details</span>
+        <span class="rr-work__detail-rule" aria-hidden="true"></span>
+      </div>
+
+      <div class="rr-work__details">
+        {
+          details.map((detail, i) => (
+            <figure class="rr-detail" data-reveal="rise" data-reveal-delay={i * 120}>
+              <MaterialImage
+                src={detail.src}
+                alt={detail.alt}
+                ratio="vertical"
+                maxH="max-h-[62svh]"
+                sizes="(min-width: 1440px) 437px, (min-width: 768px) 30vw, 100vw"
+                widths={[360, 437, 720, 874]}
+              />
+              <figcaption class="rr-detail__label">{detail.label}</figcaption>
+            </figure>
+          ))
+        }
+      </div>
+
+      <a href="/portfolio" class="rr-work__all" data-reveal>
+        All projects
+        <span aria-hidden="true">&rarr;</span>
+      </a>
+    </div>
+  </section>
+
+  <CtaBand
+    ctaId="home-footer"
+    ctaLocation="home-cta-band"
+    backgroundImage="/src/assets/images/home/home-02.jpg"
+    backgroundAlt=""
+  />
+</BaseLayout>

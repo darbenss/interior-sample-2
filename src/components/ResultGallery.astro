@@ -1,0 +1,139 @@
+---
+import MaterialImage from '@/components/MaterialImage.astro';
+import type { Ratio } from '@/lib/images';
+
+/* ---------------------------------------------------------------------------
+ * The Result gallery — the centrepiece of a case study, as an asymmetric grid.
+ *
+ * WHAT THIS REPLACED, AND WHY
+ * The previous version had two block types: a horizontal image broke out of the
+ * shell and ran full-bleed, and consecutive verticals were paired half-width.
+ * That reads well for four or five plates and falls apart at fourteen — the
+ * padel club alone has thirteen. A run of full-bleed plates at 86svh each is
+ * thirteen screens of scrolling in which every image is the same size, which is
+ * the opposite of a composition: nothing is emphasised because everything is.
+ *
+ * THE GRID
+ * Twelve columns and a five-slot cycle. Each slot fixes a span and a vertical
+ * offset; the cycle repeats for as many images as the project has, so a
+ * two-image gallery and a thirteen-image gallery both compose without anyone
+ * hand-placing anything.
+ *
+ *     a  cols 1-7    the lead
+ *     b  cols 9-12   narrow counterweight, dropped 7rem
+ *     c  cols 2-6    indented, so the left edge steps instead of ruling straight
+ *     d  cols 8-12   dropped 5rem, tops never align with c
+ *     e  cols 1-12   a full-width band that resets the eye before the next cycle
+ *
+ * Row assignment is left to auto-placement: every slot declares only a column,
+ * and because the grid cursor never travels backwards, a slot whose start
+ * column sits behind it drops to the next row on its own. Five declarations and
+ * three margins are the entire composition.
+ *
+ * THE OFFSETS ARE THE ASYMMETRY. Varying the spans alone still produces images
+ * whose tops align in pairs, and a magazine spread never does that. Below `md`
+ * every offset is dropped and every cell is one full-width column — a broken
+ * grid needs two axes to break and a phone has one. The SHAPES survive the
+ * collapse, which is the half of the rhythm that still reads on a narrow screen.
+ *
+ * SHAPE COMES FROM THE ITEM, SPAN COMES FROM THE SLOT.
+ * These two are deliberately separated. The photography in this library is
+ * overwhelmingly 4:3, so binding a portrait aspect to a slot would crop 56% of
+ * the width off most of it for the sake of a layout idea. Instead the editor's
+ * `ratio` decides the shape and the slot decides how much room it gets — which
+ * means a landscape image is never forced upright, and the composition still
+ * varies because the WIDTHS and OFFSETS vary.
+ *
+ * `pano` is the one exception: an image that lands in the full-width slot and is
+ * already landscape is cropped to 21:9, because a 3:2 image at 1376px wide is
+ * 917px tall and would eat a whole viewport on its own. On a phone it reverts to
+ * 3:2 — a 21:9 crop of a 390px screen is a 167px letterbox, which reads as a
+ * mistake rather than as cinema.
+ * ------------------------------------------------------------------------- */
+
+export type GalleryItem = {
+  image: string;
+  alt: string;
+  materialLabel?: string | null;
+  ratio: Ratio;
+};
+
+export type Props = {
+  items: GalleryItem[];
+};
+
+const { items } = Astro.props;
+
+/* One entry per slot in the cycle. `sizes` is the fraction of the 1376px shell
+   that slot actually occupies — twelve 104px tracks and eleven 32px gutters —
+   so the browser picks a variant matched to the painted width rather than one a
+   generic "50vw" implies. `widths` are honest 1x/2x pairs around that number;
+   clampWidths() drops anything past the source. */
+const SLOTS = [
+  {
+    key: 'a',
+    sizes: '(min-width: 1440px) 920px, (min-width: 768px) 57vw, 100vw',
+    widths: [480, 920, 1280, 1440],
+    delay: 0,
+  },
+  {
+    key: 'b',
+    sizes: '(min-width: 1440px) 512px, (min-width: 768px) 32vw, 100vw',
+    widths: [400, 512, 800, 1024],
+    delay: 120,
+  },
+  {
+    key: 'c',
+    sizes: '(min-width: 1440px) 648px, (min-width: 768px) 40vw, 100vw',
+    widths: [480, 648, 1024, 1296],
+    delay: 0,
+  },
+  {
+    key: 'd',
+    sizes: '(min-width: 1440px) 648px, (min-width: 768px) 40vw, 100vw',
+    widths: [480, 648, 1024, 1296],
+    delay: 120,
+  },
+  {
+    key: 'e',
+    sizes: '(min-width: 1440px) 1376px, 100vw',
+    widths: [768, 1200, 1376, 1440],
+    delay: 0,
+  },
+];
+
+const cells = items.map((item, i) => {
+  const slot = SLOTS[i % SLOTS.length];
+  const shape =
+    item.ratio === 'vertical' ? 'tall' : slot.key === 'e' ? 'pano' : 'wide';
+  return { item, slot, shape };
+});
+---
+
+<div class="shell">
+  <div class="rr-rg">
+    {
+      cells.map(({ item, slot, shape }) => (
+        /* `mask` rather than a fade: the figure rises into a clipped cell, which
+           is the one reveal that reads as a plate being placed rather than as an
+           image switching on. The cell carries `overflow: clip` for it — see the
+           note on the variant in global.css. */
+        <div
+          class={`rr-rg__cell rr-rg__cell--${slot.key}`}
+          data-shape={shape}
+          data-reveal="mask"
+          data-reveal-delay={slot.delay}
+        >
+          <MaterialImage
+            src={item.image}
+            alt={item.alt}
+            materialLabel={item.materialLabel}
+            ratio="slot"
+            sizes={slot.sizes}
+            widths={slot.widths}
+          />
+        </div>
+      ))
+    }
+  </div>
+</div>

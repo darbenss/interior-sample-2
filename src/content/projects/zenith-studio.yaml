@@ -1,0 +1,64 @@
+title: Zenith Studio
+category: commercial
+location: Tokyo, Japan
+year: 2024
+featured: false
+order: 50
+summary: A photography studio where the light was the product, and the interior had spent a decade fighting it.
+coverImage: /src/assets/images/portfolio/project-05.jpg
+coverAlt: Shooting floor with a full-height dark marble wall and a polished screed underfoot
+materialLabel: CONCRETE / TOKYO
+facts:
+  - label: Scope
+    value: Interior architecture, lighting, material specification
+  - label: Area
+    value: 285 sqm
+  - label: Duration
+    value: 8 months
+
+problem:
+  - Amber cast from the oak floor
+  - 3000K fighting 6500K north daylight
+  - No neutral reference surface anywhere
+
+designApproach: >-
+  Every surface in the shooting volume was specified by spectrophotometer —
+  honed concrete, neutral plaster and a seamless cyclorama held within 0.4
+  delta-E. Warm timber and the original brick survive in circulation and the
+  viewing area, screened from the floor so they cannot enter a frame.
+
+result:
+  beforeAfter:
+    before:
+      image: /src/assets/images/portfolio/project-06.webp
+      alt: The original client office, fitted before the studio floor beyond it was rebuilt
+    after:
+      image: /src/assets/images/portfolio/project-01.jpg
+      alt: The same floor rebuilt in neutral tones, lit entirely by the north clerestory
+  gallery:
+    - image: /src/assets/images/portfolio/project-03.jpg
+      alt: The shooting volume under north daylight alone
+      materialLabel: NORTH LIGHT
+      ratio: horizontal
+    - image: /src/assets/images/portfolio/project-02.jpg
+      alt: Warm timber client viewing area, screened from the shooting floor
+      materialLabel: VIEWING / TIMBER
+      ratio: vertical
+    - image: /src/assets/images/home/home-02.jpg
+      alt: The approach corridor in neutral plaster, kept dark so the shooting floor reads bright
+      materialLabel: NEUTRAL / APPROACH
+      ratio: vertical
+  outcomes:
+    - value: -2 hrs
+      label: retouching per shoot day
+    - value: 0.4
+      label: max delta-E across shooting surfaces
+    - value: "1"
+      label: colour temperature on the floor, from two
+  clientQuote:
+    quote: For eleven years I corrected my own building in post. I did not realise that was a choice.
+    attribution: Studio Principal, Meguro
+
+closingStatement: The building stopped appearing in the photographs.
+
+ctaMessage: Hello Ruang Rasa, I saw the Zenith Studio project. I have a working space with technical requirements I would like to discuss.

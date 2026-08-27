@@ -1,0 +1,69 @@
+title: Apex Executive
+category: commercial
+location: Jakarta, Indonesia
+year: 2023
+featured: true
+order: 30
+summary: A law firm partner floor, rebuilt around the discovery that its most valuable conversations had nowhere private enough to happen.
+coverImage: /src/assets/images/portfolio/project-06.webp
+coverAlt: A partner's office in walnut panelling, with monochrome artwork against a fluted charcoal feature wall
+materialLabel: WALNUT / JAKARTA
+facts:
+  - label: Scope
+    value: Partner floor, client suites, millwork
+  - label: Area
+    value: 620 sqm
+  - label: Duration
+    value: 9 months
+  - label: Headcount
+    value: 34
+
+problem:
+  - Two meeting rooms for thirty-four people
+  - Daylight allocated by rank
+  - Conversations carried between offices
+
+designApproach: >-
+  Partner offices moved inboard behind 45dB construction, independently
+  ventilated and reached by a client route that never crosses the working
+  floor. Walnut from the retained 2009 boardroom table sets the veneer for
+  every new enclosure, and the perimeter glazing became shared desks and two
+  informal lounges.
+
+result:
+  beforeAfter:
+    before:
+      image: /src/assets/images/portfolio/project-07.jpg
+      alt: The original reception, bright and undifferentiated, before the arrival sequence was rebuilt
+    after:
+      image: /src/assets/images/portfolio/project-04.jpg
+      alt: The same arrival point in plaster and stone, with light brought down to seated level
+  gallery:
+    - image: /src/assets/images/portfolio/project-03.jpg
+      alt: Client suite lined in warm timber joinery, reached without crossing the working floor
+      materialLabel: TIMBER / SUITE
+      ratio: horizontal
+    - image: /src/assets/images/portfolio/project-02.jpg
+      alt: Dining-height table in the client suite, lit for evening use
+      materialLabel: TABLE / EVENING
+      ratio: vertical
+    - image: /src/assets/images/portfolio/project-01.jpg
+      alt: Informal perimeter lounge, with the daylight now shared across the floor
+      materialLabel: PERIMETER / SHARED
+      ratio: vertical
+  outcomes:
+    - value: 2 to 8
+      label: bookable meeting spaces
+    - value: 45dB
+      label: certified acoustic separation
+    - value: 21% to 74%
+      label: partner office utilisation
+    - value: "0"
+      label: client routes across the working floor
+  clientQuote:
+    quote: The occupancy data ended an argument we had been having internally for four years. It was uncomfortable and it was correct.
+    attribution: Managing Partner, Apex
+
+closingStatement: Privacy became the status marker.
+
+ctaMessage: Hello Ruang Rasa, I saw the Apex Executive project. I would like to discuss a workplace fit-out.

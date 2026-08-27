@@ -1,0 +1,826 @@
+---
+import { site, nav } from '@/lib/site';
+import { buildWhatsAppUrl } from '@/lib/whatsapp';
+import BrandMark from '@/components/BrandMark.astro';
+import { TIMELINE } from '@/components/preloader/timeline';
+
+/* ---------------------------------------------------------------------------
+ * Navbar — a four-state machine driven by scroll position and direction.
+ *
+ *   top     transparent, full width, sitting ON the hero image (light ink)
+ *   pill    compact rounded bar, top-centre, Alabaster ground + shadow
+ *   hidden  the pill, translated up out of view
+ *   (back to pill on any upward scroll)
+ *
+ * WHY `overHero` IS A PROP AND NOT A SCROLL CHECK
+ * "Transparent at the top" is only meaningful over a full-bleed photograph.
+ * The homepage has one; /studio, /expertise, /portfolio, /journal, /inquiries
+ * and /404 do not. On those, a transparent bar at scrollY 0 is Charcoal ink on
+ * an Alabaster page — an invisible navbar. So the caller declares whether a
+ * hero exists, and pages without one simply start at `pill`.
+ *
+ * The same prop owns the spacer at the bottom of this file. A fixed navbar
+ * needs the page pushed down by its height; a navbar floating over a
+ * full-bleed hero must NOT push, or there is an 88px band of Alabaster above
+ * the photograph.
+ *
+ * WHY VANILLA JS AND NOT AN ISLAND
+ * This renders on every page. Making it a React island would hydrate
+ * react-dom site-wide to run what is, below, about forty lines of class
+ * toggling — and it would do it during the preloader's draw. Preloader.astro,
+ * HeroHeadline.astro and MaterialImage.astro all document the same decision.
+ *
+ * The scroll signal comes from `rr:scroll` (src/lib/smooth-scroll.ts), which
+ * is emitted by Lenis when Lenis is running and by a rAF-coalesced native
+ * listener when it is not. This component never learns which.
+ * ------------------------------------------------------------------------- */
+
+export type Props = {
+  /**
+   * True only on pages whose first element is a full-bleed hero image.
+   * Enables the transparent `top` state and removes the layout spacer.
+   */
+  overHero?: boolean;
+};
+
+const { overHero = false } = Astro.props;
+
+const path = Astro.url.pathname;
+const isActive = (href: string) =>
+  href === '/' ? path === '/' : path.startsWith(href);
+
+/* This CTA is plain markup, not a React island — it is above the fold on every
+   page and does not need 40 KB of runtime to be a link. It still reports
+   identically, because the document-level listener in analytics.ts keys off
+   `data-cta` rather than off React. */
+const waHref = buildWhatsAppUrl({
+  number: site.whatsappNumber,
+  message: site.whatsappDefaultMessage,
+  context: 'Source: site navigation',
+});
+
+/* Rendering the settled state for the correct page type means no first-frame
+   flash: a hero page paints transparent, everything else paints as a pill,
+   and neither waits for script. */
+const initialState = overHero ? 'top' : 'pill';
+
+/* ------------------------------------------------------- THE ENTRANCE CASCADE
+   The bar is the frame around the hero photograph, so it must not arrive as one
+   flat block the instant the title card clears. Each child declares its
+   position in the cascade (--rr-i) and inherits the two timings from the header
+   below; .rr-enter in global.css does the rest, including the two override
+   paths (repeat view, reduced motion) that decide whether the 2500ms head start
+   applies at all.
+
+   WHY THE CHILDREN AND NOT .rr-nav OR .rr-nav__inner.
+   .rr-nav already owns `transform` — the `hidden` state is translateY(-130%) —
+   and an entrance animation with `both` fill would pin that transform and break
+   the hide. .rr-nav__inner is the element measurePill() reads with
+   getBoundingClientRect, which IS transform-aware. Animating only the children,
+   and only on transform/opacity/clip-path, keeps both safe: none of the three
+   affects layout, so the pill still measures its true `fit-content` width even
+   if fonts.ready lands mid-cascade and re-measures then.
+
+   fadeStart, not total: the overlay BEGINS its 500ms fade at 2500ms, and
+   overlapping that fade is what makes the two read as one gesture rather than
+   as two. Same constant HeroHeadline.astro uses, from the same file. */
+const enterVars = `--rr-enter-start:${TIMELINE.fadeStart}ms;--rr-enter-step:80ms`;
+---
+
+<header
+  id="rr-nav"
+  class="rr-nav"
+  data-state={initialState}
+  data-over-hero={String(overHero)}
+  style={enterVars}
+>
+  <div class="rr-nav__inner">
+    <a href="/" class="rr-nav__brand" aria-label={`${site.studioName} — home`}>
+      <BrandMark class="rr-nav__mark rr-enter" />
+      {/* Same wordmark treatment as the preloader title card: --font-body at
+          0.34em tracking. Kept as text rather than baked into the SVG so it
+          stays selectable, translatable and legible to screen readers.
+
+          It wipes in from the left while the mark above rises, so the two
+          halves of the lockup read as two gestures rather than one block. */}
+      <span class="rr-nav__wordmark rr-enter rr-enter--wipe" style="--rr-i:1">
+        {site.studioName}
+      </span>
+    </a>
+
+    <nav aria-label="Primary" class="rr-nav__links">
+      {
+        nav.map((item, i) => (
+          <a
+            href={item.href}
+            aria-current={isActive(item.href) ? 'page' : undefined}
+            class="rr-nav__link rr-enter"
+            style={`--rr-i:${i + 2}`}
+          >
+            {item.label}
+            {/* 1px brass underline that draws in on hover — DESIGN.md */}
+            <span aria-hidden="true" class="rr-nav__rule" />
+          </a>
+        ))
+      }
+
+      <a
+        href={waHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        data-cta="nav-whatsapp"
+        data-cta-location="nav"
+        data-cta-label="Nav WhatsApp"
+        class="rr-nav__cta rr-enter group"
+        style={`--rr-i:${nav.length + 2}`}
+      >
+        {/* Same brass/charcoal wipe as WhatsAppButton's "Chat with the
+            studio" CTA, not the instant background-color crossfade this used
+            to have. Which color wipes in is state-dependent, same split the
+            hover text-color rules below already draw: brass at `top` (this
+            is the "inverse" treatment — surface ink on a transparent bar),
+            charcoal at `pill`/`hidden` (the "ghost" treatment — ink CTA on
+            an alabaster pill). */}
+        <span aria-hidden="true" class="rr-nav__cta-wipe" />
+        <span class="relative z-10">WhatsApp</span>
+      </a>
+    </nav>
+
+    <button
+      type="button"
+      id="nav-toggle"
+      aria-expanded="false"
+      aria-controls="mobile-nav"
+      class="rr-nav__toggle rr-enter"
+      style="--rr-i:2"
+    >
+      <span class="sr-only">Open menu</span>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <path d="M3 6h18M3 12h18M3 18h18" />
+      </svg>
+    </button>
+  </div>
+</header>
+
+{/*
+  THE MOBILE PANEL LIVES OUTSIDE <header> ON PURPOSE.
+
+  It used to be a block inside it. Once the header became a centred pill that
+  translates on scroll, a dropdown nested in it inherited the pill's rounded
+  clip and its transform — the panel would have hung off a floating capsule and
+  slid away mid-scroll. As a sibling it is a plain full-screen overlay,
+  unaffected by whatever state the pill is in.
+*/}
+<div id="mobile-nav" class="rr-nav__panel" hidden>
+  <nav aria-label="Mobile" class="rr-nav__panel-inner">
+    {
+      nav.map((item) => (
+        <a
+          href={item.href}
+          aria-current={isActive(item.href) ? 'page' : undefined}
+          class="font-display text-headline-md text-on-surface no-underline"
+        >
+          {item.label}
+        </a>
+      ))
+    }
+    <a
+      href={waHref}
+      target="_blank"
+      rel="noopener noreferrer"
+      data-cta="nav-whatsapp-mobile"
+      data-cta-location="nav-mobile"
+      data-cta-label="Mobile nav WhatsApp"
+      class="mt-2 bg-charcoal px-6 py-4 text-center font-body text-label-caps uppercase tracking-[0.15em] text-surface no-underline"
+    >
+      Chat on WhatsApp
+    </a>
+  </nav>
+</div>
+
+{/* Spacer so the fixed nav never overlaps page content. Omitted over a hero,
+    where the photograph is supposed to start at y=0. */}
+{!overHero && <div class="h-[88px]" aria-hidden="true"></div>}
+
+<style>
+  /* ------------------------------------------------------------- THE SHELL
+     The header is a full-width fixed rail in every state; only the bar inside
+     it changes shape. Keeping the rail constant is what lets the pill centre
+     itself without the transform that hides it fighting a centring transform. */
+
+  .rr-nav {
+    position: fixed;
+    inset-inline: 0;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    justify-content: center;
+    /* Only the bar is interactive — the rest of the rail must not swallow
+       clicks on the hero image behind it. */
+    pointer-events: none;
+
+    /* ------------------------------------------ WHY NOT var(--ease-intent)
+
+       --ease-intent is cubic-bezier(0.16, 1, 0.3, 1) — an extreme ease-out that
+       is right for a 1.1s reveal drifting into place, and wrong for a 99px bar
+       dropping in. Measured on the old rule (700ms of --ease-intent): 50% of the
+       travel was done at 100ms and 90% at 249ms, leaving ~370ms to creep the
+       last 10px. That is not a slow transition, it is a snap followed by a
+       crawl, and it read as the pill "jumping out suddenly".
+
+       These are LOCAL custom properties on purpose. --ease-intent is used in
+       twenty-odd places in this file alone (the shape morph, the mark, the link
+       colours, the brass rule, the CTA) and also drives the scroll reveal in
+       global.css and the hero lines in HeroHeadline.astro. Retuning the
+       navbar's travel must not retune any of that.
+
+       Two curves, because entering and leaving are not the same gesture:
+         reveal — accelerate briefly, then decelerate into place. The motion is
+                  spread across the duration instead of front-loaded.
+         hide   — pure ease-in. Getting out of the way should feel prompt, and
+                  nobody is looking at a bar that is leaving. */
+    --rr-nav-reveal: cubic-bezier(0.4, 0, 0.2, 1);
+    --rr-nav-hide: cubic-bezier(0.4, 0, 1, 1);
+    /* The top -> pill shape change. Same reasoning as the reveal: on
+       --ease-intent the morph was ~90% finished in the first fifth of its
+       duration, so the bar appeared to arrive at the centre instantly and then
+       inch the rest of the way. */
+    --rr-nav-morph: cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Opacity is deliberately shorter than the travel: the bar is fully opaque
+       while it is still settling the last few pixels, so it reads as arriving
+       rather than as fading in. */
+    transition:
+      transform 620ms var(--rr-nav-reveal),
+      opacity 320ms ease-out;
+    will-change: transform;
+  }
+
+  .rr-nav__inner {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(1.5rem, 4vw, 3rem);
+    width: 100%;
+    max-width: var(--container-max);
+    padding: 24px var(--spacing-margin-mobile);
+    /* `color` is the whole theming mechanism: the mark, the links, the CTA
+       border and the burger all read `currentColor`, so a state change is one
+       property rather than a dozen overrides. */
+    color: var(--color-on-surface);
+    background-color: transparent;
+    border-radius: 0;
+    box-shadow: 0 0 0 0 rgb(28 28 28 / 0);
+    transition:
+      max-width 800ms var(--rr-nav-morph),
+      padding 800ms var(--rr-nav-morph),
+      border-radius 800ms var(--rr-nav-morph),
+      background-color 600ms var(--rr-nav-morph),
+      box-shadow 600ms var(--rr-nav-morph),
+      color 600ms var(--rr-nav-morph),
+      margin-top 800ms var(--rr-nav-morph);
+  }
+
+  /* Used for a single synchronous frame while the script measures the pill's
+     natural width (see MEASURING THE PILL in the script). Without it the mark
+     and the padding are still mid-transition when the probe reads the box and
+     the measurement comes back a few pixels wide. */
+  .rr-nav--measuring,
+  .rr-nav--measuring * {
+    transition: none !important;
+  }
+
+  @media (width >= 48rem) {
+    .rr-nav__inner {
+      padding-inline: var(--spacing-gutter);
+    }
+  }
+
+  /* ------------------------------------------------------- STATE 1 — `top`
+     Transparent, over the photograph. Alabaster ink, plus a soft shadow on the
+     text itself: a hero image is arbitrary content and a light navbar can land
+     on a bright window frame. The shadow costs nothing and removes the whole
+     class of "unreadable on this one photo" bug. */
+
+  .rr-nav[data-state='top'] .rr-nav__inner {
+    color: var(--color-surface);
+    text-shadow: 0 1px 24px rgb(0 0 0 / 0.45);
+  }
+
+  .rr-nav[data-state='top'] :global(.rr-nav__mark) {
+    filter: drop-shadow(0 1px 12px rgb(0 0 0 / 0.5));
+  }
+
+  /* --------------------------------------------- STATES 2/3 — `pill`, `hidden`
+     Same bar, contracted: it stops filling the viewport, gains the Alabaster
+     ground and a shadow, and rounds off. `max-width: fit-content` is what makes
+     it a pill rather than a narrower rectangle — the bar shrinks to its own
+     contents, so it is exactly as wide as the navigation needs. */
+
+  .rr-nav[data-state='pill'] .rr-nav__inner,
+  .rr-nav[data-state='hidden'] .rr-nav__inner {
+    /* A MEASURED PIXEL WIDTH, NOT `fit-content`. This is the whole fix for the
+       bar "jumping to the centre".
+
+       `max-width` animates between two lengths. It does NOT animate from a
+       length to a keyword — and Chrome does not even wait for the halfway point
+       the spec allows, it applies the keyword on the first frame. Measured on
+       the old rule: the bar went 1440px -> 1036px and its left edge 0 -> 202px
+       in 11ms, then spent the remaining ~490ms easing the last 34px. Almost the
+       entire movement happened in one frame, which is exactly what the eye
+       reads as a teleport.
+
+       The script measures what `fit-content` would have produced and publishes
+       it as --rr-nav-pill-w, so this is a length-to-length transition and all
+       438px of travel are actually animated. `fit-content` stays as the
+       fallback: if the script never runs, the pill state is unreachable anyway
+       (the state machine is what enters it), so the value only has to be sane,
+       not animated. */
+    max-width: var(--rr-nav-pill-w, fit-content);
+    margin-top: 16px;
+    padding: 10px 12px 10px 22px;
+    border-radius: 999px;
+    background-color: var(--color-surface);
+    /* DESIGN.md, Elevation & Depth. Two stops: a tight contact shadow to seat
+       the pill on the page, and a wide diffuse one so it reads as floating
+       above the content rather than printed on it. */
+    box-shadow:
+      0 1px 2px rgb(28 28 28 / 0.06),
+      0 12px 40px -8px rgb(28 28 28 / 0.18);
+  }
+
+  /* STATE 3 — translated up and out. On .rr-nav rather than on the bar so the
+     shadow leaves with it; a transform on the inner alone would slide the bar
+     under a rail that still caught pointer events. */
+  .rr-nav[data-state='hidden'] {
+    transform: translateY(-130%);
+    /* Fading out as it leaves removes the hard edge of a bar sliding under the
+       top of the window. Safe with `pointer-events` as-is: by the time opacity
+       is low the pill is already off-screen, so nothing clickable is hiding
+       under the cursor. */
+    opacity: 0;
+    /* Declared on the state being entered, so this curve governs the HIDE and
+       the base rule's curve governs the REVEAL. */
+    transition:
+      transform 420ms var(--rr-nav-hide),
+      opacity 260ms ease-in;
+  }
+
+  /* --------------------------------------------------------------- CONTENT */
+
+  .rr-nav__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    color: inherit;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+
+  /* :global() IS REQUIRED HERE — the mark is not our element.
+
+     Astro scopes this stylesheet by rewriting each selector to demand a
+     `data-astro-cid-*` attribute, and it stamps that attribute onto elements in
+     THIS component's template. `.rr-nav__mark` is a class handed to
+     <BrandMark /> as a prop and applied to an <svg> that lives in
+     BrandMark.astro, so it carries that component's scope, not ours. Without
+     :global() the compiled selector is `.rr-nav__mark[data-astro-cid-ours]`,
+     which matches nothing: the logo renders at the SVG default size and the
+     state transitions never fire. (It shipped that way once — the navbar had a
+     wordmark and no mark at all.)
+
+     The `.rr-nav` prefix on every rule keeps the escape hatch narrow: these are
+     global selectors, but none of them can match outside this header. */
+  .rr-nav :global(.rr-nav__mark) {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    transition:
+      width 800ms var(--ease-intent),
+      height 800ms var(--ease-intent),
+      filter 600ms var(--ease-intent);
+  }
+
+  .rr-nav[data-state='pill'] :global(.rr-nav__mark),
+  .rr-nav[data-state='hidden'] :global(.rr-nav__mark) {
+    width: 26px;
+    height: 26px;
+  }
+
+  /* The preloader wordmark, at navbar scale. Keep in sync with
+     .rr-preloader__wordmark in Preloader.astro. */
+  .rr-nav__wordmark {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    font-weight: 400;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: inherit;
+  }
+
+  /* PHONES GET A TIGHTER SETTING, AND IT IS THE WORDMARK'S LENGTH THAT FORCES
+     IT. At 0.34em tracking the name is roughly sixteen characters of about
+     1.09em each — ~223px — and it sits in a bar that also has to hold a 30px
+     mark, a 24px burger, 48px of padding and a gap. That totals ~360px, which
+     fits a 390px iPhone with nothing to spare and overflows a 360px Android
+     outright. `white-space: nowrap` means the overflow does not wrap, it just
+     pushes the burger off the edge.
+
+     Dropping to 0.7rem/0.24em brings the run to ~177px and the bar to ~314px,
+     which clears every phone in use. It is still unmistakably the same
+     treatment — the tracking is what reads as the brand, not its exact value —
+     and above 480px the full setting is back.
+
+     This also governs how wide the pill measures: measurePill() reads the bar's
+     fit-content width, so a wordmark that overflows on a phone would have
+     produced a pill wider than the screen. */
+  @media (width < 30rem) {
+    .rr-nav__wordmark {
+      font-size: 0.7rem;
+      letter-spacing: 0.24em;
+    }
+  }
+
+  .rr-nav__links {
+    display: none;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  /* ------------------------------------------------------- WHY 80rem, NOT 48rem
+
+     This used to switch on at `md` (768px), the same stop everything else on the
+     site uses. It broke on every iPad: six links (Home, The Studio, Expertise,
+     Portfolio, Journal, Inquiries) at 0.15em tracking, a bordered WhatsApp CTA,
+     and the full RUANG RASA lockup on the left do not fit in 768-1024px of
+     width. Measured, the link row plus CTA alone needs roughly 730px and the
+     brand lockup another 230px — call it 960px minimum before the flex row even
+     has anywhere to distribute space, which is more than an iPad Mini, an iPad
+     Air, or an iPad Pro 11" has at any orientation, and tighter than even the
+     12.9" Pro once the PILL state (below) hugs its own content width rather than
+     the full viewport.
+
+     So this is not really an "iPad breakpoint" — it is the width the full row
+     actually needs, which happens to land past every current tablet and into
+     small-laptop territory. 80rem (1280px) is Tailwind's `xl` stop and clears the
+     12.9" iPad Pro in landscape (1366px) with room to spare, while every other
+     iPad, in either orientation, now gets the burger below instead of a nav bar
+     that would visibly overflow or crush itself into the pill state. */
+  @media (width >= 80rem) {
+    .rr-nav__links {
+      display: flex;
+    }
+  }
+
+  .rr-nav[data-state='pill'] .rr-nav__links,
+  .rr-nav[data-state='hidden'] .rr-nav__links {
+    gap: 1.6rem;
+  }
+
+  .rr-nav__link {
+    position: relative;
+    font-family: var(--font-body);
+    font-size: var(--text-label-caps);
+    line-height: var(--text-label-caps--line-height);
+    font-weight: var(--text-label-caps--font-weight);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+    /* Inherited ink at 72% reads as the muted On-Surface-Variant on Alabaster
+       and as a slightly recessed white over the hero — one rule, both states,
+       and it can never resolve to an unreadable pairing the way a hard-coded
+       colour can. */
+    color: color-mix(in srgb, currentColor 72%, transparent);
+    transition: color 500ms var(--ease-intent);
+  }
+
+  .rr-nav__link:hover,
+  .rr-nav__link[aria-current='page'] {
+    color: currentColor;
+  }
+
+  .rr-nav[data-state='pill'] .rr-nav__link:hover,
+  .rr-nav[data-state='hidden'] .rr-nav__link:hover {
+    color: var(--color-brass-deep);
+  }
+
+  .rr-nav__rule {
+    position: absolute;
+    left: 0;
+    bottom: -4px;
+    height: 1px;
+    width: 0;
+    background-color: var(--color-brass);
+    transition: width 500ms var(--ease-intent);
+  }
+
+  .rr-nav__link:hover .rr-nav__rule,
+  .rr-nav__link[aria-current='page'] .rr-nav__rule {
+    width: 100%;
+  }
+
+  .rr-nav__cta {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid currentColor;
+    padding: 0.625rem 1.25rem;
+    font-family: var(--font-body);
+    font-size: var(--text-label-caps);
+    font-weight: var(--text-label-caps--font-weight);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+    color: inherit;
+    transition:
+      color 500ms var(--ease-intent),
+      border-radius 800ms var(--ease-intent);
+  }
+
+  .rr-nav[data-state='pill'] .rr-nav__cta,
+  .rr-nav[data-state='hidden'] .rr-nav__cta {
+    border-radius: 999px;
+  }
+
+  /* The wipe panel — same mechanics as WhatsAppButton's: a scaleY(0) layer
+     rising from the baseline, not a `background-color` crossfade. `overflow:
+     hidden` on `.rr-nav__cta` above is what clips it, including through the
+     pill state's animated border-radius, since both live on the same box. */
+  .rr-nav__cta-wipe {
+    position: absolute;
+    inset: 0;
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .rr-nav__cta:hover .rr-nav__cta-wipe,
+  .rr-nav__cta:focus-visible .rr-nav__cta-wipe {
+    transform: scaleY(1);
+  }
+
+  /* Which color wipes in, and what the text turns, both flip together at the
+     same seam the border/background states already use. */
+  .rr-nav[data-state='top'] .rr-nav__cta-wipe {
+    background-color: var(--color-brass);
+  }
+
+  .rr-nav[data-state='top'] .rr-nav__cta:hover,
+  .rr-nav[data-state='top'] .rr-nav__cta:focus-visible {
+    color: var(--color-charcoal);
+  }
+
+  .rr-nav[data-state='pill'] .rr-nav__cta-wipe,
+  .rr-nav[data-state='hidden'] .rr-nav__cta-wipe {
+    background-color: var(--color-charcoal);
+  }
+
+  .rr-nav[data-state='pill'] .rr-nav__cta:hover,
+  .rr-nav[data-state='hidden'] .rr-nav__cta:hover,
+  .rr-nav[data-state='pill'] .rr-nav__cta:focus-visible,
+  .rr-nav[data-state='hidden'] .rr-nav__cta:focus-visible {
+    color: var(--color-surface);
+  }
+
+  .rr-nav__toggle {
+    display: inline-flex;
+    color: inherit;
+    flex-shrink: 0;
+  }
+
+  /* Matches .rr-nav__links above — the two must flip at the same width, or
+     there is a band where both the burger and the full row are hidden (or both
+     visible) at once. */
+  @media (width >= 80rem) {
+    .rr-nav__toggle {
+      display: none;
+    }
+  }
+
+  /* --------------------------------------------------------- MOBILE PANEL */
+
+  .rr-nav__panel {
+    position: fixed;
+    inset: 0;
+    z-index: 45;
+    background-color: var(--color-surface);
+    overflow-y: auto;
+    /* The pill sits at z-50 above this, so the burger stays clickable to
+       close. The panel starts below it. */
+    padding-top: 104px;
+    animation: rr-nav-panel-in 400ms var(--ease-intent) both;
+  }
+
+  /* Same 80rem stop as .rr-nav__toggle — this is the panel that button opens. */
+  @media (width >= 80rem) {
+    .rr-nav__panel {
+      display: none;
+    }
+  }
+
+  @keyframes rr-nav-panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+  }
+
+  .rr-nav__panel-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: var(--container-max);
+    margin-inline: auto;
+    padding: 2rem var(--spacing-margin-mobile) 3rem;
+  }
+
+  /* ------------------------------------------------------- REDUCED MOTION
+     The state machine still runs — the navbar must still get out of the way —
+     but it cuts between states instead of gliding. */
+  @media (prefers-reduced-motion: reduce) {
+    .rr-nav,
+    .rr-nav__inner,
+    .rr-nav__link,
+    .rr-nav__rule,
+    .rr-nav__cta,
+    .rr-nav__cta-wipe {
+      transition-duration: 1ms;
+    }
+
+    .rr-nav :global(.rr-nav__mark) {
+      transition-duration: 1ms;
+    }
+
+    .rr-nav__panel {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  /* ------------------------------------------------------------------------
+   * The state machine.
+   *
+   * Input is the `rr:scroll` CustomEvent from src/lib/smooth-scroll.ts, which
+   * already carries a debounced direction. This file never reads `scrollY`
+   * itself: doing so inside a scroll handler forces a synchronous layout on a
+   * frame that is usually already animating the pill.
+   * ---------------------------------------------------------------------- */
+  type NavState = 'top' | 'pill' | 'hidden';
+
+  const header = document.getElementById('rr-nav');
+  const toggle = document.getElementById('nav-toggle');
+  const panel = document.getElementById('mobile-nav');
+
+  if (header) {
+    const overHero = header.dataset.overHero === 'true';
+
+    /* Past this the hero has moved enough that a transparent bar would be
+       sitting on page content rather than on the photograph. */
+    const TOP_UNTIL = 72;
+
+    /* Coming BACK to transparent uses a lower mark than leaving it. Without the
+       gap, a slow scroll parked near 72px flips the bar between full-width and
+       pill on alternate frames — two 800ms morphs fighting each other, which
+       looks far worse than either state. */
+    const TOP_AGAIN = 40;
+
+    /* Hiding is only allowed below this. Without the floor, the smallest
+       downward nudge near the top of the page yanks the navbar away before the
+       visitor has scrolled anywhere — the behaviour reads as a glitch rather
+       than as the bar getting out of the way. */
+    const HIDE_BELOW = 340;
+
+    let state: NavState = (header.dataset.state as NavState) ?? 'pill';
+    let menuOpen = false;
+
+    /* ------------------------------------------------ MEASURING THE PILL
+
+       `max-width` only animates between two lengths, so the pill state needs a
+       real pixel value rather than `fit-content` — see the long note on that
+       rule in the stylesheet for what the keyword actually did.
+
+       The probe puts the bar into its pill state with transitions suppressed,
+       lets it hug its own contents, reads the width, and puts everything back.
+       All of it is synchronous inside one task, so no frame is ever painted in
+       the probed state and the visitor sees nothing.
+
+       Cost: one forced layout at startup and one per resize. Not per scroll,
+       and not per frame. */
+    const inner = header.querySelector<HTMLElement>('.rr-nav__inner');
+
+    const measurePill = () => {
+      if (!inner) return;
+
+      const previous = header.dataset.state;
+      header.classList.add('rr-nav--measuring');
+      /* Inline, so it outranks the custom property this is about to define. */
+      inner.style.maxWidth = 'fit-content';
+      header.dataset.state = 'pill';
+
+      const width = Math.ceil(inner.getBoundingClientRect().width);
+
+      inner.style.maxWidth = '';
+      if (previous) header.dataset.state = previous;
+      /* Flush the restored geometry before transitions come back, or removing
+         the class hands the browser a pending change to animate. */
+      void inner.offsetWidth;
+      header.classList.remove('rr-nav--measuring');
+
+      header.style.setProperty('--rr-nav-pill-w', `${width}px`);
+    };
+
+    /* Montserrat arrives asynchronously (BaseLayout loads the font CSS
+       non-blocking). Measuring before it lands records the fallback stack's
+       metrics, and the pill would then be a few pixels off for the whole
+       session. `fonts.ready` is the cheap way to wait for the real thing. */
+    measurePill();
+    if (document.fonts?.ready) void document.fonts.ready.then(measurePill);
+
+    /* The pill hugs its contents, and its contents reflow at the md breakpoint
+       (the link row appears). Debounced because resize fires continuously. */
+    let resizeTimer = 0;
+    window.addEventListener('resize', () => {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(measurePill, 150);
+    });
+
+    const setState = (next: NavState) => {
+      if (next === state) return;
+      state = next;
+      header.dataset.state = next;
+    };
+
+    window.addEventListener('rr:scroll', (event) => {
+      const { y, direction } = event.detail;
+
+      /* An open menu pins the bar: closing it is the only way out, and the
+         close button must not be able to scroll itself off screen. */
+      if (menuOpen) {
+        setState('pill');
+        return;
+      }
+
+      /* Hysteresis: while transparent, hold until clearly past TOP_UNTIL;
+         once morphed, only go back when clearly above TOP_AGAIN. */
+      if (overHero && y <= (state === 'top' ? TOP_UNTIL : TOP_AGAIN)) {
+        setState('top');
+        return;
+      }
+
+      /* direction 0 means the page is at rest (or drifting sub-pixel on
+         momentum tail): hold whatever state we are in rather than snapping. */
+      if (direction === 1 && y > HIDE_BELOW) {
+        setState('hidden');
+      } else if (direction === -1) {
+        setState('pill');
+      } else if (state === 'top') {
+        /* Left the transparent zone without a usable direction — e.g. a jump
+           to an anchor. Land on the pill rather than staying transparent over
+           page content. */
+        setState('pill');
+      }
+    });
+
+    /* ---------------------------------------------------------------- MENU */
+    toggle?.addEventListener('click', () => {
+      menuOpen = !menuOpen;
+      toggle.setAttribute('aria-expanded', String(menuOpen));
+      if (panel) panel.hidden = !menuOpen;
+
+      toggle.querySelector('.sr-only')!.textContent = menuOpen
+        ? 'Close menu'
+        : 'Open menu';
+
+      /* Lenis owns the scroll position, so `overflow: hidden` alone would not
+         stop it — it would keep easing an invisible page behind the panel.
+         `stop()`/`start()` is the supported way to hold it. The optional chain
+         covers reduced motion and the pre-Lenis window, where the native
+         `overflow` lock below is doing the work on its own. */
+      const lenis = (window as unknown as { __rrLenis?: { stop(): void; start(): void } })
+        .__rrLenis;
+      if (menuOpen) lenis?.stop();
+      else lenis?.start();
+
+      document.documentElement.style.overflow = menuOpen ? 'hidden' : '';
+
+      if (menuOpen) setState('pill');
+    });
+
+    /* A link inside the panel navigates, but on the current page an anchor
+       would leave the overlay covering the thing it jumped to. */
+    panel?.addEventListener('click', (event) => {
+      if ((event.target as HTMLElement).closest('a')) {
+        toggle?.dispatchEvent(new MouseEvent('click'));
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && menuOpen) toggle?.dispatchEvent(new MouseEvent('click'));
+    });
+  }
+</script>

@@ -1,0 +1,114 @@
+---
+import { Image } from 'astro:assets';
+import {
+  resolveImage,
+  ratioClass,
+  clampWidths,
+  IMAGE_FORMAT,
+  IMAGE_QUALITY,
+  type Ratio,
+} from '@/lib/images';
+
+/* DESIGN.md, Cards & Imagery: "Every image should have a subtle Material Label
+   — a small, absolute-positioned Montserrat label in the corner denoting the
+   material or location (e.g. TEAK / BALI)."
+
+   SIZING CONTRACT
+   Every image on this site is rendered inside an aspect-ratio box with an
+   explicit height ceiling, never at its intrinsic height. Two things follow:
+
+   1. A tall source can no longer produce a two-screen-tall block. The box sets
+      the height; object-cover crops the overflow.
+   2. `maxH` caps the box on wide viewports. Without it, a full-bleed 3:2 image
+      inside a 1440px container is 960px tall — taller than most laptop
+      viewports, which is exactly the "scroll three times to see one photo"
+      problem. */
+
+export type Props = {
+  src?: string | null;
+  alt: string;
+  materialLabel?: string | null;
+  ratio?: Ratio;
+  /** Above-the-fold images pass eager + high priority; everything else lazies. */
+  priority?: boolean;
+  sizes?: string;
+  class?: string;
+  widths?: number[];
+  /**
+   * Height ceiling for the aspect box. Defaults to 70vh so no single image can
+   * ever occupy more than roughly two-thirds of the viewport. Pass `'none'` to
+   * opt out (used only where a parent already constrains height).
+   */
+  maxH?: string;
+  /** object-position, for images whose subject is off-centre. */
+  position?: string;
+};
+
+const {
+  src,
+  alt,
+  materialLabel,
+  ratio = 'vertical',
+  priority = false,
+  sizes = '(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw',
+  class: className = '',
+  widths = [480, 768, 1024, 1440],
+  maxH = 'max-h-[70vh]',
+  position = 'object-center',
+} = Astro.props;
+
+const image = resolveImage(src);
+
+/* Never ask sharp for a variant wider than the source. The seeded photography
+   is 512px on its longest edge, so the default [480,768,1024,1440] list asked
+   for three upscales per image — slower to encode and blurrier than the
+   original, with no warning from Astro. */
+const srcsetWidths = image ? clampWidths(widths, image.width) : widths;
+
+/* DECODING IS ALWAYS ASYNC — never 'sync', not even for `priority`.
+   `decoding="sync"` forces the decode to run ON THE MAIN THREAD before the
+   frame containing the image can be presented, and AVIF is expensive per pixel
+   to decode. On the hero that decode lands inside the preloader's animation
+   window and surfaces as a dropped frame in the draw. `loading="eager"` and
+   `fetchpriority="high"` already do all the prioritising that matters; `sync`
+   only dictates WHERE the decode runs, and the answer must never be the thread
+   that is painting. */
+
+/* The `slot` ratio brings its own height ceiling (a max-height on
+   .rr-ratio-slot), so a Tailwind max-h utility on top of it would be a second,
+   conflicting cap — and the grid, not the caller, is the thing that knows how
+   tall a slot is allowed to get. */
+const boxClasses = [
+  'relative overflow-hidden w-full',
+  ratioClass[ratio],
+  maxH === 'none' || ratio === 'slot' ? '' : maxH,
+  className,
+]
+  .filter(Boolean)
+  .join(' ');
+---
+
+{
+  image && (
+    <figure class={boxClasses}>
+      <Image
+        src={image}
+        alt={alt}
+        widths={srcsetWidths}
+        sizes={sizes}
+        format={IMAGE_FORMAT}
+        quality={IMAGE_QUALITY}
+        loading={priority ? 'eager' : 'lazy'}
+        fetchpriority={priority ? 'high' : 'auto'}
+        decoding="async"
+        class={`h-full w-full object-cover ${position} transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)]`}
+      />
+
+      {materialLabel && (
+        <figcaption class="pointer-events-none absolute bottom-4 left-4 font-body text-label-caps uppercase tracking-[0.15em] text-surface mix-blend-difference">
+          {materialLabel}
+        </figcaption>
+      )}
+    </figure>
+  )
+}
