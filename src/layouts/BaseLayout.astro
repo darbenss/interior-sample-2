@@ -224,7 +224,7 @@ const analyticsEndpoint = import.meta.env.PUBLIC_ANALYTICS_ENDPOINT ?? '';
       ----------------------------------------------------------- SMOOTH SCROLL
 
       Lenis, plus the single `rr:scroll` signal the navbar reads. Astro compiles
-      a bare <script> to `type="module"`, which is deferred — this cannot block
+      a bare script tag to `type="module"`, which is deferred — this cannot block
       the parser or first paint.
 
       The module is a thin bootstrapper on purpose. Lenis itself is behind a
