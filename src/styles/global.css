@@ -1098,20 +1098,22 @@
       object-position: center 35%;
     }
 
-    /* The photograph is clearest at the TOP — that is the seam with the dark
-       philosophy stage, and letting it read there is what stops the hand-off
-       from flashing white. It washes out toward the middle, where the rail's
-       heading and panels sit, and lifts again at the foot. */
+    /* Two jobs, and they pull opposite ways. The photo has to READ at the very
+       top — that is the seam with the dark philosophy stage, and letting it
+       show there is what keeps the curtain reveal photo-over-photo instead of
+       flashing white. Everywhere below that it should be barely a whisper, so
+       it never fights the heading or the panels. So: a short window of light
+       wash at the very top, then heavy wash for the whole rest of the run. */
     .rr-services--rail .rr-services__bg::after {
       content: '';
       position: absolute;
       inset: 0;
       background: linear-gradient(
         to bottom,
-        color-mix(in srgb, var(--color-surface) 58%, transparent) 0%,
-        color-mix(in srgb, var(--color-surface) 84%, transparent) 40%,
-        color-mix(in srgb, var(--color-surface) 78%, transparent) 70%,
-        color-mix(in srgb, var(--color-surface) 90%, transparent) 100%
+        color-mix(in srgb, var(--color-surface) 60%, transparent) 0%,
+        color-mix(in srgb, var(--color-surface) 82%, transparent) 14%,
+        color-mix(in srgb, var(--color-surface) 94%, transparent) 34%,
+        color-mix(in srgb, var(--color-surface) 96%, transparent) 100%
       );
     }
   }
