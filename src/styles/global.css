@@ -919,42 +919,33 @@
     padding-bottom: 24svh;
   }
 
-  /* ------------------------------------------------- THE CURTAIN (hand-off)
+  /* --------------------------------------------------------- THE HAND-OFF
 
-     A one-viewport alabaster panel after the scenes. `position: relative` so
-     it paints over the still-pinned stage, same as .rr-scrolly__scenes above.
-     It scrolls up the viewport and covers the last photograph completely.
+     The Services intro ("Three ways we take on a space"), as an alabaster panel
+     after the scenes. `position: relative` so it paints over the still-pinned
+     stage, exactly like .rr-scrolly__scenes above.
 
-     NO DEAD WHITE AFTER IT. A 100svh curtain needs a full viewport of scroll
-     to rise from the bottom to fully covering — and then, on its own, another
-     viewport of plain white while it finishes scrolling through. That second
-     stretch is the "gap". So .rr-scrolly takes a z-index and .rr-services is
-     pulled up exactly one viewport (its own margin cancels the curtain's added
-     height, page length is unchanged) and dropped a layer BELOW. The Services
-     viewport is then already pinned behind the curtain the instant it finishes
-     covering, so the curtain recedes straight onto the rail — the "gap" is now
-     the rail being revealed, not blank white.
+     On desktop it is a full viewport tall, so it extends the pin and rises up
+     the screen covering the last photograph — and because it CARRIES the
+     heading, the reader lands on "Three ways" the instant the photo is gone.
+     No white frame: the thing doing the covering is the next section's own
+     opening, not a blank panel. The rail that follows starts at panel one.
 
-     Desktop + motion only. height:auto (0) elsewhere — an empty box that takes
-     no space, so mobile and reduced motion just meet the sections in flow. */
-  .rr-scrolly__curtain {
+     Below 48rem / under reduced motion it is just the section's intro block in
+     normal flow. */
+  .rr-scrolly__handoff {
     position: relative;
+    background-color: var(--color-surface);
+    padding-block: var(--spacing-section-gap);
   }
 
   @media (width >= 48rem) and (prefers-reduced-motion: no-preference) {
-    .rr-scrolly {
-      z-index: 1;
-    }
-
-    .rr-scrolly__curtain {
-      height: 100svh;
-      background-color: var(--color-surface);
-    }
-
-    .rr-services {
-      position: relative;
-      z-index: 0;
-      margin-top: -100svh;
+    .rr-scrolly__handoff {
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-block: 0;
     }
   }
 
