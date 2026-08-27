@@ -641,6 +641,13 @@ const selected = featured.map((project, i) => {
         ))
       }
     </div>
+
+    {/* The curtain. A plain alabaster panel after the scenes: the stage stays
+        pinned on the last photograph while this rises up the viewport and
+        covers it, so the section hands off to the (also alabaster) Services
+        section without cutting from a dark photo to white in one frame.
+        Desktop + motion only — see .rr-scrolly__curtain in global.css. */}
+    <div class="rr-scrolly__curtain" aria-hidden="true"></div>
   </section>
 
   <script>
@@ -710,14 +717,13 @@ const selected = featured.map((project, i) => {
       it is pinned inside. Side by side, it fits. */}
   <section class="rr-services" aria-labelledby="services-heading">
     <div class="rr-services__viewport">
-      {/* The last philosophy photograph, held behind the rail so the section
-          does not cut from that dark image straight to flat alabaster. It
-          drifts on its own view() progress (transform only) and carries an
+      {/* A single photograph held behind the rail as quiet ground, drifting on
+          the section's own view() progress (transform only) under a heavy
           alabaster wash so the dark heading and the light panels stay legible.
           Rail mode only — the swipe-carousel fallback never renders it. */}
       <div class="rr-services__bg" aria-hidden="true">
         <Image
-          src={philosophyScenes[2].image}
+          src={resolveImage('/src/assets/images/expertise/expertise-02.jpg')!}
           alt=""
           widths={[768, 1280, 1920]}
           sizes="100vw"

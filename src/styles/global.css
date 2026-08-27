@@ -919,6 +919,29 @@
     padding-bottom: 24svh;
   }
 
+  /* ------------------------------------------------- THE CURTAIN (hand-off)
+
+     A one-viewport alabaster panel after the scenes. `position: relative` so
+     it paints over the still-pinned stage, same as .rr-scrolly__scenes above.
+     It scrolls up the viewport and covers the last photograph completely, so
+     the section releases into the (also alabaster) Services section without a
+     one-frame cut from a dark photo to white. The extra 100svh of scroll is
+     the price of the transition.
+
+     Desktop + motion only. Left at height:auto (0) elsewhere — an empty box
+     that takes no space, so mobile and reduced motion just meet the sections
+     in normal flow. */
+  .rr-scrolly__curtain {
+    position: relative;
+  }
+
+  @media (width >= 48rem) and (prefers-reduced-motion: no-preference) {
+    .rr-scrolly__curtain {
+      height: 100svh;
+      background-color: var(--color-surface);
+    }
+  }
+
   .rr-scrolly__scene {
     display: flex;
     align-items: center;
@@ -1083,9 +1106,9 @@
       background: linear-gradient(
         to bottom,
         var(--color-surface) 0%,
-        color-mix(in srgb, var(--color-surface) 90%, transparent) 22%,
-        color-mix(in srgb, var(--color-surface) 68%, transparent) 60%,
-        color-mix(in srgb, var(--color-surface) 82%, transparent) 100%
+        color-mix(in srgb, var(--color-surface) 94%, transparent) 26%,
+        color-mix(in srgb, var(--color-surface) 82%, transparent) 62%,
+        color-mix(in srgb, var(--color-surface) 90%, transparent) 100%
       );
     }
   }
