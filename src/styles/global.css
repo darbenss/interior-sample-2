@@ -919,6 +919,17 @@
     padding-bottom: 24svh;
   }
 
+  /* The curtain reveal (below) needs the stage pinned for one extra viewport
+     while the Services section scrolls up over it. That extra length has to be
+     CONTENT of .rr-scrolly, not padding on it — `position: sticky` is confined
+     to its containing block's CONTENT box, so `padding-bottom` on .rr-scrolly
+     itself would not hold the pin. The scenes' own padding-bottom does. */
+  @media (width >= 48rem) {
+    .rr-scrolly__scenes {
+      padding-bottom: 124svh;
+    }
+  }
+
   .rr-scrolly__scene {
     display: flex;
     align-items: center;
@@ -1049,12 +1060,12 @@
 
      Desktop only; below 48rem the sections just meet in normal flow. Runs even
      under the OS "reduce motion" setting on the site owner's instruction — it
-     is a sticky reveal, not a keyframe, and the project is a design showcase. */
-  @media (width >= 48rem) {
-    .rr-scrolly {
-      padding-bottom: 100svh;
-    }
+     is a sticky reveal, not a keyframe, and the project is a design showcase.
 
+     The extra viewport of pin length lives on .rr-scrolly__scenes'
+     padding-bottom (see the note there); here we only pull the section up to
+     meet it. Pull cancels that padding — page length is unchanged. */
+  @media (width >= 48rem) {
     .rr-services {
       position: relative;
       z-index: 1;
