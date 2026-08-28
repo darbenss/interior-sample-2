@@ -175,6 +175,15 @@ async function useLenis(detachNative: () => void): Promise<void> {
        page (a modal, a lightbox). Nothing in the site reads this today. */
     (window as unknown as { __rrLenis?: unknown }).__rrLenis = lenis;
 
+    /* Hand the instance to the GSAP layer, which puts this object on GSAP's
+       ticker and only then sets `autoRaf = false`. The flag stays TRUE here
+       on purpose: until that handoff has actually happened Lenis must keep
+       driving itself, or a failed gsap chunk leaves the page unscrollable —
+       the exact failure documented in the autoRaf note above. */
+    window.dispatchEvent(
+      new CustomEvent('rr:lenis-ready', { detail: { lenis } })
+    );
+
     emit(window.scrollY);
   } catch {
     /* Chunk failed to load. The page still scrolls natively — only the easing

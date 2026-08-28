@@ -166,8 +166,8 @@ const inputId = `ba-${label
   .ba-before,
   .ba-handle {
     transition:
-      clip-path 320ms var(--ease-intent),
-      left 320ms var(--ease-intent);
+      clip-path 320ms var(--ease-response),
+      left 320ms var(--ease-response);
   }
 
   .ba.is-scrubbing .ba-before,
@@ -188,7 +188,7 @@ const inputId = `ba-${label
     border: 1px solid color-mix(in srgb, var(--color-surface) 85%, transparent);
     background-color: color-mix(in srgb, var(--color-charcoal) 35%, transparent);
     backdrop-filter: blur(6px);
-    transition: background-color 400ms var(--ease-intent);
+    transition: background-color 400ms var(--ease-response);
   }
 
   .ba-frame:hover .ba-knob {
@@ -240,7 +240,7 @@ const inputId = `ba-${label
      so it fades in from there rather than shipping in the painted HTML. */
   .ba-hint {
     opacity: 0;
-    transition: opacity 600ms var(--ease-intent);
+    transition: opacity 600ms var(--ease-response);
   }
 
   .ba.is-ready .ba-hint {

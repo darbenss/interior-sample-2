@@ -1,0 +1,55 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+/**
+ * Parallax image.
+ *
+ * The frame clips; the image inside it is 125% tall and travels vertically
+ * against the page as the frame crosses the viewport.
+ *
+ * DEPTH IS A PERCENTAGE OF THE ELEMENT'S OWN HEIGHT, NOT PIXELS. A 60px offset
+ * tuned on a desktop is a completely different gesture on a 360px phone;
+ * `yPercent` is the same gesture at every size. Negative values move the image
+ * against the scroll — the "further away" direction, and the one that reads as
+ * depth. Positive moves it with the scroll, slightly faster than the page,
+ * which reads as the image being in front of the plane of the screen.
+ *
+ * KEEP IT UNDER ~20. The overscan in gsap.css is 25% of the image's height,
+ * which covers ±12.5% of travel. Past that the image's own edge drifts into
+ * frame at the extremes of the scroll.
+ */
+interface Props {
+  src: ImageMetadata;
+  alt: string;
+  /** Percent of the image's own height travelled, total. Negative = classic. */
+  depth?: number;
+  sizes?: string;
+  widths?: number[];
+  loading?: 'lazy' | 'eager';
+  class?: string;
+}
+
+const {
+  src,
+  alt,
+  depth,
+  sizes = '100vw',
+  widths = [640, 960, 1280, 1920],
+  loading = 'lazy',
+  class: className,
+} = Astro.props;
+---
+
+<div class:list={['rr-parallax-frame', className]}>
+  <Image
+    src={src}
+    alt={alt}
+    widths={widths}
+    sizes={sizes}
+    loading={loading}
+    decoding="async"
+    data-gsap="parallax"
+    data-gsap-depth={depth}
+  />
+</div>

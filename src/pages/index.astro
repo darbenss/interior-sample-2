@@ -57,57 +57,31 @@ const HERO_SRC = '/src/assets/images/home/home-01.jpg';
 const HERO_SIZES = '100vw';
 const HERO_WIDTHS = [640, 960, 1280, 1600, 2000, 2400];
 
-/* ------------------------------------------------------------- HERO SLIDES
-   The background is a crossfade slider now, but the LCP contract above is
-   unchanged BECAUSE SLIDE ONE IS STILL `HERO_SRC`. The preload in the head slot
-   is derived from `heroSource` with the same widths/sizes/format/quality the
-   first <Image> below receives, so it still names the byte-identical variant.
+/* --------------------------------------------------------------- THE HERO
+   ONE PHOTOGRAPH, HELD.
 
-   Two rules keep this from becoming four competing downloads:
+   This was a three-slide crossfade on a 6000ms interval. The arithmetic is
+   what killed it: three slides is an 18-SECOND full cycle, on a fold whose
+   own scroll cue appears at 3280ms actively inviting the reader to leave.
+   Slides two and three cost ~360KB of AVIF on a laptop — they were marked
+   `loading="lazy"`, but every slide sat at inset-0 inside the viewport, so
+   that deferred nothing once the slider mounted. Two photographs almost
+   nobody reached, for eight times the weight of the entire GSAP library.
 
-   1. ONLY SLIDE ONE IS EAGER. Slides 2-3 are `loading="lazy"`. Normally lazy
-      does nothing here — every slide is stacked at inset-0, so all three are
-      "in the viewport" and would fetch immediately. What actually defers them is
-      the `:not(.is-initialized)` rule in the stylesheet below: until Splide
-      mounts, slides 2-3 are `display: none`, which has no layout box and so
-      never triggers a lazy fetch. Splide mounts on `rr:preloader-done`, i.e.
-      after LCP has already happened.
+   Depth now comes from the room moving as you leave it rather than from the
+   room changing while you stand in it: a scroll-driven scale and drift on
+   the image itself, on the compositor, no JS at all. See .rr-hero-bed in
+   global.css.
 
-   2. ALL THREE ARE 2400x1600. Same 3:2 as home-01, so `clampWidths` returns the
-      identical list for each and the crossfade never changes framing.
+   The LCP contract above is unchanged and is now simpler — there is exactly
+   one hero image and the head preload names the byte-identical variant. */
+const heroSource = resolveImage(HERO_SRC)!;
+const heroWidths = clampWidths(HERO_WIDTHS, heroSource.width);
 
-   Order matters: index 0 is the LCP image. */
-const HERO_SLIDES = [
-  {
-    src: HERO_SRC,
-    label: 'Golden-hour light raking across a timber-screened entrance hall',
-  },
-  {
-    src: '/src/assets/images/home/home-06.jpg',
-    label: 'A brick and blackened-steel stair against full-height glazing at dusk',
-  },
-  {
-    src: '/src/assets/images/home/home-07.jpg',
-    label: 'A stone colonnade with a lit coffered ceiling reflected in polished floor',
-  },
-];
 
-const heroSlides = HERO_SLIDES.map(({ src, label }) => {
-  const image = resolveImage(src)!;
-  return { image, label, widths: clampWidths(HERO_WIDTHS, image.width) };
-});
-
-/* How long Splide takes to crossfade, in ms. Shared with the stylesheet (as
-   --rr-hero-fade) and with the mount options, so the Ken Burns reset can be
-   timed to land exactly when the outgoing slide becomes invisible. One number,
-   three consumers — see the RESET note in the stylesheet. */
-const HERO_FADE_MS = 1600;
-const HERO_INTERVAL_MS = 6000;
-
-const heroSource = heroSlides[0].image;
 const heroImage = await getImage({
   src: heroSource,
-  widths: clampWidths(HERO_WIDTHS, heroSource.width),
+  widths: heroWidths,
   sizes: HERO_SIZES,
   format: IMAGE_FORMAT,
   quality: IMAGE_QUALITY,
@@ -318,51 +292,38 @@ const selected = featured.map((project, i) => {
     style={heroEnterVars}
   >
     {/*
-      THE BACKGROUND SLIDER.
+      THE BACKGROUND. One photograph, absolutely positioned at z-index -20
+      by the stylesheet — a full stacking-order step below the scrims at
+      -z-10, so the overlay can never be out-painted by it.
 
-      Position, inset and z-index are set in the stylesheet rather than with
-      utilities here — see the POSITIONING note there for why the utilities lost
-      the cascade to Splide's own CSS. The slider sits at `z-index: -20` and the
-      two scrim gradients below at `-z-10`, a full stacking-order step apart, so
-      the overlay can never be out-painted by a slide whatever Splide does
-      inside its own subtree.
+      TWO ELEMENTS, TWO JOBS, AND THAT IS WHY THEY ARE NESTED. The bed
+      carries the entrance (an oversize crop settling as the title card
+      lifts); the img carries the scroll-driven depth. Both animate
+      `transform`, and two animations on ONE element means the later
+      declaration wins outright and the other is simply cancelled. On two
+      elements they compose instead.
 
-      `aria-hidden` + empty alts: this is decorative. A rotating backdrop is not
-      content a screen-reader user can act on or navigate — the hero's meaning is
-      the <h1> and the paragraph under it, both of which are real text. Slide
-      descriptions are kept as `data-label` so they are not lost from the source.
+      `aria-hidden` + empty alt: decorative. The hero's meaning is the <h1>
+      and the paragraph under it, both real text. The description is kept as
+      data-label so it is not lost from the source.
     */}
     <div
-      id="rr-hero-slider"
-      class="rr-hero-slider splide"
+      class="rr-hero-bed"
       aria-hidden="true"
-      style={`--rr-hero-fade:${HERO_FADE_MS}ms`}
-      data-fade={HERO_FADE_MS}
-      data-interval={HERO_INTERVAL_MS}
+      data-label="Golden-hour light raking across a timber-screened entrance hall"
     >
-      <div class="splide__track">
-        <ul class="splide__list">
-          {
-            heroSlides.map((slide, i) => (
-              <li class="splide__slide" data-label={slide.label}>
-                <Image
-                  src={slide.image}
-                  alt=""
-                  widths={slide.widths}
-                  sizes={HERO_SIZES}
-                  format={IMAGE_FORMAT}
-                  quality={IMAGE_QUALITY}
-                  loading={i === 0 ? 'eager' : 'lazy'}
-                  fetchpriority={i === 0 ? 'high' : 'low'}
-                  decoding="async"
-                />
-              </li>
-            ))
-          }
-        </ul>
-      </div>
+      <Image
+        src={heroSource}
+        alt=""
+        widths={heroWidths}
+        sizes={HERO_SIZES}
+        format={IMAGE_FORMAT}
+        quality={IMAGE_QUALITY}
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      />
     </div>
-
     {/*
       LEGIBILITY SCRIM. Three layers, stacked between the photograph and the
       content — each one lower in the DOM paints over the one before it, and all
@@ -463,84 +424,14 @@ const selected = featured.map((project, i) => {
   </section>
 
   {/*
-    Hero slider CSS (Ken Burns, Splide positioning, the scroll cue, and the
-    tablet vertical-centering override) lives in global.css, not in an inline
-    <style is:global> here — see THE HERO SLIDER in that file for the full
-    reasoning. It moved because an inline <style> block this deep into a large
-    .astro template was being silently dropped from the production CSS bundle
-    on every build (reproduced back to the last commit, so this predates this
-    pass) — a real, if quiet, bug: the Ken Burns zoom and the load-bearing
-    Splide positioning rules were never shipping. global.css does not have that
-    problem, which is also where every other page-level stylesheet on this site
-    already lives.
+    Hero CSS (the bed entrance, the scroll-driven depth, the scroll cue and
+    the tablet vertical-centering override) lives in global.css, not in an
+    inline <style is:global> here — see THE HERO BED in that file. It moved
+    because an inline <style> this deep into a large .astro template was being
+    silently dropped from the production CSS bundle on every build, which is a
+    quiet enough failure that it survived several passes: astro check and the
+    build both reported success the whole time.
   */}
-
-  <script>
-    /* --------------------------------------------------------------------
-     * Mounting the hero slider.
-     *
-     * WHY IT WAITS FOR THE PRELOADER
-     * The title card owns the viewport — and the main thread — for 3s while it
-     * paints a `stroke-dashoffset` animation, which is a paint property, not a
-     * compositor one. Parsing and mounting a slider in that window is the same
-     * contention that got HeroHeadline and WhatsAppButton de-islanded, and it
-     * would be spent autoplaying a slideshow nobody can see behind an opaque
-     * overlay. `rr:preloader-done` is the same signal smooth-scroll.ts waits on
-     * for Lenis.
-     *
-     * Mounting late is also what staggers the image loading — see the
-     * `:not(.is-initialized)` note in the stylesheet.
-     * ------------------------------------------------------------------ */
-    import Splide from '@splidejs/splide';
-    /* Core only. The full bundle ships themes, arrow and pagination styling we
-       have explicitly turned off. */
-    import '@splidejs/splide/css/core';
-
-    const el = document.getElementById('rr-hero-slider');
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    /* Timings come off the element rather than through define:vars, which would
-       have forced this script inline and left the imports above unresolvable. */
-    const fade = Number(el?.dataset.fade ?? 1600);
-    const interval = Number(el?.dataset.interval ?? 6000);
-
-    if (el && !reduced) {
-      const mount = () => {
-        new Splide(el, {
-          /* Crossfade, not a slide — the layout must never move. */
-          type: 'fade',
-          /* REQUIRED WITH `fade`. Splide's fade layout has no cloned slides to
-             wrap through, so without rewind the autoplay stops dead on the last
-             slide and the hero freezes on slide 3 forever. */
-          rewind: true,
-          speed: fade,
-          /* Matches the fade's own curve to the site's transition language. */
-          easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
-          autoplay: true,
-          interval: interval,
-          /* This is a background, not a control. Nothing about it should react
-             to a pointer that is really aimed at the CTAs on top of it. */
-          pauseOnHover: false,
-          pauseOnFocus: false,
-          arrows: false,
-          pagination: false,
-          drag: false,
-          keyboard: false,
-          slideFocus: false,
-        }).mount();
-      };
-
-      /* Element still present => the card is running, so wait. Already gone =>
-         this is a repeat view in the same session (BaseLayout stamps
-         `rr-skip-preloader` before first paint and the overlay tears itself
-         down during parse), so mount now. */
-      if (document.getElementById('rr-preloader')) {
-        window.addEventListener('rr:preloader-done', mount, { once: true });
-      } else {
-        mount();
-      }
-    }
-  </script>
 
   {/* ---------------------------------------------------- OUR PHILOSOPHY
 
@@ -1001,7 +892,7 @@ const selected = featured.map((project, i) => {
       <div class="rr-work__details">
         {
           details.map((detail, i) => (
-            <figure class="rr-detail" data-reveal="rise" data-reveal-delay={i * 120}>
+            <figure class="rr-detail" data-reveal="mask" data-reveal-delay={i * 120}>
               <MaterialImage
                 src={detail.src}
                 alt={detail.alt}

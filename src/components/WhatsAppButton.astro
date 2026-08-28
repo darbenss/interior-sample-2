@@ -125,7 +125,7 @@ const href = buildWhatsAppUrl({ number, message, context });
       `whileHover` only, so keyboard users never saw the fill. */}
   <span
     aria-hidden="true"
-    class={`pointer-events-none absolute inset-0 origin-bottom scale-y-0 ${wipe[variant]} transition-transform duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-y-100 group-focus-visible:scale-y-100 motion-reduce:transition-none`}
+    class={`pointer-events-none absolute inset-0 origin-bottom scale-y-0 ${wipe[variant]} transition-transform duration-[600ms] ease-[var(--ease-response)] group-hover:scale-y-100 group-focus-visible:scale-y-100 motion-reduce:transition-none`}
   >
   </span>
 
@@ -135,7 +135,7 @@ const href = buildWhatsAppUrl({ number, message, context });
     showArrow && (
       <span
         aria-hidden="true"
-        class="relative z-10 inline-block transition-transform duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-1.5 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0"
+        class="relative z-10 inline-block transition-transform duration-[600ms] ease-[var(--ease-response)] group-hover:translate-x-1.5 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0"
       >
         {/* Inline SVG rather than an icon font: no extra network request,
             and it inherits currentColor through the wipe transition. */}

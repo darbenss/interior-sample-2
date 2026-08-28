@@ -1,0 +1,59 @@
+---
+/**
+ * Curtain reveal — a pinned section whose overlying panel is drawn away as you
+ * scroll, uncovering the content behind it.
+ *
+ * TWO SLOTS, TWO LAYERS.
+ *   `behind`  — what is being revealed. Scales down from 1.08 as it appears,
+ *               so the layers move at different rates and the reveal reads as
+ *               depth rather than as a sheet sliding off.
+ *   default   — the curtain itself. Travels to -100% of its own height.
+ *
+ * SCROLL COST. The section is one viewport tall; `travel` viewport-heights of
+ * scroll distance are added by ScrollTrigger as pin-spacer height. `travel={1}`
+ * means the reader scrolls one screen to draw the curtain fully.
+ *
+ * WORTH KNOWING BEFORE YOU REACH FOR THIS. The equivalent effect can be built
+ * with `position: sticky` and a negative margin, with no JavaScript at all —
+ * that is how `.rr-scrolly` in index.astro works today, and it runs entirely on
+ * the compositor. This component exists for the case the CSS version cannot
+ * express: when the curtain has to be one track in a longer scrubbed timeline
+ * alongside other elements. If all you need is "panel slides up off content",
+ * the CSS version is strictly cheaper.
+ */
+interface Props {
+  /** Viewport-heights of scroll the draw takes. Higher is slower. */
+  travel?: number;
+  class?: string;
+  id?: string;
+  'aria-labelledby'?: string;
+}
+
+const {
+  travel,
+  class: className,
+  id,
+  'aria-labelledby': labelledBy,
+} = Astro.props;
+---
+
+<section
+  id={id}
+  class={className}
+  aria-labelledby={labelledBy}
+  data-gsap="curtain"
+  data-gsap-travel={travel}
+>
+  <div data-gsap-curtain-behind>
+    <slot name="behind" />
+  </div>
+
+  {/*
+    The panel is the curtain. It is above the revealed content in paint order
+    and is the only thing that moves — the layer beneath is scaled, not
+    translated, so neither one ever changes its own box.
+  */}
+  <div data-gsap-curtain-panel>
+    <slot />
+  </div>
+</section>

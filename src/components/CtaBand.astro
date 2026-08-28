@@ -117,17 +117,13 @@ const hasBg = Boolean(bg);
         'mx-auto mt-8 max-w-3xl font-display text-display-lg',
         hasBg ? 'text-surface' : 'text-on-surface',
       ]}
-      data-reveal="words"
+      data-reveal="up"
       data-reveal-delay="80"
     >
-      {
-        headline.split(' ').map((word, i) => (
-          <>
-            {i > 0 && ' '}
-            <span class="rr-word" style={`--rr-w:${i}`}><span>{word}</span></span>
-          </>
-        ))
-      }
+      {/* One child element, which is the `up` markup contract: the slab that
+          rises out of the clipped box. This was a per-word cascade on its own
+          0.8s curve — a sixth entrance grammar for two headings. */}
+      <span>{headline}</span>
     </h2>
 
     <div

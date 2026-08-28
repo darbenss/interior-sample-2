@@ -149,12 +149,40 @@
   /* "Sharp (0) roundedness strategy" — architectural precision. */
   --radius-none: 0px;
 
-  /* "Transitions should be slow and intentional" */
-  --ease-intent: cubic-bezier(0.16, 1, 0.3, 1);
-  /* Gentler cousin of --ease-intent: no overshoot-fast head, just an even
-     ease-out. Used by the scroll-reveal and hero-cascade animations so text
-     settles rather than snapping and drifting. */
-  --ease-soft: cubic-bezier(0.33, 1, 0.68, 1);
+  /* ------------------------------------------------ THE TWO EASE FAMILIES
+
+     There are exactly two gestures on this site and they are not the same,
+     which is the distinction Nav.astro worked out locally and this block now
+     makes global.
+
+     --ease-intent  ENTRANCES. Something arriving that was not there before:
+                    a scroll reveal, the hero cascade, the preloader wordmark.
+                    Nobody is waiting on it, so it can take its time and
+                    should spread the motion across its whole duration rather
+                    than front-loading it. Paired with a 1.2s duration
+                    everywhere; 90% of the travel lands at ~650ms.
+
+     --ease-response INTERACTIVE FEEDBACK. A hover wipe, a drag handle, the
+                    navbar getting out of the way. Somebody IS waiting on it,
+                    and a curve that spreads its motion evenly reads as lag.
+                    This is the old --ease-intent value, kept and renamed for
+                    the job it was actually good at.
+
+     WHY --ease-intent CHANGED. Its previous value, cubic-bezier(0.16,1,0.3,1),
+     is 90% complete in the first quarter of any duration you give it. On the
+     0.9s `up` reveal — 27 uses, the most common gesture on the site — that
+     meant the motion was visually over in 297ms while the rarer variants took
+     757ms. Nav.astro had already measured this and escaped it with three
+     local overrides; the default was simply never revisited. */
+  --ease-intent: cubic-bezier(0.33, 1, 0.68, 1);
+  --ease-response: cubic-bezier(0.16, 1, 0.3, 1);
+  /* THE single entrance duration. Every reveal on the site reads from this,
+     so the pace is one number rather than six that drifted apart. */
+  --rr-enter-dur: 1.2s;
+  /* Retained as an alias rather than deleted: fourteen rules in this sheet
+     name it, and they were already asking for the entrance curve. One curve,
+     two spellings, no churn. */
+  --ease-soft: var(--ease-intent);
 }
 
 /* THE SMALL-PHONE OVERRIDE — narrower than the main ramp can reach on its own.
@@ -325,8 +353,8 @@
     opacity: 1;
     transform: none;
     transition:
-      opacity 1.25s var(--ease-soft),
-      transform 1.25s var(--ease-soft);
+      opacity var(--rr-enter-dur) var(--ease-intent),
+      transform var(--rr-enter-dur) var(--ease-intent);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -551,21 +579,32 @@
    SCROLL REVEAL VARIANTS
 
    The observer in BaseLayout selects `[data-reveal]`, which matches the
-   attribute whether or not it carries a value — so `data-reveal="rise"` is
+   attribute whether or not it carries a value — so `data-reveal="mask"` is
    picked up by the existing observer with ZERO JavaScript changes and zero
    extra observers. The variants below are pure CSS keyed on the attribute
    value.
 
      (none)  fade-up.  Body copy, headings, list items.
-     rise    fade-up + a slight scale-down from over-size. Photographs only:
-             the frame settles into place the way a plate does, and the extra
-             scale is invisible on text but reads clearly on an image.
+     up      the element clips to its own box and its single child slab rises
+             out of it. Section headings, body copy, anything that is a block
+             of type. THE dominant gesture: 29 of the 41 reveals on the site.
+     mask    the same mechanic sized for a photograph: the frame holds still
+             and the image rises out of it. Plates, galleries, detail shots.
      wipe    horizontal clip-path sweep. Rules, eyebrows, small caps — SMALL
              boxes, deliberately. A clip-path animation across a full-viewport
              photograph is the one case engines composite inconsistently, so
-             large imagery uses `rise` instead.
+             large imagery uses `mask` instead.
 
-   Specificity is load-bearing: `[data-reveal='rise'].reveal-armed` is (0,2,0)
+   TWO VARIANTS WERE DELETED HERE, and the reason is worth keeping. `rise`
+   (2 uses) and `words` (5 uses across two components) were each a distinct
+   entrance grammar used so rarely that they read as inconsistency rather
+   than as intent — and both ran on their own durations, 1.3-1.4s and 0.8s,
+   while the site's dominant gesture ran at 0.9s. Six grammars at six speeds.
+   What survives is three, all on --rr-enter-dur and --ease-intent: `up` for
+   blocks of type, `mask` for photographs, `wipe` for rules and eyebrows.
+   They are one gesture at three scales, not three ideas.
+
+   Specificity is load-bearing: `[data-reveal='mask'].reveal-armed` is (0,2,0)
    against `.reveal-armed`'s (0,1,0), so the variants win. The reduced-motion
    reset therefore has to match at (0,2,0) / (0,3,0) too and sit later in the
    sheet — `.reveal-armed` alone would lose to the variant it is trying to
@@ -574,17 +613,6 @@
    =========================================================================== */
 
 @layer components {
-  [data-reveal='rise'].reveal-armed {
-    transform: translateY(22px) scale(1.025);
-  }
-
-  [data-reveal='rise'].reveal-armed.is-visible {
-    transform: none;
-    transition:
-      opacity 1.3s var(--ease-soft),
-      transform 1.4s var(--ease-soft);
-  }
-
   [data-reveal='wipe'].reveal-armed {
     /* Opacity stays at 1: the whole point of a wipe is that the element is
        uncovered, not faded. Overriding the base rule's `opacity: 0` here is
@@ -596,7 +624,7 @@
 
   [data-reveal='wipe'].reveal-armed.is-visible {
     clip-path: inset(0 -30% 0 0);
-    transition: clip-path 1.2s var(--ease-soft);
+    transition: clip-path var(--rr-enter-dur) var(--ease-intent);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -636,6 +664,13 @@
        inside it does. Both properties are overriding the base .reveal-armed. */
     opacity: 1;
     transform: none;
+    /* THE FRAME HAS TO CLIP, or the 101%-translated child simply hangs below
+       it in plain sight. The three original consumers (.rr-rg__cell,
+       .rr-sel__frame) already clipped via their own classes, so this was
+       load-bearing-by-accident until the `rise` conversions arrived with
+       containers that did not. `clip`, never `hidden` — `hidden` would make
+       every frame a scroll container. */
+    overflow: clip;
   }
 
   [data-reveal='mask'].reveal-armed > :first-child {
@@ -644,7 +679,7 @@
 
   [data-reveal='mask'].reveal-armed.is-visible > :first-child {
     transform: none;
-    transition: transform 1.4s var(--ease-soft);
+    transition: transform var(--rr-enter-dur) var(--ease-intent);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -656,62 +691,13 @@
   }
 }
 
-/* ===========================================================================
-   WORDS REVEAL — the fifth `data-reveal` variant
-
-   For a heading only: each word is its own mask (`.rr-word` inline-block with
-   `overflow: hidden`) and the inner span rises from below its own baseline, one
-   after another. Everything else on the page reveals as a whole block; this is
-   the treatment reserved for the two lines that carry the site's voice
-   ("Crafting Spaces That Inspire", "Where form meets feeling").
-
-   The container is un-hidden the moment it is armed (opacity/transform reset) —
-   what animates is per-word, driven by `--rr-w` (the word's index) as a
-   `transition-delay`. Transform only, so it is compositor-owned.
-   =========================================================================== */
 @layer components {
-  [data-reveal='words'].reveal-armed {
-    opacity: 1;
-    transform: none;
-  }
-
-  [data-reveal='words'].reveal-armed .rr-word {
-    display: inline-block;
-    overflow: hidden;
-    vertical-align: bottom;
-  }
-
-  [data-reveal='words'].reveal-armed .rr-word > span {
-    display: inline-block;
-    /* Descenders (the tail on "g", "p") sit below the line box; a hair of extra
-       line-height keeps the mask from slicing them flat. */
-    line-height: 1.18;
-    /* 115%, not 110% — a full mask, no top-of-glyph sliver before the beat. */
-    transform: translateY(115%);
-  }
-
-  [data-reveal='words'].reveal-armed.is-visible .rr-word > span {
-    transform: none;
-    /* Crisp ease-out settle + a firm per-word beat — the kononenkogroup.com
-       line-reveal cadence, not a soft fade-up. */
-    transition: transform 0.8s var(--ease-intent);
-    transition-delay: calc(var(--rr-w, 0) * 95ms);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    [data-reveal='words'].reveal-armed .rr-word > span,
-    [data-reveal='words'].reveal-armed.is-visible .rr-word > span {
-      transform: none;
-      transition: none;
-    }
-  }
-
   /* -------------------------------------------- UP REVEAL — the sixth variant
 
      A whole-block line rise, no fade: the element clips to its own box and its
      single child slab slides up from below. This is the "staggered the whole"
-     treatment for section headings and body copy — same mask mechanic as
-     `words`, one beat instead of per-word. Markup contract: exactly one child
+     treatment for section headings and body copy. Markup contract: exactly
+     one child
      element wrapping the text, e.g. `<h2 data-reveal="up"><span>…</span></h2>`.
 
      `overflow-clip-margin` gives descenders on the settled text room to sit
@@ -734,7 +720,7 @@
 
   [data-reveal='up'].reveal-armed.is-visible > * {
     transform: none;
-    transition: transform 0.9s var(--ease-intent);
+    transition: transform var(--rr-enter-dur) var(--ease-intent);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -1621,19 +1607,13 @@
      The hero photograph and the closing band's photograph push in a little as
      you scroll through them — `scale` only, keyed to each image's own view()
      timeline. `scale` (the property, not a `transform`) so it composes with the
-     hero slides' Ken Burns transform instead of replacing it, and scaling UP
+     any transform already on the element instead of replacing it, and scaling UP
      only ever overfills the clip box — it can never open a gap or a white edge.
      `@supports` + desktop + no-preference: mobile, reduced motion and engines
      without scroll-driven animation get plain native scroll with the images at
      rest. The existing Lenis instance is untouched. */
   @supports (animation-timeline: view()) {
     @media (width >= 48rem) and (prefers-reduced-motion: no-preference) {
-      .rr-hero-slider .splide__slide img {
-        animation: rr-scroll-zoom linear both;
-        animation-timeline: view();
-        animation-range: cover;
-      }
-
       .rr-cta-reveal > section > img {
         animation: rr-scroll-zoom linear both;
         animation-timeline: view();
@@ -1750,8 +1730,8 @@
   }
 
   /* Montserrat / uppercase — the navbar wordmark at display scale. One line,
-     no wrap; the clip on .rr-footer is the safety net. `> span` is the
-     data-reveal="words" container; the per-word masks inherit the type. */
+     no wrap; the clip on .rr-footer is the safety net. `> span` is the slab
+     that data-reveal="up" rises out of its clipped box. */
   .rr-footer__wordmark > span {
     display: block;
     font-family: var(--font-body);
@@ -1766,12 +1746,6 @@
        px of air each side rather than a clipped glyph. `overflow: clip` on
        .rr-footer is still the hard backstop. */
     font-size: clamp(2.5rem, 14.2vw, 14rem);
-  }
-
-  /* All-caps, no descenders — pull the per-word mask tight to the cap height
-     so it does not add slack above the letters. */
-  .rr-footer__wordmark .rr-word > span {
-    line-height: 0.9;
   }
 
   /* ---------------------------------------------------------- THE DETAILS */
@@ -1974,20 +1948,18 @@
    from the production CSS bundle on every build — reproduced against the
    last committed baseline too, so this predates any change in this session.
    astro check passed and the build reported success throughout; the only way
-   to see it was to grep the compiled output for `.rr-hero-slider` and find
-   nothing. The Ken Burns zoom and, more seriously, the LOAD-BEARING Splide
-   positioning rule (without which the slider is a `position: relative`,
-   initially-hidden block sitting in normal flow instead of an absolutely
-   positioned, full-bleed backdrop) were never actually shipping.
+   to see it was to grep the compiled output for the hero rules and find
+   nothing — so the zoom and, more seriously, the load-bearing positioning
+   were never actually shipping.
 
    UNLAYERED, NOT INSIDE @layer components — same reasoning as THE DESKTOP
    HALF OF THE HEADING RAMP above. `@layer` rules lose to ANY unlayered rule
    of equal-or-lower specificity, full stop, before specificity is even
-   compared — layer origin is sorted first in the cascade. Splide's own
-   `@splidejs/splide/css/core` import lands in this same compiled stylesheet
-   unlayered, so `.rr-hero-slider.splide` MUST also stay unlayered or its
-   documented "two classes beats one regardless of sheet order" guarantee,
-   below, would be silently false. Everything in this section stays bare CSS.
+   compared: layer origin is sorted first in the cascade. That mattered
+   originally because Splide's own core CSS landed in this same stylesheet
+   unlayered. Splide is gone, but the section stays bare CSS — it still has
+   to beat the Tailwind utilities on the hero section itself, and moving it
+   into a layer now would be a silent regression rather than a tidy-up.
    ═══════════════════════════════════════════════════════════════════════ */
     /* ================================================ VERTICAL POSITION
 
@@ -2016,164 +1988,76 @@
       }
     }
 
-    /* ===================================================== THE HERO SLIDER
+    /* ======================================================= THE HERO BED
 
-       Splide's core CSS handles positioning (the fade layout puts every slide
-       at inset 0 and animates opacity). Everything here is either sizing it to
-       the section or driving the Ken Burns move.
-    */
+       Replaces the Splide crossfade. Two nested elements because the two
+       motions both want `transform`, and two animations on one element means
+       the later declaration wins and the other never runs.
 
-    /* ------------------------------------------- POSITIONING (LOAD-BEARING)
+       THE BED: the entrance. An oversize crop settling as the title card
+       lifts, on the same --rr-enter-start every other hero element reads.
 
-       `.rr-hero-slider.splide`, not `.rr-hero-slider` — the doubled class is
-       the whole point.
+       THE IMG: the depth. Scroll-driven, so the room recedes as the reader
+       leaves it. This is the part that used to be a slideshow.
 
-       Splide's core CSS contains `.splide { position: relative; visibility:
-       hidden }`. That is a single class, exactly as specific as Tailwind's
-       `.absolute`, and it is injected AFTER the Tailwind sheet — so the
-       `absolute inset-0 -z-20` utilities this element used to carry silently
-       lost the cascade. The slider became a 900px block in the section's flex
-       column instead of a backdrop: it pushed the hero content out of the
-       section's `overflow: hidden` box and the photograph was clipped to the
-       top ~385px, with the scrims compositing over the page background below.
-       Every box measured 1440x900 the whole time; only `position` was wrong.
-
-       `visibility` matters just as much, and for a case that never shows up in
-       a browser with JS on: Splide only flips `.splide` back to visible when it
-       stamps `is-initialized` on mount. We deliberately do NOT mount under
-       `prefers-reduced-motion`, and a no-JS visitor never mounts either — both
-       of which would have left the hero with no photograph at all. Forcing it
-       visible here is what makes the static single-slide fallback actually
-       render.
-
-       Two classes beats one regardless of sheet order, so this cannot regress
-       if the CSS import moves. */
-    .rr-hero-slider.splide {
+       UNLAYERED, like the block that used to live here — see the note above.
+       It no longer has to beat Splide's core CSS (that is gone), but it does
+       still have to beat the utility classes on the section. */
+    .rr-hero-bed {
       position: absolute;
       inset: 0;
       z-index: -20;
-      visibility: visible;
+      /* Clips the overscan the img below needs in order to drift without
+         ever dragging its own edge into frame. */
+      overflow: clip;
     }
 
-    .rr-hero-slider,
-    .rr-hero-slider .splide__track,
-    .rr-hero-slider .splide__list {
-      height: 100%;
-    }
-
-    .rr-hero-slider .splide__slide {
+    /* THE OVERSCAN. The img is taller than its frame and seated above the
+       top edge, so a downward drift of ~7% of its own height still leaves
+       both edges outside the box. Straight from the parallax shape in
+       gsap.css — scale alone would not have needed it, but the drift does. */
+    .rr-hero-bed img {
+      position: absolute;
+      top: -7.5%;
+      left: 0;
       width: 100%;
-      height: 100%;
-      /* The zoom pushes the image past its own box; without this the scaled
-         edges would spill over the section's rounded/clipped bounds. */
-      overflow: hidden;
-    }
-
-    .rr-hero-slider .splide__slide img {
-      width: 100%;
-      height: 100%;
+      height: 115%;
       object-fit: cover;
-      /* NOT centred. Every studio render carries the Ruang Rasa watermark low and
-         centred in the frame; pulling the crop up to 38% drops it out of view on
-         any landscape viewport, which is every desktop. A phone crops the hero
-         horizontally instead — the full height is shown whatever this says — so
-         the mark stays visible there, sitting under the bottom scrim behind the
-         CTA row. Left as it is on purpose: it is the studio's own logo on the
-         studio's own work, and stripping it from the source files is a decision
-         for them, not for a stylesheet. */
-      object-position: center 38%;
     }
 
-    /* -------------------------------------------- NO-JS / PRE-MOUNT FALLBACK
-
-       Splide stamps `is-initialized` on the root when it mounts. Until then —
-       and forever, if JavaScript never runs or reduced motion is on — only the
-       first slide is shown. Without this the un-mounted <ul> lays all three
-       images out as flex children and the hero is a row of thirds.
-
-       `display: none` is doing double duty. It is also what keeps slides 2-3
-       from being fetched during LCP: they are stacked at inset-0, so `loading
-       ="lazy"` alone would NOT defer them (a lazy image inside the viewport
-       loads immediately). An element with no layout box never intersects
-       anything, so the fetch waits for the mount. */
-    .rr-hero-slider:not(.is-initialized) .splide__slide:not(:first-child) {
-      display: none;
-    }
-
-    /* ------------------------------------------------------- KEN BURNS
-
-       Pure CSS, no JS animation loop: one transform on a composited layer, so
-       the drift costs nothing on the main thread and cannot stutter while the
-       page hydrates.
-
-       THE RESET IS THE HARD PART, NOT THE TRIGGER.
-       When a slide loses `.is-active` it has to get back to scale(1) before its
-       next turn. Doing that with the same 8s transition means slide 3 is still
-       un-zooming while slide 1 has started zooming again; doing it instantly
-       means the outgoing slide visibly snaps back while it is still half-opaque
-       mid-crossfade.
-
-       So: duration 0s, DELAYED by exactly the crossfade length. The outgoing
-       slide holds its zoom for the whole fade — which is what the eye expects,
-       the motion does not stop dead — and then resets in a single frame at the
-       moment it becomes fully invisible. `--heroFade` is injected from
-       the element as --rr-hero-fade, from the same constant passed to Splide's
-       `speed`, so the two can never drift apart. */
-    .rr-hero-slider .splide__slide img {
-      transform: scale(1);
-      transition: transform 0s linear var(--rr-hero-fade, 1600ms);
-    }
-
-    .rr-hero-slider .splide__slide.is-active img {
-      transform: scale(1.08);
-      transition: transform 8s ease-out;
-    }
-
-    /* No standing `will-change`. Three full-viewport images promoted for the
-       life of the page is real memory on exactly the devices least able to
-       spare it, and the browser promotes a transitioning transform on its own
-       for the duration it is actually moving. Same reasoning as the preloader's
-       letters. */
-
-    @media (prefers-reduced-motion: reduce) {
-      /* The script does not mount Splide at all under reduced motion, so the
-         fallback rule above is already showing a single static slide. These
-         two are belt-and-braces for the case where something else adds the
-         class (a devtools experiment, a future refactor). */
-      .rr-hero-slider .splide__slide img,
-      .rr-hero-slider .splide__slide.is-active img {
-        transform: none;
-        transition: none;
+    @media (prefers-reduced-motion: no-preference) {
+      .rr-hero-bed {
+        animation: rr-hero-bed-in 1800ms var(--ease-intent)
+          var(--rr-enter-start, 0ms) both;
       }
-    }
 
-    /* --------------------------------------------------- THE ENTRANCE ZOOM
+      html.rr-skip-preloader .rr-hero-bed {
+        animation-delay: 0ms;
+      }
 
-       The photograph settles out of an oversize crop as the title card lifts.
-       It is the one move that makes a full-bleed hero read as a film opening
-       rather than as a wallpaper that was simply always there.
+      @supports (animation-timeline: scroll()) {
+        /* SCROLL-DRIVEN DEPTH. Interpolated by the compositor straight off
+           the scroll offset — no listener, no rAF, no main-thread work per
+           frame, and it inherits Lenis's easing for free because Lenis
+           drives the real scroll position this timeline reads.
 
-       ON THE SLIDER ROOT, NOT ON THE IMAGE. The <img> already owns `transform`
-       for the Ken Burns drift, and two animations competing for one property
-       means whichever is declared last wins outright — the drift would be
-       cancelled, or this would. The root is a different element, so the two
-       transforms COMPOSE: the bed eases 1.06 -> 1 while the active slide
-       begins its own slow push, and the result is a settle that hands off into
-       a drift.
-
-       SAFE ON THIS ELEMENT SPECIFICALLY. `transform` creates a containing
-       block and a stacking context, and both of those are load-bearing here.
-       Neither changes: the element is already `position: absolute; z-index:
-       -20`, so it already had a stacking context and still paints below the
-       scrims at -10; and Splide positions its slides against `.splide__track`,
-       not against this, so the new containing block reaches nothing.
-
-       --rr-enter-start arrives inline from TIMELINE.fadeStart, alongside
-       --rr-hero-fade. The two overrides below are the same pair every
-       .rr-enter animation needs — see the long note in global.css for what
-       each one is preventing. */
-    .rr-hero-slider.splide {
-      animation: rr-hero-bed-in 1800ms var(--ease-intent) var(--rr-enter-start, 0ms) both;
+           THE KEYFRAME ORDER IS A FAILSAFE. With `both` fill, a timeline
+           that PARSES but does not RESOLVE parks the element on its `from`
+           frame forever — the exact failure the services rail carries a
+           whole JS audit for. So `from` is the correct static state: a dead
+           timeline costs the effect, never the hero. */
+        .rr-hero-bed img {
+          animation-name: rr-hero-depth;
+          /* Spelled out: the `animation` shorthand resets duration to 0s,
+             and `auto` (fill the range) is the whole behaviour. */
+          animation-duration: auto;
+          animation-timing-function: linear;
+          animation-fill-mode: both;
+          animation-timeline: scroll();
+          /* Complete by the time the hero has fully left. */
+          animation-range: 0 100svh;
+        }
+      }
     }
 
     @keyframes rr-hero-bed-in {
@@ -2185,16 +2069,14 @@
       }
     }
 
-    html.rr-skip-preloader .rr-hero-slider.splide {
-      animation-delay: 0ms;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .rr-hero-slider.splide {
-        animation: none;
+    @keyframes rr-hero-depth {
+      from {
+        transform: translate3d(0, 0, 0) scale(1);
+      }
+      to {
+        transform: translate3d(0, 7%, 0) scale(1.08);
       }
     }
-
     /* Slow travelling highlight down the rule, so the cue reads as an
        invitation rather than a static label. Transform only — compositor. */
     .rr-hero-cue {
@@ -2211,76 +2093,3 @@
     @media (prefers-reduced-motion: reduce) {
       .rr-hero-cue { animation: none; }
     }
-
-
-/* ═══════════════════════════════════════════════════════════════════════
-   SPLIDE'S OWN CORE CSS — INLINED, NOT IMPORTED.
-
-   The hero mount script (below, `<script>` further down this file's source
-   page) does `import '@splidejs/splide/css/core'` as documented there. That
-   import resolves correctly (verified against the installed package: it
-   points at dist/css/splide-core.min.css, which exists and contains real
-   rules) but its output has never once landed in a production build — not
-   after any change in this session, and not at the last committed baseline
-   either. Same failure family as the block above: a CSS side effect from
-   deep inside a page-level <script> silently not making it into the bundle,
-   for reasons that would take a genuine Vite/Astro bisection to run down
-   further than this file's author has taken it.
-
-   THE CONSEQUENCE WAS WORSE THAN COSMETIC. Splide's fade layout depends
-   entirely on its own core CSS for the opacity swap —
-   `.splide__track--fade > .splide__list > .splide__slide { opacity: 0 }` and
-   `.is-active { opacity: 1 }` are not something Splide sets inline via JS,
-   they are the CSS contract the library assumes is present. Without them,
-   every slide sits at whatever default opacity the browser gives a plain
-   element — all three fully visible, stacked, with no crossfade at all. The
-   `.rr-hero-slider.splide{...}` override above only ever covered POSITION;
-   it was never a substitute for this.
-
-   WHAT'S HERE IS A DELIBERATE SUBSET, not the whole core stylesheet. Splide
-   ships CSS for pagination, arrows, a loading spinner, drag/touch scrolling
-   and RTL — all switched off in this mount (`arrows:false, pagination:false,
-   drag:false`, and the site is LTR), so none of that is reproduced. This is
-   the fade-transition, list-layout and slide-layout rules only: the actual
-   minimum Splide needs to do its one job here. Confirmed against the
-   installed package's real dist/css/splide-core.min.css — read that file
-   before changing Splide versions, since a future release could rename or
-   restructure these selectors.
-
-   The `import '@splidejs/splide/css/core'` line in the script stays. It
-   costs nothing (an import whose CSS output is dropped is not injecting
-   dead weight — there is no weight), and if some future Astro/Vite upgrade
-   fixes whatever is eating this class of import, the rules below simply
-   become harmless duplicates rather than a silent gap reappearing. */
-.rr-hero-slider .splide__track {
-  position: relative;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.rr-hero-slider .splide__list {
-  display: flex;
-  backface-visibility: hidden;
-}
-
-.rr-hero-slider .splide__slide {
-  position: relative;
-  box-sizing: border-box;
-  flex-shrink: 0;
-  list-style-type: none !important;
-  backface-visibility: hidden;
-}
-
-/* The fade transition itself — this pair is the whole reason the crossfade
-   was never visible. `type: 'fade'` in the mount options tells Splide to add
-   `.splide__track--fade` to the track; everything else is these two rules. */
-.rr-hero-slider .splide__track--fade > .splide__list > .splide__slide {
-  margin: 0 !important;
-  opacity: 0;
-  z-index: 0;
-}
-
-.rr-hero-slider .splide__track--fade > .splide__list > .splide__slide.is-active {
-  opacity: 1;
-  z-index: 1;
-}

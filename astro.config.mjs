@@ -23,7 +23,14 @@ export default defineConfig({
   adapter: cloudflare({
     imageService: 'compile',
   }),
-  integrations: [react(), sitemap()],
+  integrations: [
+    react(),
+    /* The lab page is noindex, but a noindex URL sitting in a sitemap is a
+       contradiction crawlers report as an error — the sitemap asserts it is
+       worth indexing while the page refuses. Delete this filter along with
+       src/pages/gsap-lab.astro. */
+    sitemap({ filter: (page) => !page.includes('/gsap-lab') }),
+  ],
 
   /* Cloudflare Pages normalises directory-style URLs by 308-redirecting
      /portfolio -> /portfolio/. Emitting real .html files instead means

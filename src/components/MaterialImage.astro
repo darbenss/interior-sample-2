@@ -101,7 +101,7 @@ const boxClasses = [
         loading={priority ? 'eager' : 'lazy'}
         fetchpriority={priority ? 'high' : 'auto'}
         decoding="async"
-        class={`h-full w-full object-cover ${position} transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)]`}
+        class={`h-full w-full object-cover ${position} transition-transform duration-[1200ms] ease-[var(--ease-response)]`}
       />
 
       {materialLabel && (

@@ -1,5 +1,6 @@
 ---
 import '@/styles/global.css';
+import '@/styles/gsap.css';
 import Nav from '@/components/Nav.astro';
 import Preloader from '@/components/Preloader.astro';
 import { ONCE_PER_SESSION as preloaderOncePerSession } from '@/components/preloader/timeline';
@@ -236,6 +237,22 @@ const analyticsEndpoint = import.meta.env.PUBLIC_ANALYTICS_ENDPOINT ?? '';
     <script>
       import { initSmoothScroll } from '@/lib/smooth-scroll';
       initSmoothScroll();
+    </script>
+
+    {/*
+      ------------------------------------------------------------ GSAP LAYER
+
+      Loaded AFTER initSmoothScroll so that on a warm cache the Lenis instance
+      usually exists by the time this runs and the handoff is direct rather
+      than going through the rr:lenis-ready event. Either order is correct —
+      gsap-scroll.ts handles both — this one is simply one event cheaper.
+
+      The library is behind a dynamic import gated on the preloader, and is
+      never fetched under prefers-reduced-motion. See src/lib/gsap-scroll.ts.
+    */}
+    <script>
+      import { initGsapScroll } from '@/lib/gsap-scroll';
+      initGsapScroll();
     </script>
 
     <slot name="head" />

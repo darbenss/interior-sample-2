@@ -1,0 +1,42 @@
+---
+/**
+ * Line-masked text reveal.
+ *
+ * Renders a real, settled heading or paragraph. The only thing that marks it
+ * for animation is the `data-gsap` attribute, which gsap-effects.ts looks for —
+ * so with no JS, a failed chunk, or reduced motion, this is an ordinary block
+ * of type with no hidden state to get stuck in.
+ *
+ * USAGE
+ *   <SplitReveal as="h2" class="font-display text-headline-lg">
+ *     Three ways we take on a space.
+ *   </SplitReveal>
+ *
+ * ONE ELEMENT, ONE BLOCK OF TEXT. SplitText measures line boxes, so the target
+ * must be a text container — not a wrapper holding a heading, a rule and a
+ * paragraph. Give each of those its own SplitReveal and stagger them with
+ * `delay` instead.
+ */
+interface Props {
+  /** Element to render. Use the tag the document structure actually calls for. */
+  as?: keyof HTMLElementTagNameMap;
+  /** Seconds between each line entering. */
+  stagger?: number;
+  /** Seconds to wait after the trigger fires — for sequencing sibling blocks. */
+  delay?: number;
+  class?: string;
+  id?: string;
+}
+
+const { as: Tag = 'p', stagger, delay, class: className, id } = Astro.props;
+---
+
+<Tag
+  id={id}
+  class={className}
+  data-gsap="split"
+  data-gsap-stagger={stagger}
+  data-gsap-delay={delay}
+>
+  <slot />
+</Tag>

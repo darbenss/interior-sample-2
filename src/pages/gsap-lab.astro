@@ -1,0 +1,126 @@
+---
+/**
+ * GSAP effect lab — a scratch page for verifying the scroll layer by hand.
+ *
+ * NOT PART OF THE SITE. It is `noIndex`, it is linked from nowhere, and it
+ * should be deleted (or the whole GSAP layer reverted) once the decision is
+ * made either way. It exists because the failure modes in this area are
+ * invisible to code review and to screenshots — the codebase has already lost
+ * its scrollbar once to a change that looked perfect in the diff — so there
+ * needs to be one page that exercises every effect at once and can be scrolled
+ * with a real wheel on a real machine.
+ *
+ * WHAT TO CHECK, IN ORDER
+ *   1. The page scrolls at all, by wheel, by scrollbar drag, and by keyboard
+ *      (space / PageDown). This is the one that has bitten before: the GSAP
+ *      bridge turns Lenis's own rAF off, and if the handoff is wrong the page
+ *      silently swallows every wheel event and sits at the top.
+ *   2. The headline reveals line by line, each line rising out of its own
+ *      clipped box rather than the block fading in as one piece.
+ *   3. The curtain pins, draws up over one screen of scroll, and unpins
+ *      without the content beneath it jumping at either boundary.
+ *   4. The parallax image drifts against the page and never shows an edge.
+ *   5. Resize the window mid-page and scroll again — nothing should be
+ *      measured against the old layout.
+ *   6. DevTools > Rendering > "Emulate prefers-reduced-motion": reload, then
+ *      check BOTH halves — no gsap chunk requested in the Network panel, AND
+ *      all three sections still read correctly. The second half is the one
+ *      that catches real bugs: the curtain's two layers stop being layers on
+ *      this path and become stacked sections, and a collapsed one renders as
+ *      a blank screen rather than as an error.
+ */
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import SplitReveal from '@/components/gsap/SplitReveal.astro';
+import Curtain from '@/components/gsap/Curtain.astro';
+import Parallax from '@/components/gsap/Parallax.astro';
+
+import home01 from '@/assets/images/home/home-01.jpg';
+import home03 from '@/assets/images/home/home-03.jpg';
+import studio01 from '@/assets/images/studio/studio-01.jpg';
+---
+
+<BaseLayout title="GSAP Lab" description="Internal animation test page." noIndex>
+  <section class="mx-auto max-w-4xl px-6 py-[30svh]">
+    <p class="font-body text-label-caps uppercase tracking-[0.15em] text-brass-deep">
+      Test 1 — Split reveal
+    </p>
+
+    <SplitReveal
+      as="h1"
+      class="mt-8 font-display text-headline-lg text-on-surface"
+      stagger={0.09}
+    >
+      Every line of this heading is wrapped in its own clipped box and rises out
+      of it, so the type is uncovered rather than flown in from somewhere else.
+    </SplitReveal>
+
+    <SplitReveal
+      as="p"
+      class="mt-10 font-body text-body-lg font-light text-on-surface-variant"
+      delay={0.15}
+    >
+      Resize the window while this is on screen. The split is rebuilt against
+      the new line breaks, so no word is ever left clipped in half by a wrapper
+      that belongs to a layout the page no longer has.
+    </SplitReveal>
+  </section>
+
+  {/* ------------------------------------------------------------- Test 2 */}
+  <Curtain travel={1} class="text-surface">
+    <Fragment slot="behind">
+      <img
+        src={home03.src}
+        alt=""
+        class="h-full w-full object-cover"
+        aria-hidden="true"
+      />
+    </Fragment>
+
+    <div class="flex h-full w-full flex-col items-center justify-center bg-charcoal px-6 text-center">
+      <p class="font-body text-label-caps uppercase tracking-[0.15em] text-brass">
+        Test 2 — Curtain
+      </p>
+      <p class="mt-6 max-w-xl font-display text-headline-md">
+        This panel is drawn upward as you scroll. The photograph behind it
+        settles from a slight scale at the same time, so the two layers move at
+        different rates.
+      </p>
+    </div>
+  </Curtain>
+
+  {/* ------------------------------------------------------------- Test 3 */}
+  <section class="mx-auto max-w-5xl px-6 py-[25svh]">
+    <p class="font-body text-label-caps uppercase tracking-[0.15em] text-brass-deep">
+      Test 3 — Parallax
+    </p>
+
+    <Parallax
+      src={home01}
+      alt=""
+      depth={-14}
+      class="mt-8 aspect-[3/2] w-full"
+      sizes="(min-width: 1024px) 64rem, 100vw"
+    />
+
+    <p class="mt-16 font-body text-body-lg font-light text-on-surface-variant">
+      The image above drifts against the scroll. The one below uses the opposite
+      sign, so it travels slightly faster than the page — useful sparingly, for
+      something meant to read as being in front of the plane of the screen.
+    </p>
+
+    <Parallax
+      src={studio01}
+      alt=""
+      depth={10}
+      class="mt-16 aspect-[3/2] w-full"
+      sizes="(min-width: 1024px) 64rem, 100vw"
+    />
+  </section>
+
+  <section class="mx-auto max-w-4xl px-6 pb-[40svh]">
+    <p class="font-body text-body-md text-on-surface-variant">
+      End of lab. If you scrolled to here with the wheel, the Lenis to GSAP
+      ticker handoff is working.
+    </p>
+  </section>
+</BaseLayout>

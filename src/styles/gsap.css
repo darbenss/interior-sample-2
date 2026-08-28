@@ -1,0 +1,153 @@
+/* ---------------------------------------------------------------------------
+ * Styles for the GSAP effect layer.
+ *
+ * There is deliberately very little here. Anything that describes MOTION lives
+ * in gsap-effects.ts, because a start state written in CSS is a start state
+ * that a failed bundle cannot undo — this site's reveal system is additive on
+ * purpose (elements ship settled; script arms them), and splitting the hidden
+ * state across two files is how that guarantee gets quietly lost.
+ *
+ * So CSS here does exactly two jobs: give the compositor the hints it cannot
+ * infer, and hold the layout the effects assume.
+ * ------------------------------------------------------------------------- */
+
+/* --------------------------------------------------------------- WILL-CHANGE
+
+   Toggled on by ScrollTrigger's onToggle for the span an element is actually
+   animating, and off again when it leaves. Never authored onto an element
+   permanently: each one of these is a compositor layer holding its own texture
+   in VRAM, and a page full of permanently-promoted layers scrolls WORSE, not
+   better. */
+.rr-gsap-active {
+  will-change: transform;
+}
+
+/* ------------------------------------------------------------ SPLIT REVEAL
+
+   SplitText writes the structural styles itself — it sets `overflow: clip` on
+   each mask wrapper and `display: block` on the lines. What it cannot know is
+   the typographic context, which is what these rules supply. */
+
+/* The mask wrapper SplitText clones for each line. It takes the line's own
+   class plus `-mask`, so `.rr-line` becomes `.rr-line-mask`.
+
+   PADDING, NOT OVERFLOW-VISIBLE. A clipped box cuts descenders and any
+   accent that rises above the cap height — the 'g' in a heading loses its
+   tail. The wrapper is padded to give those room and pulled back by the same
+   amount, so the clip happens outside the glyphs while the line box stays
+   exactly where the layout put it. */
+.rr-line-mask {
+  padding-bottom: 0.18em;
+  margin-bottom: -0.18em;
+  /* `clip` rather than `hidden`: `overflow: hidden` makes the element a
+     scroll container, which lets a focused link inside it be scrolled into
+     view and shunt the text sideways permanently. `clip` cuts without ever
+     becoming scrollable. */
+  overflow: clip;
+}
+
+.rr-line {
+  /* The lines are translated on their own axis; without this they inherit
+     whatever `will-change` context the parent had and get promoted
+     individually even when idle. */
+  will-change: auto;
+}
+
+/* Text that has been split is mid-transformation until the tween has run.
+   If the script never arrives, the split never happens and this rule never
+   matches anything — the type renders as ordinary settled text. */
+
+/* ----------------------------------------------------------------- CURTAIN
+
+   The section is pinned by ScrollTrigger, which wraps it in a pin-spacer and
+   fixes it. Everything here is about establishing the two layers and their
+   paint order; none of it moves. */
+[data-gsap='curtain'] {
+  position: relative;
+  /* The pinned section is exactly one viewport tall. The scroll distance the
+     curtain takes to draw is added by ScrollTrigger as spacer height, so this
+     never needs to know about it. */
+  min-height: 100svh;
+  overflow: clip;
+}
+
+[data-gsap-curtain-behind] {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+[data-gsap-curtain-panel] {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  /* The panel is translated to -100% of its own height. Declaring the
+     transform up front means the compositor has a transform matrix for this
+     element from the first frame rather than creating one mid-animation. */
+  transform: translate3d(0, 0, 0);
+}
+
+/* ---------------------------------------------------------------- PARALLAX
+
+   A parallax element is moved beyond its own box, so its container has to be
+   willing to clip it, and the element itself has to be oversized enough that
+   the movement never drags an edge into frame.
+
+   The 1.25 scale is the floor for the default depth of 12%: the element
+   travels 6% of its height in each direction, and 12% of overscan covers that
+   with room for the browser's sub-pixel rounding at the edges. */
+[data-gsap='parallax'] {
+  transform: translate3d(0, 0, 0);
+}
+
+.rr-parallax-frame {
+  position: relative;
+  overflow: clip;
+}
+
+.rr-parallax-frame > [data-gsap='parallax'] {
+  width: 100%;
+  height: 125%;
+  position: absolute;
+  top: -12.5%;
+  left: 0;
+  object-fit: cover;
+}
+
+/* ---------------------------------------------------------- REDUCED MOTION
+
+   gsap-scroll.ts returns before fetching the library at all under this query,
+   so nothing below is undoing an animation — it is making sure the layout the
+   effects assumed still reads correctly when they never run.
+
+   The parallax overscan is the only one that matters: without the movement,
+   a 125%-tall image pinned at -12.5% is simply a badly cropped photograph. */
+@media (prefers-reduced-motion: reduce) {
+  .rr-parallax-frame > [data-gsap='parallax'] {
+    height: 100%;
+    top: 0;
+  }
+
+  /* The curtain's whole purpose is to cover the content behind it until
+     scroll uncovers it. With no scroll animation to do the uncovering, the
+     panel would sit over that content permanently — so the two layers stop
+     being layers and become two sections, stacked, in source order.
+
+     EACH KEEPS A VIEWPORT OF HEIGHT. Taking them out of absolute positioning
+     removes the height they were inheriting from `inset: 0`, and any
+     `height: 100%` child inside them then resolves against a parent with no
+     definite height — i.e. to zero, rendering the whole section blank. This is
+     the reduced-motion path, which is the one nobody looks at twice, so it is
+     spelled out rather than left to the cascade. */
+  [data-gsap='curtain'] {
+    min-height: 0;
+    overflow: visible;
+  }
+
+  [data-gsap-curtain-panel],
+  [data-gsap-curtain-behind] {
+    position: relative;
+    inset: auto;
+    min-height: 100svh;
+  }
+}
