@@ -174,16 +174,57 @@ function attachLenis(bundle: GsapBundle, lenis: LenisType): Teardown {
  * noticeably, so anything measured before the swap was measured against the
  * fallback's layout.
  */
-function scheduleRefreshes(bundle: GsapBundle): void {
-  const { ScrollTrigger } = bundle;
+/**
+ * ScrollTrigger.refresh(), minus its habit of restoring a scroll position from
+ * a document that no longer exists.
+ *
+ * WHAT REFRESH IS DOING, AND WHY IT IS NORMALLY RIGHT. Recalculating every
+ * trigger can move content (a pin spacer appears, an image finally lays out), so
+ * `refresh()` records the scroller offset first and puts it back afterwards. On
+ * a single long-lived page that is exactly what you want: the reader does not
+ * get thrown around by a font swap.
+ *
+ * WHY IT IS WRONG HERE. Under a client-side router the ScrollTrigger MODULE is
+ * never re-evaluated — killing every trigger does not reset the scroller cache
+ * it reads that offset from. So the value it "restores" on the new page can be
+ * the one it memorised on the previous one.
+ *
+ * MEASURED, on /portfolio scrolled to 2000 -> /:
+ *   563ms  the router sets scrollY to 0, correctly
+ *   627ms  we refresh
+ *   634ms  ScrollTrigger calls scrollTo(0, 2000)
+ * and the reader lands halfway down the homepage having clicked "home". It only
+ * shows where the destination is long enough for the stale offset to be a legal
+ * position, which is why the homepage was the page that looked broken.
+ *
+ * `clearScrollMemory()` is the documented remedy and did NOT fix it here —
+ * verified in a browser, twice. So this takes the position the router chose as
+ * the authority and re-asserts it if the refresh moved us. It is not a fight
+ * with the library: refresh preserves "where the reader was", and after a
+ * navigation that is wherever the router just put them.
+ */
+export function refreshKeepingScroll(bundle: GsapBundle): void {
+  const intended = window.scrollY;
 
+  bundle.ScrollTrigger.clearScrollMemory();
+  bundle.ScrollTrigger.refresh();
+
+  /* A pixel of slack: sub-pixel offsets are not the bug being corrected. */
+  if (Math.abs(window.scrollY - intended) > 1) {
+    window.scrollTo(0, intended);
+  }
+}
+
+function scheduleRefreshes(bundle: GsapBundle): void {
   /* Two frames, not one. The first frame after the lock lifts is the one the
      browser spends reflowing the now-scrollable document; measuring on it can
      still read the locked height. */
-  requestAnimationFrame(() => requestAnimationFrame(() => ScrollTrigger.refresh()));
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => refreshKeepingScroll(bundle))
+  );
 
   if ('fonts' in document) {
-    document.fonts.ready.then(() => ScrollTrigger.refresh()).catch(() => {});
+    document.fonts.ready.then(() => refreshKeepingScroll(bundle)).catch(() => {});
   }
 }
 
@@ -229,6 +270,31 @@ export function initGsapScroll(): void {
       if (!bundle || cancelled) return;
       loadedBundle = bundle;
 
+      /* SCROLLTRIGGER REMEMBERS THE SCROLL POSITION OF A PAGE THAT NO LONGER
+         EXISTS, AND PUTS IT BACK.
+
+         `refresh()` records the scroller offset before it recalculates and
+         restores it afterwards, so a reader is not thrown around by a layout
+         recalculation. That recorded value lives on the ScrollTrigger MODULE,
+         which under a client-side router is never re-evaluated — killing the
+         triggers does not touch it.
+
+         So the sequence was: router swaps the document, router scrolls to the
+         top (correctly), we refresh, and refresh helpfully restores the offset
+         it memorised on the PREVIOUS page. Measured on /portfolio -> / : Astro
+         set scrollY 0 at 560ms, ScrollTrigger put it back to 2000 at 619ms.
+         The reader lands halfway down the new page with no idea why.
+
+         It only shows where the destination is tall enough for the stale offset
+         to be a legal scroll position, which is why the homepage — the longest
+         page on the site — was the one that looked broken.
+
+         NO ARGUMENT. The optional one sets history.scrollRestoration, which is
+         the router's to manage, not ours. (The runtime takes a second `force`
+         flag that the typings do not declare; it only matters mid-refresh, and
+         neither call site is.) */
+      bundle.ScrollTrigger.clearScrollMemory();
+
       /* Lenis may already be up (it races us off the same event), may still be
          fetching its chunk, or may never arrive if that fetch failed. All three
          are fine — ScrollTrigger works against native scroll perfectly well. */
@@ -264,6 +330,10 @@ export function initGsapScroll(): void {
       window.removeEventListener('rr:lenis-ready', onLenisReady);
       teardownEffects?.();
       detachLenis?.();
+      /* Belt and braces for the same bug: drop the memory on the way out as
+         well as on the way in, so it cannot survive even if a refresh lands
+         between this teardown and the next boot. */
+      loadedBundle?.ScrollTrigger.clearScrollMemory();
     };
   });
 }

@@ -31,7 +31,7 @@
  * drop it on the way out.
  * ------------------------------------------------------------------------- */
 
-import type { GsapBundle } from './gsap-scroll';
+import { refreshKeepingScroll, type GsapBundle } from './gsap-scroll';
 import type { Teardown } from './lifecycle';
 
 /* Toggled by ScrollTrigger rather than written inline, so the compositor hint
@@ -117,8 +117,11 @@ function initSplitReveals(
 
   /* Splitting rewrites the DOM of every target, which changes their heights.
      Anything measured before this point — including the curtain and parallax
-     triggers set up below — is now measuring stale bounds. */
-  ScrollTrigger.refresh();
+     triggers set up below — is now measuring stale bounds.
+
+     Through the wrapper, not ScrollTrigger.refresh() directly: a bare refresh
+     here will drag the reader back to the previous page's scroll offset. */
+  refreshKeepingScroll({ gsap, SplitText, ScrollTrigger } as GsapBundle);
 }
 
 /* ----------------------------------------------------------------- 2. CHARS
