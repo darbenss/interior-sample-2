@@ -800,15 +800,73 @@
        enough to still be moving when the next scene starts, which is what stops
        the sequence reading as a slideshow. */
     transform: scale(1.06);
+    /* Base state only. The two `is-live` rules below carry the real
+       durations — see the note there on why they differ. */
     transition:
-      opacity 1000ms var(--ease-intent),
-      transform 2400ms var(--ease-intent);
+      opacity 900ms var(--ease-soft),
+      transform 2400ms var(--ease-soft);
   }
 
   .rr-scrolly__layer img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+
+  /* CONTINUOUS MOTION UNDERNEATH A DISCRETE CROSSFADE.
+
+     The layer above owns opacity and a settle-scale, both driven by the
+     observer through class changes. This is the other axis: a slow zoom
+     tied directly to scroll position, so the stage is never frozen
+     between scene swaps. Two rates moving at once is the whole difference
+     between "a slideshow" and "a camera move" — it is what the scripted
+     versions of this effect are actually buying, and none of it needs a
+     main thread.
+
+     ON THE IMG, NOT THE LAYER. The layer already animates `transform` via
+     transition; an animation on the same element would win outright and
+     kill the crossfade scale. The img carries no transform of its own, so
+     the two compose instead of competing.
+
+     SCALE ONLY, NEVER TRANSLATE. The img is `100%/100%` with `object-fit:
+     cover` inside a stage that clips. Scaling up grows from the centre and
+     stays covering; translating would drag an edge into frame and would
+     need overscan to fix.
+
+     THE TIMELINE IS ON .rr-scrolly, NOT AN ANONYMOUS view(). The stage is
+     `position: sticky` and therefore fully in view for the entire pin — an
+     anonymous view() on anything inside it saturates immediately and then
+     stops advancing, giving one lurch and then nothing. The ~334svh
+     section is the element whose progress actually tracks the read, which
+     is the same reason .rr-services--rail owns its own timeline. */
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      .rr-scrolly {
+        view-timeline-name: --rr-scrolly;
+        view-timeline-axis: block;
+      }
+
+      .rr-scrolly__layer img {
+        animation-name: rr-scrolly-drift;
+        /* Spelled out, not shorthand: the `animation` shorthand would reset
+           duration to 0s, and `auto` (fill the timeline) is the whole
+           behaviour. Same reasoning as the services rail. */
+        animation-duration: auto;
+        animation-timing-function: linear;
+        animation-fill-mode: both;
+        animation-timeline: --rr-scrolly;
+        animation-range: contain 0% contain 100%;
+      }
+    }
+  }
+
+  @keyframes rr-scrolly-drift {
+    from {
+      transform: scale(1);
+    }
+    to {
+      transform: scale(1.12);
+    }
   }
 
   /* NO SCRIPT — and this is the authored state, not something JS restores.
@@ -823,14 +881,34 @@
 
   /* SCRIPT IS RUNNING. It now owns every layer, the first one included — same
      specificity as the rule above and later in the sheet, so it wins. */
+  /* LEAVING. Slower than the arrival, and linear.
+
+     A transition is selected by the state being moved TO, so this rule
+     times every layer that stops being active, and the `.is-active` rule
+     below times the one that takes over. Giving them different durations
+     is the whole point: at the midpoint of a 900ms arrival the incoming
+     layer is already ~87% opaque while this one is still ~70%, so the two
+     never sum to less than one and the charcoal underneath is never
+     briefly visible as a dip. Matching curves would guarantee that dip.
+
+     Linear because this is a cross-dissolve, not an entrance. Any ease-out
+     here front-loads the fade and reintroduces exactly the snap that the
+     expo curve was causing. */
   .rr-scrolly__stage.is-live .rr-scrolly__layer {
     opacity: 0;
     transform: scale(1.06);
+    transition:
+      opacity 1500ms linear,
+      transform 2400ms var(--ease-soft);
   }
 
+  /* ARRIVING. Faster, and eased, so it reads as settling into place. */
   .rr-scrolly__stage.is-live .rr-scrolly__layer.is-active {
     opacity: 1;
     transform: none;
+    transition:
+      opacity 900ms var(--ease-soft),
+      transform 2400ms var(--ease-soft);
   }
 
   /* Two flat layers rather than anything clever. Alabaster type lands on three
@@ -848,15 +926,16 @@
 
   /* ------------------------------------------------------------- THE HUD
      Section label and progress, pinned inside the stage so they hold still
-     while the type scrolls past them. */
+     while the type scrolls past them. Sits top-right, opposite the copy. */
 
   .rr-scrolly__hud {
     position: absolute;
     inset-inline: 0;
-    bottom: 1.75rem;
+    /* Below the zone the floating navbar pill can occupy. */
+    top: 4.5rem;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 1.5rem;
     width: 100%;
     max-width: var(--container-max);
@@ -872,7 +951,7 @@
 
   @media (width >= 48rem) {
     .rr-scrolly__hud {
-      bottom: 2.5rem;
+      top: 5.5rem;
       padding-inline: var(--spacing-gutter);
     }
   }
@@ -930,10 +1009,16 @@
     }
   }
 
+  /* One full viewport per statement plus a band of air on each side, so each
+     of the three claims — "We begin with the room as it is." / "Then we choose
+     what it is made of." / "Light finishes what we started." — gets its own
+     unhurried stretch of scroll. More distance between the observer triggers is
+     what makes the crossfade read as a slow pan rather than three cuts. */
   .rr-scrolly__scene {
     display: flex;
     align-items: center;
-    min-height: 70svh;
+    min-height: 100svh;
+    padding-block: 12svh;
   }
 
   .rr-scrolly__copy {
@@ -997,7 +1082,17 @@
   @media (prefers-reduced-motion: reduce) {
     /* The photograph still changes — that is content, and the observer keeps
        running. What stops is the crossfade and the drift. */
+    /* SPECIFICITY IS LOAD-BEARING, the same way it already is for the
+       transform rule below. The crossfade durations sit on
+       `.rr-scrolly__stage.is-live .rr-scrolly__layer` (0,3,0) and on
+       `....is-active` (0,4,0). A bare `.rr-scrolly__layer` (0,1,0) loses to
+       both, so listing only that selector would leave this override doing
+       nothing at all and hand every reduced-motion visitor the full
+       crossfade — while still looking, in the diff, like it had been
+       switched off. */
     .rr-scrolly__layer,
+    .rr-scrolly__stage.is-live .rr-scrolly__layer,
+    .rr-scrolly__stage.is-live .rr-scrolly__layer.is-active,
     .rr-scrolly__dot::after {
       transition: none;
     }
@@ -1274,8 +1369,45 @@
            bottom, which is the span the sticky viewport is stuck for. */
         animation-range: contain 0% contain 100%;
       }
+
+      /* DEPTH BY DIFFERENTIAL RATE.
+
+         The rail moves left; the photograph inside each panel drifts right
+         against it, so it appears to lag the panel carrying it. Small on
+         purpose — 5% of the figure width across the whole section. Past
+         about 8% it stops reading as depth and starts reading as a layout
+         bug.
+
+         ON .rr-services__figure, THE WRAPPER — not the img inside it.
+         MaterialImage already puts a 1200ms transform transition on its own
+         img for the hover zoom, and an animation on that element would win
+         over the transition and silently kill the hover.
+
+         `:not(.rr-services--driven)` for the same reason the rail rule
+         carries it, and it matters more here: with `fill-mode: both` and a
+         timeline that resolved to nothing, this would park every figure at
+         its -2.5% start offset permanently. The class the audit stamps is
+         what takes it back off. */
+      .rr-services--rail:not(.rr-services--driven) .rr-services__figure {
+        animation-name: rr-services-figure;
+        animation-duration: auto;
+        animation-timing-function: linear;
+        animation-fill-mode: both;
+        animation-timeline: --rr-services;
+        animation-range: contain 0% contain 100%;
+      }
     }
   }
+
+  @keyframes rr-services-figure {
+    from {
+      transform: translate3d(-2.5%, 0, 0);
+    }
+    to {
+      transform: translate3d(2.5%, 0, 0);
+    }
+  }
+
   @keyframes rr-services-rail {
     to {
       transform: translateX(calc(-100% + 100vw));
