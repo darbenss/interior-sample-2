@@ -200,11 +200,14 @@ export function initGsapScroll(): void {
 
     /* NOTHING TO ANIMATE, NOTHING TO DOWNLOAD.
 
-       This runs on every page, but the effects are opt-in per element and most
-       pages carry none of them. Without this check each one would fetch and
-       parse ~45 KB of library to find zero targets. It also makes adoption
-       incremental: a page starts paying for GSAP on the commit that first adds
-       a `data-gsap` attribute to it, not before. */
+       This runs on every page, and the effects are opt-in per element.
+
+       CURRENTLY THIS EXCLUDES NOTHING, and that is worth knowing rather than
+       discovering. The footer wordmark carries `data-gsap="chars"` and the
+       footer is in BaseLayout, so every page on the site matches and every
+       page pays the ~45 KB. The check is kept because it is the thing that
+       makes that reversible: drop the footer effect and the guard immediately
+       starts excluding again, with no other change. */
     if (!document.querySelector('[data-gsap]')) return;
 
     let detachLenis: Teardown | null = null;

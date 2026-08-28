@@ -1,0 +1,145 @@
+---
+/**
+ * The page-transition curtain.
+ *
+ * A solid panel sweeps up to cover the viewport, the router swaps the document
+ * underneath it, and the same panel continues up and off the top to reveal the
+ * new page. One continuous gesture in one direction — not a cover-then-retreat,
+ * which reads as an apology rather than a transition.
+ *
+ * WHY IT IS `transition:persist`
+ * Astro replaces the body's children on every swap. Without this the panel
+ * covering the screen would be destroyed mid-animation and replaced by a fresh
+ * one sitting at its authored off-screen position, which means the new page
+ * appears instantly and the reveal animates nothing. Persisting keeps the same
+ * DOM node — and therefore the same running WAAPI animation — across the swap.
+ */
+---
+
+<div class="rr-curtain" aria-hidden="true" transition:persist="rr-curtain"></div>
+
+<script>
+  /* --------------------------------------------------------------------------
+   * THIS SCRIPT DELIBERATELY DOES NOT USE src/lib/lifecycle.ts.
+   *
+   * That registry exists because most scripts bind to a document that is about
+   * to be replaced. This one is the exception, and the exception is the whole
+   * point: its listeners must survive every swap, because they are what drives
+   * the swap. Registering them per page would tear the cover animation down
+   * halfway through the navigation that started it.
+   *
+   * Module scripts are evaluated exactly once per session under `ClientRouter`,
+   * which is precisely the lifetime these listeners want. Do not "fix" this by
+   * moving it into the registry.
+   *
+   * NO GSAP HERE, ON PURPOSE. The curtain runs on every page, and reaching for
+   * the timeline library would drag ~45 KB onto pages that need nothing else
+   * from it. Two transform keyframes is what the Web Animations API is for: it
+   * is native, it returns a promise the router can be made to wait on, and it
+   * runs on the compositor.
+   * ------------------------------------------------------------------------ */
+
+  const REDUCED = '(prefers-reduced-motion: reduce)';
+
+  /* Asymmetric on purpose. Covering is the reader waiting, so it is brisk; the
+     reveal is the new page arriving, so it takes its time. Both use the site's
+     entrance curve rather than an ease-in-out, which would make the panel look
+     like it is decelerating into the middle of the screen. */
+  const COVER_MS = 520;
+  const REVEAL_MS = 720;
+  const EASE = 'cubic-bezier(0.33, 1, 0.68, 1)';
+
+  const OFF_BELOW = 'translate3d(0, 100%, 0)';
+  const COVERING = 'translate3d(0, 0, 0)';
+  const OFF_ABOVE = 'translate3d(0, -100%, 0)';
+
+  type PreparationEvent = Event & { loader: () => Promise<void> };
+
+  let running: Animation | null = null;
+  /* Guards the reveal. `astro:page-load` also fires on the very first load of a
+     session, where nothing ever covered — running the reveal there would sweep
+     an opaque panel across a page the visitor is already looking at. */
+  let covered = false;
+
+  const panel = () => document.querySelector<HTMLElement>('.rr-curtain');
+  const reduced = () => window.matchMedia(REDUCED).matches;
+
+  function settle(node: HTMLElement, transform: string): void {
+    /* Write the resting position as an inline style BEFORE releasing the
+       animation. A `fill: forwards` animation holds the final frame; cancelling
+       it without having staged the same value first drops the element back to
+       its authored transform for one frame, which is a full-screen flash. */
+    node.style.transform = transform;
+    running?.cancel();
+    running = null;
+  }
+
+  async function cover(): Promise<void> {
+    const node = panel();
+    if (!node || reduced()) return;
+
+    running?.cancel();
+    node.style.transform = OFF_BELOW;
+    node.classList.add('is-active');
+
+    running = node.animate([{ transform: OFF_BELOW }, { transform: COVERING }], {
+      duration: COVER_MS,
+      easing: EASE,
+      fill: 'forwards',
+    });
+
+    await running.finished.catch(() => {});
+    /* Hold the covered position on the element itself, so the swap that happens
+       next cannot leave it anywhere else. */
+    if (running) settle(node, COVERING);
+    covered = true;
+  }
+
+  function reveal(): void {
+    const node = panel();
+    if (!node || !covered) return;
+    covered = false;
+
+    if (reduced()) {
+      settle(node, OFF_BELOW);
+      node.classList.remove('is-active');
+      return;
+    }
+
+    running?.cancel();
+    running = node.animate([{ transform: COVERING }, { transform: OFF_ABOVE }], {
+      duration: REVEAL_MS,
+      easing: EASE,
+      fill: 'forwards',
+    });
+
+    running.finished
+      .then(() => {
+        node.classList.remove('is-active');
+        /* Reset to BELOW, not above: the next navigation has to sweep up from
+           the bottom edge again. */
+        settle(node, OFF_BELOW);
+      })
+      .catch(() => {});
+  }
+
+  /* HOLDING THE SWAP. `event.loader` is what the router awaits before it
+     replaces the document, so wrapping it is the supported way to make the
+     navigation wait for something. Running the cover animation and the original
+     loader with Promise.all rather than in sequence means the fetch happens
+     WHILE the panel closes — the transition costs the reader the longer of the
+     two, not the sum.
+
+     This event does not fire on the initial page load, which is what we want:
+     the preloader owns that moment. */
+  document.addEventListener('astro:before-preparation', (event) => {
+    const prep = event as PreparationEvent;
+    const load = prep.loader;
+    prep.loader = async () => {
+      await Promise.all([cover(), load()]);
+    };
+  });
+
+  /* The new document is in place and painted underneath the panel. */
+  document.addEventListener('astro:page-load', reveal);
+</script>

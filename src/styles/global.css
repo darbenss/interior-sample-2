@@ -1940,6 +1940,64 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
+   THE PAGE CURTAIN
+
+   Unlayered, for the same reason the hero bed is: it has to beat utility
+   classes without relying on layer order.
+
+   THE BROWSER TRANSITION IS SUPPRESSED, NOT USED. ClientRouter is here for
+   the routing — no document reload, no white flash — but the visible
+   crossing is the curtain in src/components/PageCurtain.astro. Leaving the
+   default root cross-fade on would run a second, unsynchronised animation
+   underneath it, which shows at the panel edges and costs frames on the
+   exact navigation the curtain exists to make feel deliberate.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+.rr-curtain {
+  position: fixed;
+  inset: 0;
+  /* ABOVE THE PRELOADER, which also sits at 9999. Equal z-index is resolved
+     by DOM order, and this component renders BEFORE the preloader in
+     BaseLayout — so at 9999 the curtain would lose. It cannot come up in
+     practice (the card is once per session and holds the scroll), but a
+     stacking bug that only appears on one code path is not a bug anybody finds
+     later. */
+  z-index: 10000;
+  background-color: var(--color-charcoal);
+  /* Parked below the fold. Not `display: none` — the panel has to be
+     animatable on the frame the click lands, and a display change would
+     cost a layout pass before the animation could start. */
+  transform: translate3d(0, 100%, 0);
+
+  /* NEVER INTERACTIVE, EVEN WHILE COVERING. Blocking pointer events during
+     the sweep would stop a double-click starting a second navigation, which
+     is a real if minor benefit — and the cost of getting it wrong is a
+     transparent, invisible, full-viewport panel that swallows every click on
+     the site if it ever fails to reset. That trade is not close. */
+  pointer-events: none;
+}
+
+/* Promoted only while it is actually moving — the same rule every other
+   animation on this site follows. A permanently-promoted full-viewport layer
+   is a full-screen texture held in VRAM for the life of the session. */
+.rr-curtain.is-active {
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* The script already skips the animation; this guarantees the panel can
+     never be left mid-sweep by a preference change between navigations. */
+  .rr-curtain {
+    transform: translate3d(0, 100%, 0);
+  }
+}
+/* ═══════════════════════════════════════════════════════════════════════
    THE HERO SLIDER — moved here from an inline <style is:global> in
    src/pages/index.astro.
 

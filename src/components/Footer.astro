@@ -18,9 +18,18 @@ const year = new Date().getFullYear();
 
 <footer class="rr-footer">
   <div class="rr-footer__wordmark" aria-hidden="true">
-    <span data-reveal="up">
-      <span>{site.studioName}</span>
-    </span>
+    {/* Per-character, via GSAP SplitText — see initChars in gsap-effects.ts.
+
+        NOTE THE SITE-WIDE COST. This footer is in BaseLayout, so `data-gsap`
+        now matches on EVERY page and the ~45 KB brotli GSAP bundle loads
+        everywhere. The `[data-gsap]` guard in gsap-scroll.ts still runs but no
+        longer excludes anything.
+
+        Additive, like every other reveal here: with no JS, a failed chunk, or
+        reduced motion, this is an ordinary line of type. The hidden state is
+        written by GSAP at split time and can only be reached by a runtime that
+        can also undo it. */}
+    <span data-gsap="chars">{site.studioName}</span>
   </div>
 
   <div class="rr-footer__top shell">

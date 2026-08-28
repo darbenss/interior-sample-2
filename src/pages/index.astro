@@ -649,7 +649,25 @@ const selected = featured.map((project, i) => {
                   beneath it — 32svh clears that on a 667px screen, the shortest
                   phone worth designing for. Desktop puts the image beside the
                   copy instead of above it and has the height to spare. */}
-              <div class="rr-services__figure">
+              {/* THE PANEL ENTRANCE.
+
+                  Existing grammars, existing observer, no new JavaScript: the
+                  figure is a `mask` frame (the photograph rises out of it) and
+                  each line of copy is an `up` slab. The delays sequence one
+                  panel — image, then number, rule, title, body — rather than
+                  letting the whole article arrive as a block.
+
+                  WHY THIS WORKS INSIDE A HORIZONTAL RAIL. The panels are moved
+                  by a transform inside a clipped, sticky viewport, and
+                  IntersectionObserver measures the rendered box — so a panel
+                  still parked off to the right reports no intersection and
+                  reveals as it travels in. Watch this one on a real machine:
+                  the rail is driven by animation-timeline on the compositor,
+                  and how promptly the observer sees a compositor-driven
+                  transform is engine business. If it does not, all three panels
+                  simply reveal together when the section pins, which is a
+                  weaker effect but not a broken one. */}
+              <div class="rr-services__figure" data-reveal="mask">
                 <MaterialImage
                   src={service.src}
                   alt={service.alt}
@@ -662,15 +680,34 @@ const selected = featured.map((project, i) => {
               </div>
 
               <div class="rr-services__copy">
-                <span class="font-display text-headline-md text-brass-deep">
-                  {service.index}
+                {/* Each `up` element needs exactly one child wrapping its text —
+                    that child is the slab that slides out of the clipped box. */}
+                <span
+                  class="block font-display text-headline-md text-brass-deep"
+                  data-reveal="up"
+                  data-reveal-delay="140"
+                >
+                  <span>{service.index}</span>
                 </span>
-                <span class="mt-5 block h-px w-14 bg-brass" aria-hidden="true" />
-                <h3 class="mt-7 font-display text-headline-md text-on-surface">
-                  {service.title}
+                <span
+                  class="mt-5 block h-px w-14 bg-brass"
+                  aria-hidden="true"
+                  data-reveal="wipe"
+                  data-reveal-delay="220"
+                />
+                <h3
+                  class="mt-7 font-display text-headline-md text-on-surface"
+                  data-reveal="up"
+                  data-reveal-delay="300"
+                >
+                  <span>{service.title}</span>
                 </h3>
-                <p class="mt-5 font-body text-body-md font-light text-on-surface-variant">
-                  {service.body}
+                <p
+                  class="mt-5 font-body text-body-md font-light text-on-surface-variant"
+                  data-reveal="up"
+                  data-reveal-delay="400"
+                >
+                  <span>{service.body}</span>
                 </p>
               </div>
             </article>
@@ -860,12 +897,7 @@ const selected = featured.map((project, i) => {
               class={`rr-sel__item rr-sel__item--${slot.key}`}
             >
               <div class="rr-sel__frame" data-shape={slot.shape} data-reveal="mask">
-                {/* The homepage half of the project morph. This is the most
-                    travelled route into a project, so leaving it out would mean
-                    the one path most visitors take is the one that still hard
-                    swaps. Same key as the /portfolio card and the detail hero. */}
                 <Image
-                  transition:name={`project-${project.id}`}
                   class="rr-sel__img"
                   src={image}
                   alt={project.data.coverAlt}

@@ -121,7 +121,70 @@ function initSplitReveals(
   ScrollTrigger.refresh();
 }
 
-/* --------------------------------------------------------------- 2. CURTAIN
+/* ----------------------------------------------------------------- 2. CHARS
+
+   Per-character reveal, for one element: the footer wordmark.
+
+   `mask: 'chars'` is what does the work the hand-rolled version used to do by
+   markup — SplitText clones each character into a wrapper and sets overflow on
+   it, so every glyph slides out from behind its own edge rather than the line
+   sliding as one slab. It uses `clip` rather than `hidden`, which is the right
+   choice and worth knowing: `overflow: hidden` makes every one of those
+   wrappers a scroll container, and a focusable element inside any of them
+   could then be scrolled and permanently shunt the glyph sideways.
+
+   `autoSplit` re-splits on font load and resize. That matters more here than
+   anywhere: the wordmark is `clamp(2.5rem, 14.2vw, 14rem)` and the display
+   face swaps in late, so a split measured against the fallback would leave
+   every character wrapper the wrong width.
+   ------------------------------------------------------------------------ */
+function initChars(
+  { gsap, SplitText }: GsapBundle,
+  splits: { revert: () => void }[]
+): void {
+  const targets = gsap.utils.toArray<HTMLElement>('[data-gsap="chars"]');
+
+  targets.forEach((el) => {
+    const stagger = Number(el.dataset.gsapStagger ?? 0.035);
+
+    const split = SplitText.create(el, {
+      type: 'chars',
+      mask: 'chars',
+      autoSplit: true,
+      charsClass: 'rr-char',
+      /* Without this the wordmark is announced as ten unrelated letters. The
+         footer container is aria-hidden anyway, so this is belt and braces —
+         but the effect is reusable and the next element it lands on may not
+         be. */
+      aria: 'auto',
+
+      onSplit(self) {
+        return gsap.from(self.chars, {
+          /* yPercent, not y. A pixel offset would be wrong at one of the two
+             ends of a clamp() that spans 2.5rem to 14rem. */
+          yPercent: 100,
+          duration: 1.1,
+          ease: 'power3.out',
+          stagger,
+          scrollTrigger: {
+            trigger: el,
+            /* Later than the block reveals: this sits at the very bottom of
+               the document, and firing it at 85% would spend the whole
+               animation off-screen. */
+            start: 'top 95%',
+            once: true,
+          },
+          onStart: () => gsap.set(self.chars, { willChange: 'transform' }),
+          onComplete: () => gsap.set(self.chars, { clearProps: 'willChange' }),
+        });
+      },
+    });
+
+    splits.push(split);
+  });
+}
+
+/* --------------------------------------------------------------- 3. CURTAIN
 
    Sticky-scroll reveal: a section pins under the viewport while an overlying
    panel is drawn away, uncovering the content beneath it.
@@ -183,7 +246,7 @@ function initCurtains({ gsap }: GsapBundle): void {
   });
 }
 
-/* -------------------------------------------------------------- 3. PARALLAX
+/* -------------------------------------------------------------- 4. PARALLAX
 
    Depth by differential rate. The element travels a percentage of its own
    height across the window in which it is visible, against the page's travel.
@@ -240,6 +303,7 @@ export function initEffects(bundle: GsapBundle): Teardown {
   const splits: { revert: () => void }[] = [];
 
   initSplitReveals(bundle, splits);
+  initChars(bundle, splits);
   initCurtains(bundle);
   initParallax(bundle);
 

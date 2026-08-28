@@ -6,6 +6,7 @@ import Preloader from '@/components/Preloader.astro';
 import { ONCE_PER_SESSION as preloaderOncePerSession } from '@/components/preloader/timeline';
 import Footer from '@/components/Footer.astro';
 import { ClientRouter } from 'astro:transitions';
+import PageCurtain from '@/components/PageCurtain.astro';
 import { site } from '@/lib/site';
 
 export type Props = {
@@ -284,6 +285,12 @@ const analyticsEndpoint = import.meta.env.PUBLIC_ANALYTICS_ENDPOINT ?? '';
       possible at all (a shared element cannot be shared across a full
       document load).
 
+      The visible transition is NOT the browser's. `::view-transition-*(root)`
+      is suppressed in global.css and the fallback animation is off, because
+      the whole crossing is hidden behind src/components/PageCurtain.astro.
+      Two animations for one navigation is how you get a cross-fade showing
+      through the edge of a curtain.
+
       IT ALSO BREAKS EVERY "RUN ONCE" ASSUMPTION ON THE SITE. The DOM is
       replaced but the module graph is not, so a script that initialised at
       module scope never runs again, while anything it bound to `window` or
@@ -292,12 +299,13 @@ const analyticsEndpoint = import.meta.env.PUBLIC_ANALYTICS_ENDPOINT ?? '';
       re-runs them on `astro:page-load` and tears them down on
       `astro:before-swap`. Read that file before adding a ninth one.
     */}
-    <ClientRouter />
+    <ClientRouter fallback="none" />
 
     <slot name="head" />
   </head>
 
   <body class="bg-surface text-on-surface font-body antialiased">
+    <PageCurtain />
     <Preloader />
 
     {/*

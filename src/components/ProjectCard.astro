@@ -42,11 +42,7 @@ const { data } = project;
 >
   <a href={`/portfolio/${project.id}`} class="flex h-full flex-col no-underline">
     <div class="relative overflow-hidden">
-      {/* The grid half of the shared-element morph: this exact image becomes
-          the hero on /portfolio/[slug]. Keyed on project id so the name is
-          unique on a page showing several cards. */}
       <MaterialImage
-        transitionName={`project-${project.id}`}
         src={data.coverImage}
         alt={data.coverAlt}
         materialLabel={badge ? null : data.materialLabel}

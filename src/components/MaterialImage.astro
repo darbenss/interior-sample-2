@@ -42,17 +42,6 @@ export type Props = {
   maxH?: string;
   /** object-position, for images whose subject is off-centre. */
   position?: string;
-  /**
-   * Shared-element name for the view transition. Pass the SAME value on the
-   * grid thumbnail and on the detail-page hero and the browser will morph one
-   * into the other instead of cross-fading the two pages.
-   *
-   * MUST BE UNIQUE PER PAGE. Two elements claiming one name is a violation of
-   * the view-transition spec, and the browser resolves it by silently
-   * abandoning the animation — so the failure mode is "the morph just does not
-   * happen", with nothing in the console. Project id is the natural key.
-   */
-  transitionName?: string;
 };
 
 const {
@@ -66,7 +55,6 @@ const {
   widths = [480, 768, 1024, 1440],
   maxH = 'max-h-[70vh]',
   position = 'object-center',
-  transitionName,
 } = Astro.props;
 
 const image = resolveImage(src);
@@ -99,8 +87,8 @@ const boxClasses = [
   .filter(Boolean)
   .join(' ');
 
-/* Everything the <Image> needs except the view-transition directive, which
-   cannot live in a spread — see the note at the element below. */
+/* Hoisted purely for legibility: the render below is a two-branch conditional
+   on `image` and the prop list is long enough to bury it. */
 const imgProps = {
   src: image!,
   alt,
@@ -118,31 +106,7 @@ const imgProps = {
 {
   image && (
     <figure class={boxClasses}>
-      {/* TWO SPELLINGS OF ONE <Image>, AND THE DUPLICATION IS LOAD-BEARING.
-
-          `transition:name` is a COMPILE-TIME DIRECTIVE, not an attribute. Two
-          consequences, both of which produce silent bugs rather than errors:
-
-          1. It cannot be spread. `{...{ 'transition:name': x }}` emits a real
-             `transition:name="x"` attribute into the HTML, which no browser
-             understands and which looks perfectly correct in the markup.
-
-          2. It cannot be conditionally *valued*. Passing `undefined` does not
-             opt out — Astro falls back to an AUTO-GENERATED name derived from
-             this component's position in the render, e.g. `astro-m3cplixn-2`.
-             Those names are stable per index, so the second MaterialImage on
-             the homepage and the second on a project page get the SAME name,
-             and the browser dutifully morphs two completely unrelated
-             photographs into each other on navigation.
-
-          So the element carrying the directive has to be a different element
-          from the one that does not. Everything except the directive is shared
-          through `imgProps` so the two can never drift apart. */}
-      {transitionName ? (
-        <Image {...imgProps} transition:name={transitionName} />
-      ) : (
-        <Image {...imgProps} />
-      )}
+      <Image {...imgProps} />
 
       {materialLabel && (
         <figcaption class="pointer-events-none absolute bottom-4 left-4 font-body text-label-caps uppercase tracking-[0.15em] text-surface mix-blend-difference">
