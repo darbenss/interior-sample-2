@@ -672,13 +672,26 @@ const enterVars = `--rr-enter-start:${TIMELINE.fadeStart}ms;--rr-enter-step:80ms
    * itself: doing so inside a scroll handler forces a synchronous layout on a
    * frame that is usually already animating the pill.
    * ---------------------------------------------------------------------- */
+  import { register } from '@/lib/lifecycle';
+
   type NavState = 'top' | 'pill' | 'hidden';
 
-  const header = document.getElementById('rr-nav');
-  const toggle = document.getElementById('nav-toggle');
-  const panel = document.getElementById('mobile-nav');
+  register('nav', () => {
+    const header = document.getElementById('rr-nav');
+    const toggle = document.getElementById('nav-toggle');
+    const panel = document.getElementById('mobile-nav');
 
-  if (header) {
+    if (!header) return;
+
+    /* EVERY listener below is bound with this signal, which is the whole
+       teardown. Three of them (resize, rr:scroll, keydown) are on `window` or
+       `document` and would otherwise survive the document they were written
+       for — one more copy per navigation, each holding a reference to a navbar
+       that no longer exists, all of them still firing on every scroll frame. */
+    const ac = new AbortController();
+    const { signal } = ac;
+
+    {
     const overHero = header.dataset.overHero === 'true';
 
     /* Past this the hero has moved enough that a transparent bar would be
@@ -749,7 +762,7 @@ const enterVars = `--rr-enter-start:${TIMELINE.fadeStart}ms;--rr-enter-step:80ms
     window.addEventListener('resize', () => {
       window.clearTimeout(resizeTimer);
       resizeTimer = window.setTimeout(measurePill, 150);
-    });
+    }, { signal });
 
     const setState = (next: NavState) => {
       if (next === state) return;
@@ -786,7 +799,7 @@ const enterVars = `--rr-enter-start:${TIMELINE.fadeStart}ms;--rr-enter-step:80ms
            page content. */
         setState('pill');
       }
-    });
+    }, { signal });
 
     /* ---------------------------------------------------------------- MENU */
     toggle?.addEventListener('click', () => {
@@ -819,10 +832,13 @@ const enterVars = `--rr-enter-start:${TIMELINE.fadeStart}ms;--rr-enter-step:80ms
       if ((event.target as HTMLElement).closest('a')) {
         toggle?.dispatchEvent(new MouseEvent('click'));
       }
-    });
+    }, { signal });
 
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && menuOpen) toggle?.dispatchEvent(new MouseEvent('click'));
-    });
-  }
+    }, { signal });
+    }
+
+    return () => ac.abort();
+  });
 </script>

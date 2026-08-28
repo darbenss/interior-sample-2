@@ -5,6 +5,7 @@ import Nav from '@/components/Nav.astro';
 import Preloader from '@/components/Preloader.astro';
 import { ONCE_PER_SESSION as preloaderOncePerSession } from '@/components/preloader/timeline';
 import Footer from '@/components/Footer.astro';
+import { ClientRouter } from 'astro:transitions';
 import { site } from '@/lib/site';
 
 export type Props = {
@@ -74,11 +75,31 @@ const analyticsEndpoint = import.meta.env.PUBLIC_ANALYTICS_ENDPOINT ?? '';
       so turning the session skip off turns it off in both places.
     */}
     <script is:inline define:vars={{ once: preloaderOncePerSession }}>
-      try {
-        if (once && sessionStorage.getItem('rr-seen')) {
-          document.documentElement.classList.add('rr-skip-preloader');
-        }
-      } catch (e) {}
+      /* Stamped before first paint so a repeat visitor never sees a flash of
+         the title card. */
+      var rrSkipPreloader = function () {
+        try {
+          if (once && sessionStorage.getItem('rr-seen')) {
+            document.documentElement.classList.add('rr-skip-preloader');
+            /* Belt and braces for the client-side router: the overlay markup is
+               swapped back in on every navigation, and the CSS that hides it
+               keys off the class above. Removing the element outright means a
+               fixed, full-viewport overlay can never end up sitting over the
+               new page swallowing clicks, whatever the cascade is doing. */
+            var el = document.getElementById('rr-preloader');
+            if (el) el.remove();
+          }
+        } catch (e) {}
+      };
+
+      rrSkipPreloader();
+
+      /* THE CLASS DOES NOT RELIABLY SURVIVE A SWAP. Astro copies <html>
+         attributes from the incoming document, and this class only ever existed
+         at runtime — so it is not in the markup being copied in, and it can be
+         stripped on navigation. after-swap runs before the new page is painted,
+         so re-stamping here is invisible rather than a flicker. */
+      document.addEventListener('astro:after-swap', rrSkipPreloader);
     </script>
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -255,6 +276,24 @@ const analyticsEndpoint = import.meta.env.PUBLIC_ANALYTICS_ENDPOINT ?? '';
       initGsapScroll();
     </script>
 
+    {/*
+      ---------------------------------------------------------- THE ROUTER
+
+      Swaps the document instead of reloading it, which is what removes the
+      white flash between pages and what makes the project-image morph
+      possible at all (a shared element cannot be shared across a full
+      document load).
+
+      IT ALSO BREAKS EVERY "RUN ONCE" ASSUMPTION ON THE SITE. The DOM is
+      replaced but the module graph is not, so a script that initialised at
+      module scope never runs again, while anything it bound to `window` or
+      `document` survives and accumulates one copy per navigation. Every
+      script here now registers with src/lib/lifecycle.ts instead, which
+      re-runs them on `astro:page-load` and tears them down on
+      `astro:before-swap`. Read that file before adding a ninth one.
+    */}
+    <ClientRouter />
+
     <slot name="head" />
   </head>
 
@@ -286,55 +325,15 @@ const analyticsEndpoint = import.meta.env.PUBLIC_ANALYTICS_ENDPOINT ?? '';
     </div>
 
     {/*
-      Scroll reveal. Deliberately additive: elements render settled in the HTML
-      and are only *armed* (hidden) by this script once we know the browser can
-      un-hide them. A crawler, a reader-mode parser, or a visitor whose JS fails
-      sees finished content rather than an empty page.
+      Scroll reveal. Deliberately additive: elements render settled in the
+      HTML and are only *armed* (hidden) by this module once we know the
+      browser can un-hide them. Lives in src/lib/reveal.ts rather than inline
+      because it now has to hold a teardown — see the note in that file about
+      what a stale observer does to page two.
     */}
     <script>
-      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-      if ('IntersectionObserver' in window && !prefersReduced) {
-        const targets = document.querySelectorAll<HTMLElement>('[data-reveal]');
-
-        targets.forEach((el) => el.classList.add('reveal-armed'));
-
-        const observer = new IntersectionObserver(
-          (entries) => {
-            /* Elements that cross in the same frame AND share a parent are
-               revealed one after another rather than as a block, so a group
-               (the philosophy scenes, the services panels, a heading + its
-               paragraph) reads as a sequence. An explicit data-reveal-delay
-               still wins outright; the 90ms auto-step only fills in where none
-               was set. Grouping by parent keeps the stagger local — two
-               unrelated elements that happen to enter together are not chained. */
-            const groups = new Map<Element, HTMLElement[]>();
-            for (const entry of entries) {
-              if (!entry.isIntersecting) continue;
-              const el = entry.target as HTMLElement;
-              const parent = el.parentElement ?? document.body;
-              const bucket = groups.get(parent) ?? [];
-              bucket.push(el);
-              groups.set(parent, bucket);
-            }
-
-            for (const members of groups.values()) {
-              members.sort((a, b) =>
-                a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1
-              );
-              members.forEach((el, i) => {
-                const explicit = el.dataset.revealDelay;
-                const delay = explicit ? Number(explicit) : i * 90;
-                window.setTimeout(() => el.classList.add('is-visible'), delay);
-                observer.unobserve(el);
-              });
-            }
-          },
-          { rootMargin: '0px 0px -12% 0px', threshold: 0.05 }
-        );
-
-        targets.forEach((el) => observer.observe(el));
-      }
+      import { initReveal } from '@/lib/reveal';
+      initReveal();
     </script>
   </body>
 </html>

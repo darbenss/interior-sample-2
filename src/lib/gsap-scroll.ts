@@ -39,6 +39,7 @@
  * ------------------------------------------------------------------------- */
 
 import type LenisType from 'lenis';
+import { register, isFirstBoot, type Teardown } from './lifecycle';
 import type { gsap as GsapType } from 'gsap';
 import type { ScrollTrigger as ScrollTriggerType } from 'gsap/ScrollTrigger';
 import type { SplitText as SplitTextType } from 'gsap/SplitText';
@@ -61,6 +62,10 @@ const REDUCED = '(prefers-reduced-motion: reduce)';
 /* Memoised, so a page running three effect modules parses the library once.
    Every consumer awaits this same promise. */
 let bundlePromise: Promise<GsapBundle | null> | null = null;
+
+/* Set once the library is on the page. The `rr:lenis-ready` handler needs it,
+   and that handler can fire before or after the import resolves. */
+let loadedBundle: GsapBundle | null = null;
 
 /**
  * Load GSAP + ScrollTrigger + SplitText and register them.
@@ -106,7 +111,7 @@ export function loadGsap(): Promise<GsapBundle | null> {
 /**
  * Put Lenis on GSAP's ticker and hand ScrollTrigger the scroll signal.
  */
-function attachLenis(bundle: GsapBundle, lenis: LenisType): void {
+function attachLenis(bundle: GsapBundle, lenis: LenisType): Teardown {
   const { gsap, ScrollTrigger } = bundle;
 
   /* Lenis moves the page with `window.scrollTo`, so ScrollTrigger's own
@@ -114,11 +119,18 @@ function attachLenis(bundle: GsapBundle, lenis: LenisType): void {
      not GSAP's. Updating it from Lenis's own event means ScrollTrigger holds
      the new offset in the same frame Lenis produced it, before a tween
      renders. */
-  lenis.on('scroll', ScrollTrigger.update);
+  const onLenisScroll = () => ScrollTrigger.update();
+  lenis.on('scroll', onLenisScroll);
 
   /* GSAP's ticker passes seconds; Lenis wants milliseconds. This is the whole
-     bridge. */
-  gsap.ticker.add((time: number) => lenis.raf(time * 1000));
+     bridge.
+
+     THE RETURN VALUE IS NOT OPTIONAL HERE. `ticker.add` hands back the
+     function it actually registered, and that reference is the only way to
+     remove it again. Without the removal below, every navigation adds another
+     ticker callback driving a Lenis instance whose document was thrown away —
+     they never stop running, and the cost compounds for the whole session. */
+  const drive = gsap.ticker.add((time: number) => lenis.raf(time * 1000));
 
   /* ONLY NOW does Lenis stop driving itself. See note 2 in the header. */
   lenis.options.autoRaf = false;
@@ -132,7 +144,20 @@ function attachLenis(bundle: GsapBundle, lenis: LenisType): void {
      reasons of its own — a font swap, a split, an image finally laying out —
      each of which changes document height and would otherwise leave Lenis
      easing toward a scroll limit that no longer exists. */
-  ScrollTrigger.addEventListener('refreshInit', () => lenis.resize());
+  const onRefreshInit = () => lenis.resize();
+  ScrollTrigger.addEventListener('refreshInit', onRefreshInit);
+
+  return () => {
+    ScrollTrigger.removeEventListener('refreshInit', onRefreshInit);
+    gsap.ticker.remove(drive);
+    lenis.off('scroll', onLenisScroll);
+
+    /* Hand the loop back before letting go. The instance is about to be
+       destroyed by smooth-scroll's own teardown, which runs after this one —
+       but if that ever stops being true, a Lenis left with autoRaf false and
+       no ticker driving it is an unscrollable page. */
+    lenis.options.autoRaf = true;
+  };
 }
 
 /**
@@ -170,49 +195,72 @@ function scheduleRefreshes(bundle: GsapBundle): void {
  * authored, settled DOM is the reduced-motion experience.
  */
 export function initGsapScroll(): void {
-  if (window.matchMedia(REDUCED).matches) return;
+  register('gsap-scroll', () => {
+    if (window.matchMedia(REDUCED).matches) return;
 
-  /* NOTHING TO ANIMATE, NOTHING TO DOWNLOAD.
+    /* NOTHING TO ANIMATE, NOTHING TO DOWNLOAD.
 
-     This module is wired into BaseLayout, so it runs on every page — but the
-     effects are opt-in per element, and most pages here carry none of them.
-     Without this check every one of them would fetch and parse ~45 KB of
-     library in order to find zero targets and do nothing.
+       This runs on every page, but the effects are opt-in per element and most
+       pages carry none of them. Without this check each one would fetch and
+       parse ~45 KB of library to find zero targets. It also makes adoption
+       incremental: a page starts paying for GSAP on the commit that first adds
+       a `data-gsap` attribute to it, not before. */
+    if (!document.querySelector('[data-gsap]')) return;
 
-     It also makes adoption incremental: the layer can ship dark, and a page
-     starts paying for GSAP on the commit that first adds a `data-gsap`
-     attribute to it, not before. Cheap to evaluate — one querySelector,
-     which stops at the first match. */
-  if (!document.querySelector('[data-gsap]')) return;
+    let detachLenis: Teardown | null = null;
+    let teardownEffects: Teardown | null = null;
+    let cancelled = false;
 
-  const boot = async () => {
-    const bundle = await loadGsap();
-    if (!bundle) return;
+    const bindLenis = (bundle: GsapBundle, lenis: LenisType) => {
+      if (cancelled) return;
+      detachLenis = attachLenis(bundle, lenis);
+    };
 
-    /* Lenis may already be up (it races us off the same event), may still be
-       fetching its chunk, or may never arrive if that fetch failed. All three
-       are fine — ScrollTrigger works against native scroll perfectly well, it
-       just will not be frame-locked to easing that is not running. */
-    const existing = (window as { __rrLenis?: LenisType }).__rrLenis;
-    if (existing) {
-      attachLenis(bundle, existing);
+    const onLenisReady = (event: WindowEventMap['rr:lenis-ready']) => {
+      const bundle = loadedBundle;
+      if (bundle) bindLenis(bundle, event.detail.lenis);
+    };
+
+    const boot = async () => {
+      const bundle = await loadGsap();
+      if (!bundle || cancelled) return;
+      loadedBundle = bundle;
+
+      /* Lenis may already be up (it races us off the same event), may still be
+         fetching its chunk, or may never arrive if that fetch failed. All three
+         are fine — ScrollTrigger works against native scroll perfectly well. */
+      const existing = (window as { __rrLenis?: LenisType }).__rrLenis;
+      if (existing) {
+        bindLenis(bundle, existing);
+      } else {
+        window.addEventListener('rr:lenis-ready', onLenisReady, { once: true });
+      }
+
+      const { initEffects } = await import('./gsap-effects');
+      if (cancelled) return;
+      teardownEffects = initEffects(bundle);
+
+      scheduleRefreshes(bundle);
+    };
+
+    /* The preloader only exists on the first page of a session — see the same
+       note in smooth-scroll.ts. Waiting for it on any later page would mean the
+       effects simply never initialise there. */
+    const waitingOnPreloader = isFirstBoot() && document.getElementById('rr-preloader');
+    const start = () => void boot();
+
+    if (waitingOnPreloader) {
+      window.addEventListener('rr:preloader-done', start, { once: true });
     } else {
-      window.addEventListener(
-        'rr:lenis-ready',
-        (event) => attachLenis(bundle, event.detail.lenis),
-        { once: true }
-      );
+      start();
     }
 
-    const { initEffects } = await import('./gsap-effects');
-    initEffects(bundle);
-
-    scheduleRefreshes(bundle);
-  };
-
-  if (document.getElementById('rr-preloader')) {
-    window.addEventListener('rr:preloader-done', () => void boot(), { once: true });
-  } else {
-    void boot();
-  }
+    return () => {
+      cancelled = true;
+      window.removeEventListener('rr:preloader-done', start);
+      window.removeEventListener('rr:lenis-ready', onLenisReady);
+      teardownEffects?.();
+      detachLenis?.();
+    };
+  });
 }

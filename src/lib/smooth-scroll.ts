@@ -44,6 +44,8 @@ declare global {
   }
 }
 
+import { register, isFirstBoot, type Teardown } from './lifecycle';
+
 const REDUCED = '(prefers-reduced-motion: reduce)';
 
 /* Direction is derived here rather than read from Lenis, so the native
@@ -104,7 +106,26 @@ function useNativeScroll(): () => void {
  * own chunk, requested after the preloader is gone rather than alongside the
  * hero image.
  */
-async function useLenis(detachNative: () => void): Promise<void> {
+/**
+ * Boot Lenis and bridge its frames onto `rr:scroll`.
+ *
+ * Returns a teardown. THIS IS THE WHOLE BACK-BUTTON FIX, and it is worth being
+ * explicit about why the obvious cheaper version does not work.
+ *
+ * The tempting approach is to build Lenis once and keep it across navigations,
+ * nudging it back into sync after each swap. It desynchronises in a way that is
+ * hard to chase: Astro restores the previous scroll offset with `window.scrollTo`
+ * on a back-navigation, but Lenis holds its own `animatedScroll` and
+ * `targetScroll` from the page you just left. The next wheel event animates from
+ * THOSE numbers, so the page lurches from wherever the old page was to wherever
+ * the new one actually is. It also measured the old document, so its scroll limit
+ * is wrong until something forces a resize.
+ *
+ * A fresh instance per page has neither problem: it measures the document in
+ * front of it and reads the current offset as its starting point, for free. The
+ * library is already parsed, so the second construction costs almost nothing.
+ */
+async function useLenis(detachNative: () => void): Promise<Teardown | null> {
   try {
     const { default: Lenis } = await import('lenis');
 
@@ -116,48 +137,42 @@ async function useLenis(detachNative: () => void): Promise<void> {
       /* ~1s to settle. Long enough to read as "smooth", short enough that the
          page still feels like it obeys the wheel. */
       duration: 1.05,
-      /* Exponential ease-out — the standard Lenis curve. Matches the shape of
-         `--ease-intent` (the cubic-bezier every transition on this site uses),
-         so scrolling and the reveal animations feel like one system. */
+      /* Exponential ease-out — the standard Lenis curve. */
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       /* TOUCH IS LEFT ALONE ON PURPOSE. Mobile browsers already scroll on the
          compositor; hijacking that hands a 60fps native gesture to JavaScript
-         and makes it worse on the devices least able to absorb it. Lenis
-         smooths wheel input only. */
+         and makes it worse on the devices least able to absorb it. */
       smoothWheel: true,
       syncTouch: false,
-      /* AUTORAF STAYS ON. Read this before trying to "optimise" it.
+      /* AUTORAF STAYS ON HERE. Read the long note below before changing it.
 
-         The obvious saving is to drive the loop yourself and park it whenever
-         `lenis.isScrolling` is false, so an idle page costs no frames. That
-         version shipped here and made the site COMPLETELY UNSCROLLABLE by
-         mouse wheel, because the loop and the input deadlock each other:
+         The GSAP layer sets this to false once it has Lenis on GSAP's ticker,
+         and that handoff is safe because the ticker is already running by the
+         time the flag flips. Constructing with it false is NOT safe: if the
+         gsap chunk 404s, or the page has no [data-gsap] markup and the layer
+         deliberately never loads, nothing would ever call raf() and the page
+         would swallow every wheel event while sitting at scrollY 0.
 
-           wheel arrives -> Lenis sets a new target and preventDefaults the
-           event, so the browser does not scroll natively -> animating to that
-           target requires raf() -> raf() is only called while the loop runs ->
-           the loop is restarted from the 'scroll' callback -> 'scroll' only
-           fires once raf() has moved the page.
-
-         Nothing ever breaks the cycle. The page swallows every wheel event and
-         sits at scrollY 0. It is invisible in code review and invisible in a
-         screenshot — the page looks perfect, it just cannot move.
-
-         Waking the loop from 'wheel' would patch that one path, but scrollTo,
-         scrollbar drags and keyboard paging all need the same treatment, and
-         each missed path is another way to hang the page. Lenis's own loop is
-         one rAF whose body is a no-op when there is nothing to animate; that is
-         a fair price for a scroll that cannot lock up. */
+         That exact failure shipped here once, from a hand-rolled loop that
+         parked itself when idle and deadlocked against Lenis's own input
+         handling. It is invisible in code review and invisible in a
+         screenshot — the page looks perfect, it just cannot move. */
       autoRaf: true,
     });
 
-    lenis.on('scroll', ({ scroll }: { scroll: number }) => emit(scroll));
+    const onScroll = ({ scroll }: { scroll: number }) => emit(scroll);
+    lenis.on('scroll', onScroll);
 
-    /* Anchor links and the "Skip to content" link still have to work. Lenis
-       owns the scroll position now, so handing these to it keeps them smooth
-       and keeps Lenis's internal target in sync — a raw `scrollIntoView` would
-       teleport the page out from under it. */
-    document.addEventListener('click', (event) => {
+    /* Anchor links and "Skip to content" still have to work. Lenis owns the
+       scroll position now, so handing these to it keeps them smooth and keeps
+       its internal target in sync — a raw `scrollIntoView` would teleport the
+       page out from under it.
+
+       NAMED, NOT INLINE. This is a `document` listener, so it outlives the DOM
+       it was registered against. Left unremoved it would accumulate one copy
+       per navigation, each closing over a destroyed Lenis instance, and every
+       anchor click would fire all of them. */
+    const onAnchorClick = (event: MouseEvent) => {
       const link = (event.target as HTMLElement | null)?.closest?.('a[href^="#"]');
       if (!link) return;
 
@@ -169,58 +184,94 @@ async function useLenis(detachNative: () => void): Promise<void> {
 
       event.preventDefault();
       lenis.scrollTo(target as HTMLElement, { offset: -100 });
-    });
+    };
+    document.addEventListener('click', onAnchorClick);
 
-    /* Expose for debugging and for any future island that needs to stop the
-       page (a modal, a lightbox). Nothing in the site reads this today. */
+    /* Exposed for the GSAP layer, which reads it synchronously when it boots
+       after Lenis, and for any future island that needs to stop the page. */
     (window as unknown as { __rrLenis?: unknown }).__rrLenis = lenis;
 
-    /* Hand the instance to the GSAP layer, which puts this object on GSAP's
-       ticker and only then sets `autoRaf = false`. The flag stays TRUE here
-       on purpose: until that handoff has actually happened Lenis must keep
-       driving itself, or a failed gsap chunk leaves the page unscrollable —
-       the exact failure documented in the autoRaf note above. */
+    /* Hand the instance to the GSAP layer. The flag stays TRUE until that
+       layer has the ticker running — see the autoRaf note above. */
     window.dispatchEvent(
       new CustomEvent('rr:lenis-ready', { detail: { lenis } })
     );
 
     emit(window.scrollY);
+
+    return () => {
+      document.removeEventListener('click', onAnchorClick);
+      lenis.off('scroll', onScroll);
+      lenis.destroy();
+      delete (window as unknown as { __rrLenis?: unknown }).__rrLenis;
+    };
   } catch {
     /* Chunk failed to load. The page still scrolls natively — only the easing
-       is lost — and `detachNative` was never reached, so the fallback signal
-       is still attached and the navbar is unaffected. */
+       is lost — and `detachNative` was never reached, so the fallback signal is
+       still attached and the navbar is unaffected. */
+    return null;
   }
 }
 
 /**
- * Entry point. Called from BaseLayout.
+ * Entry point. Called once from BaseLayout; the registry re-runs it per page.
  *
- * Waits for the preloader before constructing Lenis. Two reasons, and the
- * second is the one that actually bites:
- *   1. The title card holds `html.rr-loading { overflow: hidden }` for 3s.
- *      Lenis measures the document on construction; measuring a page that is
- *      locked at zero height gives it the wrong limit.
- *   2. Building it during the draw puts library parse + execute on the thread
- *      the preloader is painting on.
+ * WAITING FOR THE PRELOADER, BUT ONLY ONCE. The title card holds
+ * `html.rr-loading { overflow: hidden }` for 3s on the first page of a session.
+ * Lenis measures the document on construction, and measuring a page locked at
+ * zero height gives it the wrong limit — so on that first page it waits.
+ *
+ * On every page after it, `rr:preloader-done` will never fire again (the card is
+ * once per session). Waiting for it there would leave the site permanently
+ * unscrollable from the second page onward, which is exactly the class of bug
+ * that survives a code review.
  */
 export function initSmoothScroll(): void {
-  if (window.matchMedia(REDUCED).matches) {
-    /* No easing under reduced motion — but the navbar still needs to know
-       where the page is, so the native signal runs in Lenis's place. */
-    useNativeScroll();
-    return;
-  }
+  register('smooth-scroll', () => {
+    if (window.matchMedia(REDUCED).matches) {
+      /* No easing under reduced motion — but the navbar still needs to know
+         where the page is, so the native signal runs in Lenis's place. */
+      return useNativeScroll();
+    }
 
-  /* The navbar has to respond from the first frame, even while the overlay is
-     still up (a visitor can scroll behind it the moment the lock releases).
-     Lenis hands this teardown back once it is ready to take over. */
-  const detachNative = useNativeScroll();
+    /* Reset between pages. `lastY` is module state and survives the swap; left
+       alone, the first emit on a new page would compute its delta against the
+       old page's offset and hand the navbar a direction it never travelled. */
+    lastY = window.scrollY;
 
-  if (document.getElementById('rr-preloader')) {
-    window.addEventListener('rr:preloader-done', () => void useLenis(detachNative), {
-      once: true,
-    });
-  } else {
-    void useLenis(detachNative);
-  }
+    /* The navbar has to respond from the first frame, even while the overlay is
+       still up. Lenis hands this teardown back once it is ready to take over. */
+    const detachNative = useNativeScroll();
+
+    let lenisTeardown: Teardown | null = null;
+    let cancelled = false;
+
+    const boot = () => {
+      void useLenis(detachNative).then((teardown) => {
+        /* The visitor may have navigated away during the dynamic import. If so
+           this page is already torn down and the instance we just built has no
+           document — drop it immediately rather than leaking it. */
+        if (cancelled) {
+          teardown?.();
+          return;
+        }
+        lenisTeardown = teardown;
+      });
+    };
+
+    const waitingOnPreloader = isFirstBoot() && document.getElementById('rr-preloader');
+
+    if (waitingOnPreloader) {
+      window.addEventListener('rr:preloader-done', boot, { once: true });
+    } else {
+      boot();
+    }
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener('rr:preloader-done', boot);
+      lenisTeardown?.();
+      detachNative();
+    };
+  });
 }

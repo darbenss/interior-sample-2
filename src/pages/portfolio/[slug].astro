@@ -145,7 +145,11 @@ const jsonLd = {
         viewport, and `maxH` stops a 3:2 crop at 1920px wide from being 1280px
         tall — the aspect box sets the height and object-cover takes the rest. */}
     <div class="mt-16 md:mt-20">
+      {/* The destination half of the morph. Same name as the card the reader
+          clicked, so the photograph detaches from the grid and expands into
+          this frame rather than being destroyed and re-introduced. */}
       <MaterialImage
+        transitionName={`project-${project.id}`}
         src={data.coverImage}
         alt={data.coverAlt}
         materialLabel={data.materialLabel}
@@ -372,7 +376,12 @@ const jsonLd = {
             </div>
 
             <div class="md:col-span-6 md:col-start-7">
+              {/* Keeps the chain going: clicking through to the next project
+                  morphs this card into that page's hero, the same way the grid
+                  morphs into this one. Distinct from the hero's own name above,
+                  so the two are unique on this page. */}
               <MaterialImage
+                transitionName={`project-${next.id}`}
                 src={next.data.coverImage}
                 alt={next.data.coverAlt}
                 materialLabel={next.data.materialLabel}

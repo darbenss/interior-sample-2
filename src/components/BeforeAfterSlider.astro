@@ -258,9 +258,16 @@ const inputId = `ba-${label
 </style>
 
 <script>
+  import { register } from '@/lib/lifecycle';
+
   /* One handler set per comparison on the page. Everything below is additive:
-     the markup is already a valid 50/50 comparison without it. */
-  document.querySelectorAll<HTMLElement>('[data-ba]').forEach((root) => {
+     the markup is already a valid 50/50 comparison without it.
+
+     REGISTERED RATHER THAN RUN. This module is evaluated once per session, so
+     on a client-side navigation back to a page with a comparison on it the
+     handlers would never be attached again and the slider would be inert. */
+  register('before-after', () => {
+    document.querySelectorAll<HTMLElement>('[data-ba]').forEach((root) => {
     const frame = root.querySelector<HTMLElement>('.ba-frame');
     const range = root.querySelector<HTMLInputElement>('.ba-range');
     if (!frame || !range) return;
@@ -336,5 +343,10 @@ const inputId = `ba-${label
     frame.addEventListener('pointercancel', stop);
 
     root.classList.add('is-ready');
+    });
+
+    /* No teardown. Every listener above is bound to an element inside the
+       swapped subtree, so they are collected with it — there is nothing left
+       on `window` or `document` to detach. */
   });
 </script>

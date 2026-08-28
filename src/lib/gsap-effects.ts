@@ -32,6 +32,7 @@
  * ------------------------------------------------------------------------- */
 
 import type { GsapBundle } from './gsap-scroll';
+import type { Teardown } from './lifecycle';
 
 /* Toggled by ScrollTrigger rather than written inline, so the compositor hint
    lives with the rest of the styling. See .rr-gsap-active in gsap.css. */
@@ -55,14 +56,21 @@ const ACTIVE = 'rr-gsap-active';
    words clipped in half. `autoSplit` re-runs the split on font load and on
    resize, and `onSplit` rebuilds the tween against the new lines.
    ------------------------------------------------------------------------ */
-function initSplitReveals({ gsap, SplitText, ScrollTrigger }: GsapBundle): void {
+function initSplitReveals(
+  { gsap, SplitText, ScrollTrigger }: GsapBundle,
+  /* Collected rather than discarded. With `autoSplit: true` every instance
+     holds a `document.fonts` listener and a ResizeObserver, neither of which
+     dies with the DOM it split — so an un-reverted instance is a listener
+     leak that compounds once per navigation. */
+  splits: { revert: () => void }[]
+): void {
   const targets = gsap.utils.toArray<HTMLElement>('[data-gsap="split"]');
 
   targets.forEach((el) => {
     const stagger = Number(el.dataset.gsapStagger ?? 0.08);
     const delay = Number(el.dataset.gsapDelay ?? 0);
 
-    SplitText.create(el, {
+    const split = SplitText.create(el, {
       type: 'lines',
       mask: 'lines',
       autoSplit: true,
@@ -103,6 +111,8 @@ function initSplitReveals({ gsap, SplitText, ScrollTrigger }: GsapBundle): void 
         });
       },
     });
+
+    splits.push(split);
   });
 
   /* Splitting rewrites the DOM of every target, which changes their heights.
@@ -226,8 +236,29 @@ function initParallax({ gsap }: GsapBundle): void {
  * Wire up whatever this page happens to contain. Each initialiser is a no-op
  * on a page with none of its markup, so this is safe to call everywhere.
  */
-export function initEffects(bundle: GsapBundle): void {
-  initSplitReveals(bundle);
+export function initEffects(bundle: GsapBundle): Teardown {
+  const splits: { revert: () => void }[] = [];
+
+  initSplitReveals(bundle, splits);
   initCurtains(bundle);
   initParallax(bundle);
+
+  return () => {
+    /* Revert the splits FIRST. Reverting restores the original markup, and
+       doing it after the triggers are gone leaves GSAP writing to elements
+       nothing is tracking any more. */
+    for (const split of splits) {
+      try {
+        split.revert();
+      } catch {
+        /* The element may already be gone with the swapped document. */
+      }
+    }
+    splits.length = 0;
+
+    /* Every trigger on the page, including the pin-spacers `pin: true`
+       injected into the layout. `true` tells ScrollTrigger to also revert
+       the inline styles it wrote. */
+    bundle.ScrollTrigger.getAll().forEach((trigger) => trigger.kill(true));
+  };
 }

@@ -166,6 +166,13 @@ const SLOT_SIZES: Record<(typeof SLOTS)[number], string> = {
    * offset together — swapping one class re-shapes the card (via the inherited
    * --rr-card-ratio) and re-places it in the same paint. See global.css.
    * ---------------------------------------------------------------------- */
+  import { register } from '@/lib/lifecycle';
+
+  /* Registered, not run at module scope: this script is evaluated the first
+     time the visitor reaches /portfolio and never again, so on a return visit
+     the filter buttons would be dead. The registry re-runs it per page and the
+     querySelectorAll below makes it a no-op everywhere else. */
+  register('portfolio-filter', () => {
   const SLOTS = ['lead', 'tall', 'band', 'inset', 'drop'];
 
   const buttons = document.querySelectorAll<HTMLButtonElement>('.filter-btn');
@@ -207,5 +214,8 @@ const SLOT_SIZES: Record<(typeof SLOTS)[number], string> = {
 
       if (empty) empty.hidden = visible > 0;
     });
+    });
+
+    /* Button listeners only, all inside the swapped grid. */
   });
 </script>
