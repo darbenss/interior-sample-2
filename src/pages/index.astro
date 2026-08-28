@@ -711,23 +711,6 @@ const selected = featured.map((project, i) => {
       it is pinned inside. Side by side, it fits. */}
   <section class="rr-services" aria-labelledby="services-heading">
     <div class="rr-services__viewport">
-      {/* A single photograph held behind the rail as quiet ground, drifting on
-          the section's own view() progress (transform only) under a heavy
-          alabaster wash so the dark heading and the light panels stay legible.
-          Rail mode only — the swipe-carousel fallback never renders it. */}
-      <div class="rr-services__bg" aria-hidden="true">
-        <Image
-          src={resolveImage('/src/assets/images/expertise/expertise-02.jpg')!}
-          alt=""
-          widths={[768, 1280, 1920]}
-          sizes="100vw"
-          format={IMAGE_FORMAT}
-          quality={IMAGE_QUALITY}
-          loading="lazy"
-          decoding="async"
-        />
-      </div>
-
       <div class="rr-services__rail">
         {/* Panel zero is the section's own title, riding the rail with the
             others. It is what stops the rail from starting mid-thought, and it
