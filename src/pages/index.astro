@@ -860,7 +860,12 @@ const selected = featured.map((project, i) => {
               class={`rr-sel__item rr-sel__item--${slot.key}`}
             >
               <div class="rr-sel__frame" data-shape={slot.shape} data-reveal="mask">
+                {/* The homepage half of the project morph. This is the most
+                    travelled route into a project, so leaving it out would mean
+                    the one path most visitors take is the one that still hard
+                    swaps. Same key as the /portfolio card and the detail hero. */}
                 <Image
+                  transition:name={`project-${project.id}`}
                   class="rr-sel__img"
                   src={image}
                   alt={project.data.coverAlt}

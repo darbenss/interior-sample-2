@@ -236,8 +236,19 @@ export function initSmoothScroll(): void {
 
     /* Reset between pages. `lastY` is module state and survives the swap; left
        alone, the first emit on a new page would compute its delta against the
-       old page's offset and hand the navbar a direction it never travelled. */
+       old page's offset and hand the navbar a direction it never travelled.
+
+       TWICE, BECAUSE OF SCROLL RESTORATION. On a back-navigation the router
+       restores the previous offset with window.scrollTo, and whether that lands
+       before or after astro:page-load is not something to bet the navbar on. If
+       it lands after, this first assignment reads 0 while the page is about to
+       jump to 2000px, and the navbar gets one bogus "scrolling down" and hides
+       itself on arrival. The rAF re-sync runs after the browser has settled the
+       position either way. */
     lastY = window.scrollY;
+    requestAnimationFrame(() => {
+      lastY = window.scrollY;
+    });
 
     /* The navbar has to respond from the first frame, even while the overlay is
        still up. Lenis hands this teardown back once it is ready to take over. */

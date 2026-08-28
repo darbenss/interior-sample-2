@@ -2035,7 +2035,7 @@
         animation-delay: 0ms;
       }
 
-      @supports (animation-timeline: scroll()) {
+      @supports (animation-timeline: scroll(root block)) {
         /* SCROLL-DRIVEN DEPTH. Interpolated by the compositor straight off
            the scroll offset — no listener, no rAF, no main-thread work per
            frame, and it inherits Lenis's easing for free because Lenis
@@ -2053,7 +2053,14 @@
           animation-duration: auto;
           animation-timing-function: linear;
           animation-fill-mode: both;
-          animation-timeline: scroll();
+          /* scroll(root block), NOT bare scroll(). Bare scroll() binds to the
+             NEAREST ANCESTOR SCROLL CONTAINER, and the hero <section> carries
+             Tailwind's overflow-hidden — which makes it exactly that. The
+             timeline would resolve against a box that never scrolls, progress
+             would sit at 0 forever, and the depth effect would silently never
+             run while looking completely correct in the stylesheet. (`clip` on
+             .rr-hero-bed is fine; clip does not create a scroll container.) */
+          animation-timeline: scroll(root block);
           /* Complete by the time the hero has fully left. */
           animation-range: 0 100svh;
         }
