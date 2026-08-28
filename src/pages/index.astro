@@ -557,10 +557,20 @@ const selected = featured.map((project, i) => {
      * Cost: one observer, three observed nodes, no scroll listener, no rAF, and
      * no layout read on any frame.
      * ---------------------------------------------------------------- */
-    const stage = document.getElementById('rr-scrolly-stage');
-    const scenes = document.querySelectorAll<HTMLElement>('[data-scene]');
+    import { register } from '@/lib/lifecycle';
 
-    if (stage && scenes.length && 'IntersectionObserver' in window) {
+    /* REGISTERED, NOT RUN. A module script is evaluated once per session — so
+       on the second visit to this page (a client-side navigation back from a
+       project) this would never run again, `is-live` would never be added, and
+       the stage would sit on its authored first photograph for the whole
+       section while the type scrolled past claiming three different things.
+       That is exactly what it did before this wrapper. */
+    register('scrolly', () => {
+      const stage = document.getElementById('rr-scrolly-stage');
+      const scenes = document.querySelectorAll<HTMLElement>('[data-scene]');
+
+      if (!stage || !scenes.length || !('IntersectionObserver' in window)) return;
+      {
       const layers = Array.from(stage.querySelectorAll<HTMLElement>('.rr-scrolly__layer'));
 
       /* Set the initial active layer BEFORE handing the stage over to script.
@@ -584,7 +594,16 @@ const selected = featured.map((project, i) => {
       );
 
       scenes.forEach((scene) => observer.observe(scene));
-    }
+
+      return () => {
+        observer.disconnect();
+        /* Hand the stage back to its authored, no-JS state. The element is
+           about to be swapped away, but a teardown that only half-undoes its
+           setup is a trap for whoever reuses this next. */
+        stage.classList.remove('is-live');
+      };
+      }
+    });
   </script>
 
   {/* ---------------------------------------------------------- SERVICES
@@ -743,6 +762,20 @@ const selected = featured.map((project, i) => {
      * a rAF-coalesced native listener) and it reads no layout — every
      * measurement is cached and recomputed only on resize or a font swap.
      * ---------------------------------------------------------------- */
+    import { register as registerRail } from '@/lib/lifecycle';
+
+    /* REGISTERED, NOT RUN — same reason as the scene observer above. Without
+       this, coming back to the homepage left `rr-services--rail` unapplied, so
+       the section rendered as a static one-viewport block and two of its three
+       panels were simply unreachable. */
+    registerRail('services-rail', () => {
+    /* One signal for every window listener this sets up — the teardown is a
+       single abort() rather than four matching removeEventListener calls that
+       can drift out of sync with the additions. */
+    const ac = new AbortController();
+    const { signal } = ac;
+    let rrResizeTimer = 0;
+
     const rrServices = document.querySelector<HTMLElement>('.rr-services');
     const rrViewport = rrServices?.querySelector<HTMLElement>('.rr-services__viewport');
     const rrRail = rrServices?.querySelector<HTMLElement>('.rr-services__rail');
@@ -780,7 +813,7 @@ const selected = featured.map((project, i) => {
         rrServices.classList.add('rr-services--driven');
         measure();
         paint(window.scrollY);
-        window.addEventListener('rr:scroll', onScroll);
+        window.addEventListener('rr:scroll', onScroll, { signal });
       };
 
       measure();
@@ -817,21 +850,30 @@ const selected = featured.map((project, i) => {
           if (x < 1) drive();
         };
 
-        window.addEventListener('rr:scroll', audit);
+        window.addEventListener('rr:scroll', audit, { signal });
       }
 
       /* The rail is sized by its type, and the webfont arrives late. */
       if (document.fonts?.ready) void document.fonts.ready.then(measure);
 
-      let rrResizeTimer = 0;
       window.addEventListener('resize', () => {
         window.clearTimeout(rrResizeTimer);
         rrResizeTimer = window.setTimeout(() => {
           measure();
           if (rrServices.classList.contains('rr-services--driven')) paint(window.scrollY);
         }, 150);
-      });
+      }, { signal });
     }
+
+    /* Every `rr:scroll` and `resize` listener above is on `window` and would
+       otherwise outlive the document it was written for — one more copy of the
+       rail driver per visit to this page, each painting a rail that is no
+       longer in the DOM, all of them on the same scroll frame. */
+    return () => {
+      ac.abort();
+      window.clearTimeout(rrResizeTimer);
+    };
+    });
   </script>
 
   {/* --------------------------------------------------------- PORTFOLIO
